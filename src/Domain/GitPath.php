@@ -8,12 +8,13 @@ namespace Phpgit\Domain;
  */
 readonly final class GitPath
 {
+    public const TRACKING_ROOT = 'project';
     public const GIT_DIR = '.phpgit';
     public const OBJECTS_DIR = 'objects';
     public const HEADS_DIR = 'refs/heads';
     public const HEAD = 'HEAD';
 
-
+    public readonly string $trackingRoot;
     public readonly string $gitDir;
     public readonly string $objectsDir;
     public readonly string $headsDir;
@@ -21,7 +22,8 @@ readonly final class GitPath
 
     public function __construct()
     {
-        $this->gitDir = sprintf('%s/%s', getcwd(), self::GIT_DIR);
+        $this->trackingRoot = sprintf("%s/%s", getcwd(), self::TRACKING_ROOT);
+        $this->gitDir = sprintf('%s/%s', $this->trackingRoot, self::GIT_DIR);
         $this->objectsDir = sprintf('%s/%s', $this->gitDir, self::OBJECTS_DIR);
         $this->headsDir = sprintf('%s/%s', $this->gitDir, self::HEADS_DIR);
         $this->head = sprintf('%s/%s', $this->gitDir, self::HEAD);
