@@ -6,29 +6,30 @@ use Phpgit\Domain\Branch;
 use Phpgit\Domain\GitPath;
 use Phpgit\Domain\Result;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\StyleInterface;
 
 final class GitInitUseCase
 {
     public function __construct(
-        private readonly StyleInterface $io,
-        private readonly LoggerInterface $logger
+        private readonly StyleInterface&OutputInterface $io,
+        private readonly LoggerInterface $logger,
+        private readonly GitPath $gitPath,
     ) {}
 
     public function __invoke(): Result
     {
-        $gitPath = new GitPath();
-        if (is_dir($gitPath->gitDir)) {
-            $this->io->warning('fatal: a Git repository already exists in this directory.');
+        if (is_dir($this->gitPath->gitDir)) {
+            $this->io->warning('a Git repository already exists in this directory.');
             return Result::Invalid;
         }
 
-        if ($this->setUpFiles($gitPath)) {
-            $this->io->success(sprintf('Initialized empty Git repository in %s', $gitPath->gitDir));
+        if ($this->setUpFiles($this->gitPath)) {
+            $this->io->success(sprintf('Initialized empty Git repository in %s', $this->gitPath->gitDir));
             return Result::Success;
         }
 
-        $this->io->error('fatal: unable to initialize git repository in the current directory.');
+        $this->io->error('unable to initialize git repository in the current directory.');
 
         return Result::Failure;
     }

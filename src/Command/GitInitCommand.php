@@ -2,6 +2,7 @@
 
 namespace Phpgit\Command;
 
+use Phpgit\Domain\GitPath;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\Logger;
 use Phpgit\UseCase\GitInitUseCase;
@@ -23,7 +24,7 @@ final class GitInitCommand extends Command
     {
         $logger = Logger::console();
         $io = new SymfonyStyle($input, $output);
-        $useCase = new GitInitUseCase($io, $logger);
+        $useCase = new GitInitUseCase($io, $logger, new GitPath);
 
         $result = $useCase();
 

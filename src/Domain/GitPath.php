@@ -28,4 +28,9 @@ readonly final class GitPath
         $this->headsDir = sprintf('%s/%s', $this->gitDir, self::HEADS_DIR);
         $this->head = sprintf('%s/%s', $this->gitDir, self::HEAD);
     }
+
+    public function getObjectPath(ObjectHash $objectHash): string
+    {
+        return sprintf('%s/%s/%s', $this->objectsDir, $objectHash->dir, $objectHash->filename);
+    }
 }

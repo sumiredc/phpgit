@@ -2,8 +2,10 @@
 
 namespace Phpgit\Command;
 
+use Phpgit\Domain\GitPath;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\Logger;
+use Phpgit\Repository\ObjectRepository;
 use Phpgit\UseCase\GitHashObjectUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -29,7 +31,9 @@ final class GitHashObjectCommand extends Command
 
         $logger = Logger::console();
         $io = new SymfonyStyle($input, $output);
-        $useCase = new GitHashObjectUseCase($io, $logger);
+        $gitPath = new GitPath;
+        $objectRepository = new ObjectRepository($gitPath);
+        $useCase = new GitHashObjectUseCase($io, $logger, $gitPath, $objectRepository);
 
         $result = $useCase($file);
 
