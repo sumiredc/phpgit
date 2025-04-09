@@ -1,0 +1,6 @@
+services:
+  php:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app

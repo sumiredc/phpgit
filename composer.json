@@ -1,0 +1,15 @@
+{
+    "name": "sumire/phpgit",
+    "autoload": {
+        "psr-4": {
+            "Phpgit\\": "src/"
+        }
+    },
+    "scripts": {
+        "app": "php src/app.php"
+    },
+    "require": {
+        "symfony/console": "^7.2",
+        "monolog/monolog": "^3.9"
+    }
+}
