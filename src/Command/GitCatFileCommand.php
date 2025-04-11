@@ -2,7 +2,7 @@
 
 namespace Phpgit\Command;
 
-use Phpgit\Domain\GitPath;
+use Phpgit\Domain\CommandInput\GitCatFileOptionType;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\Logger;
 use Phpgit\Repository\ObjectRepository;
@@ -35,22 +35,40 @@ final class GitCatFileCommand extends Command
     {
         $logger = Logger::console();
         $io = new SymfonyStyle($input, $output);
-        $gitPath = new GitPath;
-        $objectRepository = new ObjectRepository($gitPath);
-        $useCase = new GitCatFileUseCase($io, $logger, $gitPath, $objectRepository);
+        $objectRepository = new ObjectRepository();
+        $useCase = new GitCatFileUseCase($io, $logger, $objectRepository);
 
-        $type = boolval($input->getOption('type'));
-        $size = boolval($input->getOption('size'));
-        $exists = boolval($input->getOption('exists'));
-        $prettyPrint = boolval($input->getOption('pretty-print'));
+        $type = $this->validateOptionType($input);
+        if (is_null($type)) {
+            $io->warning("missing required type option");
+
+            return self::INVALID;
+        }
+
         $object = strval($input->getArgument('object'));
 
-        $result = $useCase($type, $size, $exists, $prettyPrint, $object);
+        $result = $useCase($type, $object);
 
         return match ($result) {
             Result::Failure => self::FAILURE,
             Result::Invalid => self::INVALID,
             Result::Success => self::SUCCESS
+        };
+    }
+
+    private function validateOptionType(InputInterface $input): ?GitCatFileOptionType
+    {
+        $type = boolval($input->getOption('type'));
+        $size = boolval($input->getOption('size'));
+        $exists = boolval($input->getOption('exists'));
+        $prettyPrint = boolval($input->getOption('pretty-print'));
+
+        return match (true) {
+            $type => GitCatFileOptionType::Type,
+            $size => GitCatFileOptionType::Size,
+            $exists => GitCatFileOptionType::Exists,
+            $prettyPrint => GitCatFileOptionType::PrettyPrint,
+            default => null,
         };
     }
 }

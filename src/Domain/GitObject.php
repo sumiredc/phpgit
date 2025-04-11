@@ -13,6 +13,14 @@ readonly final class GitObject
         public readonly int $size
     ) {}
 
+    public static function make(ObjectType $type, string $content): self
+    {
+        $size = strlen($content);
+        $header = sprintf('%s %d\0', $type->value, $size);
+
+        return new self($header, $content, $type, $size);
+    }
+
     public static function parse(string $uncompressed): ?self
     {
         [$header, $body] = explode('\0', $uncompressed, 2);
@@ -31,5 +39,10 @@ readonly final class GitObject
         }
 
         return new self($header, $body, $objectType, intval($size));
+    }
+
+    public function data(): string
+    {
+        return sprintf('%s%s', $this->header, $this->body);
     }
 }

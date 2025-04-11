@@ -1,8 +1,8 @@
 <?php
 
-namespace Phpgit\Domain\CommandArgument;
+namespace Phpgit\Domain\CommandInput;
 
-enum GitCatFileTypeArgument
+enum GitCatFileOptionType
 {
     case Type;
     case Size;

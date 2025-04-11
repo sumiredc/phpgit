@@ -9,13 +9,13 @@ use RuntimeException;
 interface ObjectRepositoryInterface
 {
     /** @throws RuntimeException */
-    public function saveObject(string $object): ObjectHash;
+    public function save(GitObject $gitObject): ObjectHash;
 
     /** @throws RuntimeException */
-    public function getCompressObject(ObjectHash $objectHash): string;
+    public function getCompressed(ObjectHash $objectHash): string;
 
     /** @throws RuntimeException */
-    public function getObject(ObjectHash $objectHash): GitObject;
+    public function get(ObjectHash $objectHash): GitObject;
 
-    public function existObject(ObjectHash $objectHash): bool;
+    public function exists(ObjectHash $objectHash): bool;
 }

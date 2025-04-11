@@ -2,6 +2,7 @@
 
 namespace Phpgit\Domain;
 
+use InvalidArgumentException;
 
 readonly final class ObjectHash
 {
@@ -20,17 +21,22 @@ readonly final class ObjectHash
         return new self(sha1($object));
     }
 
-    public static function parse(string $value): ?self
+    public static function parse(string $hash): self
     {
-        if (preg_match('/^[0-9a-f]{40}$/i', $value) !== 1) {
-            return null;
+        if (preg_match('/^[0-9a-f]{40}$/i', $hash) !== 1) {
+            throw new InvalidArgumentException(sprintf('invalid argument: %s', $hash));
         }
 
-        return new self($value);
+        return new self($hash);
     }
 
     public function value(): string
     {
-        return sprintf('%s%s', $this->dir, $this->filename);
+        return implode('', [$this->dir, $this->filename]);
+    }
+
+    public function fullPath(): string
+    {
+        return implode('/', [F_GIT_OBJECTS_DIR, $this->dir, $this->filename]);
     }
 }

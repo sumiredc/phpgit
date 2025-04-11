@@ -3,21 +3,18 @@
 namespace Phpgit\Repository;
 
 use Phpgit\Domain\GitObject;
-use Phpgit\Domain\GitPath;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use RuntimeException;
 
 final class ObjectRepository implements ObjectRepositoryInterface
 {
-    public function __construct(private readonly GitPath $gitPath) {}
-
     /** @throws RuntimeException */
-    public function saveObject(string $object): ObjectHash
+    public function save(GitObject $gitObject): ObjectHash
     {
-        $objectHash = ObjectHash::make($object);
+        $objectHash = ObjectHash::make($gitObject->data());
 
-        $objectDir = sprintf('%s/%s', $this->gitPath->objectsDir, $objectHash->dir);
+        $objectDir = sprintf('%s/%s', F_GIT_OBJECTS_DIR, $objectHash->dir);
         if (!is_dir($objectDir)) {
             if (!mkdir($objectDir, 0755)) {
                 throw new RuntimeException('failed to mkdir');
@@ -26,7 +23,7 @@ final class ObjectRepository implements ObjectRepositoryInterface
 
         $objectPath = sprintf('%s/%s', $objectDir, $objectHash->filename);
 
-        $compressed = $this->compress($object);
+        $compressed = $this->compress($gitObject->data());
         if (is_null($compressed)) {
             throw new RuntimeException('failed to compress');
         }
@@ -38,9 +35,9 @@ final class ObjectRepository implements ObjectRepositoryInterface
         return $objectHash;
     }
 
-    public function getCompressObject(ObjectHash $objectHash): string
+    public function getCompressed(ObjectHash $objectHash): string
     {
-        $path = $this->gitPath->getObjectPath($objectHash);
+        $path = $objectHash->fullPath();
 
         $compressed = file_get_contents($path);
         if ($compressed === false) {
@@ -51,9 +48,9 @@ final class ObjectRepository implements ObjectRepositoryInterface
     }
 
     /** @throws RuntimeException */
-    public function getObject(ObjectHash $objectHash): GitObject
+    public function get(ObjectHash $objectHash): GitObject
     {
-        $compressed = $this->getCompressObject($objectHash);
+        $compressed = $this->getCompressed($objectHash);
 
         $uncompressed = $this->decompress($compressed);
         if (is_null($uncompressed)) {
@@ -68,11 +65,9 @@ final class ObjectRepository implements ObjectRepositoryInterface
         return $gitObject;
     }
 
-    public function existObject(ObjectHash $objectHash): bool
+    public function exists(ObjectHash $objectHash): bool
     {
-        $path = $this->gitPath->getObjectPath($objectHash);
-
-        return is_file($path);
+        return is_file($objectHash->fullPath());
     }
 
     private function compress(string $object): ?string

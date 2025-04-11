@@ -2,9 +2,11 @@
 
 namespace Phpgit\UseCase;
 
-use Phpgit\Domain\GitPath;
+use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
+use Phpgit\Exception\FileNotFoundException;
+use Phpgit\Service\FileToObjectService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\StyleInterface;
@@ -15,36 +17,26 @@ final class GitHashObjectUseCase
     public function __construct(
         private readonly StyleInterface&OutputInterface $io,
         private readonly LoggerInterface $logger,
-        private readonly GitPath $gitPath,
         private readonly ObjectRepositoryInterface $objectRepository,
+        private readonly FileRepositoryInterface $fileRepository,
     ) {}
 
     public function __invoke(string $file): Result
     {
-        $filePath = sprintf('%s/%s', $this->gitPath->trackingRoot, $file);
-        if (!file_exists($filePath)) {
-            $this->io->error(sprintf('File not found: %s', $file));
-
-            return Result::Invalid;
-        }
-
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            $this->logger->error(sprintf('failed to file_get_contents: %s', $filePath));
-
-            return Result::Failure;
-        }
-
-        $header = sprintf('blob %d\0', strlen($content));
-        $object = sprintf('%s%s', $header, $content);
+        $fileToObjectService = new FileToObjectService($this->fileRepository);
 
         try {
-            $objectHash = $this->objectRepository->saveObject($object);
+            [$trakingFile, $gitObject] = $fileToObjectService($file);
+            $objectHash = $this->objectRepository->save($gitObject);
             $this->io->success($objectHash->value);
 
             return Result::Success;
+        } catch (FileNotFoundException) {
+            $this->io->error(sprintf('file not found: %s', $file));
+
+            return Result::Invalid;
         } catch (Throwable $th) {
-            $this->logger->error('failed to saveObject', ['exception' => $th]);
+            $this->logger->error('failed to create hash object', ['exception' => $th]);
 
             return Result::Failure;
         }
