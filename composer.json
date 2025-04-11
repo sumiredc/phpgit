@@ -2,7 +2,8 @@
     "name": "sumire/phpgit",
     "autoload": {
         "psr-4": {
-            "Phpgit\\": "src/"
+            "Phpgit\\": "src/",
+            "Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -11,5 +12,13 @@
     "require": {
         "symfony/console": "^7.2",
         "monolog/monolog": "^3.9"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }
