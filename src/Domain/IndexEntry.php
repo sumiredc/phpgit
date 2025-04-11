@@ -79,7 +79,7 @@ final class IndexEntry
         $permission = $entryHeader['object'] & 0b1_1111_1111;
 
         $indexObjectType = IndexObjectType::from($objectType);
-        $unixPermission = UnixPermission::from($permission);
+        $unixPermission = UnixPermission::fromDecoct($permission);
         $objectHash = ObjectHash::parse($entryHeader['object_name']);
         $trackingFile = TrackingFile::parse($path);
 

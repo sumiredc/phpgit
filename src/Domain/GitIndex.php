@@ -7,6 +7,9 @@ use RuntimeException;
 
 final class GitIndex
 {
+    /** 
+     * @var array<string,IndexEntry> key is filename
+     */
     private array $indexEntries = [];
 
     private function __construct(
@@ -54,16 +57,10 @@ final class GitIndex
 
     public function addEntry(IndexEntry $indexEntry): int
     {
-        $this->indexEntries[] = $indexEntry;
+        $this->indexEntries[$indexEntry->trackingFile->path] = $indexEntry;
 
         // sort path in asc
-        usort(
-            $this->indexEntries,
-            fn(IndexEntry $a, IndexEntry $b) => strcmp(
-                $a->trackingFile->path,
-                $b->trackingFile->path
-            )
-        );
+        ksort($this->indexEntries, SORT_STRING);
 
         return count($this->indexEntries);
     }
