@@ -6,6 +6,7 @@ require __DIR__ . '/const.php';
 use Phpgit\Command\GitCatFileCommand;
 use Phpgit\Command\GitHashObjectCommand;
 use Phpgit\Command\GitInitCommand;
+use Phpgit\Command\GitLsFilesCommand;
 use Phpgit\Command\GitUpdateIndexCommand;
 use Symfony\Component\Console\Application;
 
@@ -15,5 +16,6 @@ $app->add(new GitInitCommand());
 $app->add(new GitHashObjectCommand());
 $app->add(new GitCatFileCommand());
 $app->add(new GitUpdateIndexCommand());
+$app->add(new GitLsFilesCommand());
 
 $app->run();
