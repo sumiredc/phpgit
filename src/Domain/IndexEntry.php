@@ -215,4 +215,11 @@ final class IndexEntry
             $padding
         ]);
     }
+
+    public function flags(): int
+    {
+        return $this->assumeValidFlag << 15
+            | $this->extendedFlag << 14
+            | $this->stage << 12;
+    }
 }
