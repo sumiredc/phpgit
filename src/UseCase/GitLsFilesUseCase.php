@@ -52,6 +52,20 @@ final class GitLsFilesUseCase
 
     public function actionStage(): Result
     {
+        $gitIndex = $this->indexRepository->get();
+        $list = array_map(
+            fn(IndexEntry $indexEntry) => sprintf(
+                "%o %s %-7s %s",
+                $indexEntry->mode,
+                $indexEntry->objectHash->value(),
+                $indexEntry->stage,
+                $indexEntry->trackingFile->path,
+            ),
+            $gitIndex->entries()
+        );
+
+        $this->io->writeln($list);
+
         return Result::Success;
     }
 

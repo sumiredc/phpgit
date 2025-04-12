@@ -34,6 +34,9 @@ final class IndexEntry
         public readonly int $size,
         public readonly ObjectHash $objectHash,
         public readonly TrackingFile $trackingFile,
+        public readonly int $assumeValidFlag,
+        public readonly int $extendedFlag,
+        public readonly int $stage,
     ) {}
 
     public static function make(
@@ -56,6 +59,9 @@ final class IndexEntry
             size: $fileStat->size,
             objectHash: $objectHash,
             trackingFile: $trackingFile,
+            assumeValidFlag: 0,
+            extendedFlag: 0,
+            stage: 0,
         );
     }
 
@@ -78,13 +84,17 @@ final class IndexEntry
      */
     public static function parse(array $entryHeader, string $path): self
     {
-        $objectType = ($entryHeader['object_flags'] >> 12) & 0b1111;
-        $permission = $entryHeader['object_flags'] & 0b1_1111_1111;
-
+        $objectType = ($entryHeader['object_flags'] >> 12) & 0b1111; // the upper 4bit
+        $permission = $entryHeader['object_flags'] & 0b1_1111_1111; // the lower 9bit
         $indexObjectType = IndexObjectType::from($objectType);
         $unixPermission = UnixPermission::fromDecoct($permission);
+
         $objectHash = ObjectHash::parse($entryHeader['object_name']);
         $trackingFile = TrackingFile::parse($path);
+
+        $assumeValidFlag = ($entryHeader['flags'] >> 15) & 0b1; // the upper 1bit 
+        $extendedFlag = ($entryHeader['flags'] >> 14) & 0b1; // 1bit from the two upper
+        $stage = ($entryHeader['flags'] >> 12) & 0b11; // 2bit from the four upper
 
         return new self(
             ctime: $entryHeader['ctime_sec'],
@@ -101,6 +111,9 @@ final class IndexEntry
             size: $entryHeader['size'],
             objectHash: $objectHash,
             trackingFile: $trackingFile,
+            assumeValidFlag: $assumeValidFlag,
+            extendedFlag: $extendedFlag,
+            stage: $stage
         );
     }
 
@@ -180,7 +193,10 @@ final class IndexEntry
             throw new InvalidArgumentException(sprintf('the path length exceed of limit: %d', $pathLength));
         }
 
-        $flags = pack('n', $pathLength & 0x0FFF); // Path length is lowest 12 bit in flags
+        $assumeValidFlag = 0 << 15;
+        $extendedFlag = 0 << 14;
+        $stage = 0 << 12;
+        $flags = pack('n', $assumeValidFlag | $extendedFlag | $stage | $pathLength);
         $path = sprintf("%s\0", $this->trackingFile->path);
         $entrySize = 64 + $pathLength + 1; // 1byte is null-terminated string
         $paddingLength = (8 - ($entrySize % 8)) % 8;
