@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phpgit\UseCase;
 
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;

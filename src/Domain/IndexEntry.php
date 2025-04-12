@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phpgit\Domain;
 
 use Phpgit\Domain\FileStat;
@@ -168,7 +170,7 @@ final class IndexEntry
 
         $objectName = hex2bin($this->objectHash->value()); # 20byte
         if ($objectName === false) {
-            throw new RuntimeException('failed to hex2bin: %s', $this->objectHash->value());
+            throw new RuntimeException(sprintf('failed to hex2bin: %s', $this->objectHash->value()));
         }
 
         $flags = pack('n', min(strlen($this->trackingFile->path), 0xFFF));

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phpgit\Domain;
 
 use Symfony\Component\Console\Exception\InvalidOptionException;

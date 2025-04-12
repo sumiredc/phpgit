@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phpgit\UseCase;
 
 use InvalidArgumentException;
@@ -72,7 +74,7 @@ final class GitCatFileUseCase
 
         try {
             $gitObject = $this->objectRepository->get($objectHash);
-            $this->io->success($gitObject->size);
+            $this->io->success(strval($gitObject->size));
 
             return Result::Success;
         } catch (Throwable $th) {
