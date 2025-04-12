@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
+use InvalidArgumentException;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\IndexObjectType;
 use Phpgit\Domain\ObjectHash;
@@ -67,7 +68,7 @@ final class IndexEntry
      *  dev: int,
      *  ino: int,
      *  mode: int,
-     *  object: int,
+     *  object_flags: int,
      *  uid: int,
      *  gid: int,
      *  size: int,
@@ -77,8 +78,8 @@ final class IndexEntry
      */
     public static function parse(array $entryHeader, string $path): self
     {
-        $objectType = ($entryHeader['object'] >> 12) & 0b1111;
-        $permission = $entryHeader['object'] & 0b1_1111_1111;
+        $objectType = ($entryHeader['object_flags'] >> 12) & 0b1111;
+        $permission = $entryHeader['object_flags'] & 0b1_1111_1111;
 
         $indexObjectType = IndexObjectType::from($objectType);
         $unixPermission = UnixPermission::fromDecoct($permission);
@@ -112,12 +113,12 @@ final class IndexEntry
      *  dev: int,
      *  ino: int,
      *  mode: int,
-     *  object: int,
+     *  object_flags: int,
      *  uid: int,
      *  gid: int,
      *  size: int,
      *  object_name: string,
-     *  flags: string,
+     *  flags: int,
      * }
      */
     public static function parseHeader(string $entryHeaderBlob): array
@@ -131,7 +132,7 @@ final class IndexEntry
                 'Ndev',
                 'Nino',
                 'Nmode',
-                'nobject',
+                'nobject_flags',
                 'Nuid',
                 'Ngid',
                 'Nsize',
@@ -149,7 +150,7 @@ final class IndexEntry
     }
 
     /** NOTE: Path length is lowest 12 bit in flags */
-    public static function parsePathLength(string $flags): int
+    public static function parsePathLength(int $flags): int
     {
         return $flags & 0x0FFF;
     }
@@ -173,9 +174,17 @@ final class IndexEntry
             throw new RuntimeException(sprintf('failed to hex2bin: %s', $this->objectHash->value()));
         }
 
-        $flags = pack('n', min(strlen($this->trackingFile->path), 0xFFF));
-        $path = sprintf('%s\0', $this->trackingFile->path);
-        $padding = str_repeat('\0', (8 - (strlen($path) + 62) % 8) % 8);
+        $pathLength = strlen($this->trackingFile->path);
+        if ($pathLength > 0xFFF) {
+            // TODO: パスの上限値を釣果した場合は、1文字ずつnull終端まで取得する処理を導入して解消させる
+            throw new InvalidArgumentException(sprintf('the path length exceed of limit: %d', $pathLength));
+        }
+
+        $flags = pack('n', $pathLength & 0x0FFF); // Path length is lowest 12 bit in flags
+        $path = sprintf("%s\0", $this->trackingFile->path);
+        $entrySize = 64 + $pathLength + 1; // 1byte is null-terminated string
+        $paddingLength = (8 - ($entrySize % 8)) % 8;
+        $padding = str_repeat("\0", $paddingLength);
 
         return implode('', [
             $ctime,

@@ -40,20 +40,22 @@ final class IndexRepository implements IndexRepositoryInterface
 
             $entryHeader = IndexEntry::parseHeader($entryHeaderBlob);
 
-            $pathLength = IndexEntry::parsepathLength($entryHeader['flags']);
-            $path = fread($handle, $pathLength);
-            if ($path === false) {
+            $pathLength = IndexEntry::parsePathLength($entryHeader['flags']);
+            $pathWithNull = fread($handle, $pathLength + 1);
+            if ($pathWithNull === false) {
                 throw new RuntimeException('failed to fread Entry path');
             }
 
-            // skipp padding
-            $entrySize = 62 + $pathLength;
-            $padding = (8 - ($entrySize % 8)) % 8;
+            $path = substr($pathWithNull, 0, -1); // remove to null-terminated string
+
+            // skipp padding()
+            $entrySize = 64 + $pathLength + 1; // 1byte is null-terminated string
+            $paddingLength = (8 - ($entrySize % 8)) % 8;
 
             $indexEntry = IndexEntry::parse($entryHeader, $path);
             $gitIndex->addEntry($indexEntry);
 
-            if (fread($handle, $padding) === false) {
+            if ($paddingLength > 0 && fread($handle, $paddingLength) === false) {
                 throw new RuntimeException('failed to fread Entry padding');
             }
         }

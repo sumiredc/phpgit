@@ -51,10 +51,10 @@ final class GitUpdateIndexCommand extends Command
             $indexRepository
         );
 
-        $action = $this->validateArgumentAction($input);
+        $action = $this->validateOptionAction($input);
 
         if (is_null($action)) {
-            $io->warning("missing required action argument");
+            $io->warning("missing required action option");
 
             return self::INVALID;
         }
@@ -69,7 +69,7 @@ final class GitUpdateIndexCommand extends Command
         };
     }
 
-    private function validateArgumentAction(InputInterface $input): ?GitUpdateIndexOptionAction
+    private function validateOptionAction(InputInterface $input): ?GitUpdateIndexOptionAction
     {
         $add = boolval($input->getOption('add'));
         $remove = boolval($input->getOption('remove'));
