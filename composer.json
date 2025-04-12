@@ -7,7 +7,8 @@
         }
     },
     "scripts": {
-        "app": "php src/app.php"
+        "test": "docker compose run --rm --entrypoint '' php ./vendor/bin/pest",
+        "coverage": "docker compose run --rm --entrypoint '' php ./vendor/bin/pest -p --coverage"
     },
     "require": {
         "symfony/console": "^7.2",
