@@ -16,9 +16,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/** @see https://git-scm.com/docs/git-hash-object */
 #[AsCommand(
     name: 'git:hash-object',
-    description: '指定したファイルの blob オブジェクトを作成します',
+    description: '',
 )]
 final class GitHashObjectCommand extends Command
 {

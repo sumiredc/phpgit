@@ -19,9 +19,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/** @see https://git-scm.com/docs/git-update-index */
 #[AsCommand(
     name: 'git:update-index',
-    description: 'インデックスの更新をします',
+    description: '',
 )]
 final class GitUpdateIndexCommand extends Command
 {

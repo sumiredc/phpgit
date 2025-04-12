@@ -13,9 +13,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/** @see https://git-scm.com/docs/git-init */
 #[AsCommand(
     name: 'git:init',
-    description: '空の git リポジトリを作成します',
+    description: '',
 )]
 final class GitInitCommand extends Command
 {

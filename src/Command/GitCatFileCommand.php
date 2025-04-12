@@ -19,7 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'git:cat-file',
-    description: 'オブジェクトの中身を確認します',
+    description: '',
 )]
 final class GitCatFileCommand extends Command
 {
