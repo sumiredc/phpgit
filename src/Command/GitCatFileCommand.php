@@ -6,7 +6,7 @@ namespace Phpgit\Command;
 
 use Phpgit\Domain\CommandInput\GitCatFileOptionType;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\Logger;
+use Phpgit\Lib\IO;
 use Phpgit\Repository\ObjectRepository;
 use Phpgit\UseCase\GitCatFileUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -15,7 +15,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 /** @see https://git-scm.com/docs/git-cat-file */
 #[AsCommand(
@@ -36,10 +35,9 @@ final class GitCatFileCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $logger = Logger::console();
-        $io = new SymfonyStyle($input, $output);
+        $io = new IO($input, $output);
         $objectRepository = new ObjectRepository();
-        $useCase = new GitCatFileUseCase($io, $logger, $objectRepository);
+        $useCase = new GitCatFileUseCase($io, $objectRepository);
 
         $type = $this->validateOptionType($input);
         if (is_null($type)) {

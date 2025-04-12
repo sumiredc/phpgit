@@ -6,6 +6,7 @@ namespace Phpgit\Command;
 
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
 use Phpgit\Domain\Result;
+use Phpgit\Lib\IO;
 use Phpgit\Lib\Logger;
 use Phpgit\Repository\FileRepository;
 use Phpgit\Repository\IndexRepository;
@@ -38,14 +39,12 @@ final class GitUpdateIndexCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $logger = Logger::console();
-        $io = new SymfonyStyle($input, $output);
+        $io = new IO($input, $output);
         $objectRepository = new ObjectRepository;
         $fileRepository = new FileRepository;
         $indexRepository = new IndexRepository;
         $useCase = new GitUpdateIndexUseCase(
             $io,
-            $logger,
             $objectRepository,
             $fileRepository,
             $indexRepository

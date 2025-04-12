@@ -12,18 +12,15 @@ use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\FileNotFoundException;
+use Phpgit\Lib\IOInterface;
 use Phpgit\Service\FileToHashService;
-use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\StyleInterface;
 use Throwable;
 
 final class GitUpdateIndexUseCase
 {
     public function __construct(
-        private readonly StyleInterface&OutputInterface $io,
-        private readonly LoggerInterface $logger,
+        private readonly IOInterface $io,
         private readonly ObjectRepositoryInterface $objectRepository,
         private readonly FileRepositoryInterface $fileRepository,
         private readonly IndexRepositoryInterface $indexRepository,
@@ -43,7 +40,7 @@ final class GitUpdateIndexUseCase
 
             return Result::Invalid;
         } catch (Throwable $th) {
-            $this->logger->error('failed to update index', ['exception' => $th]);
+            $this->io->stackTrace($th);
 
             return Result::Failure;
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\Command;
 
 use Phpgit\Domain\Result;
+use Phpgit\Lib\IO;
 use Phpgit\Lib\Logger;
 use Phpgit\Repository\FileRepository;
 use Phpgit\Repository\ObjectRepository;
@@ -32,11 +33,10 @@ final class GitHashObjectCommand extends Command
     {
         $file = strval($input->getArgument('file'));
 
-        $logger = Logger::console();
-        $io = new SymfonyStyle($input, $output);
+        $io = new IO($input, $output);
         $objectRepository = new ObjectRepository();
         $fileRepository = new FileRepository();
-        $useCase = new GitHashObjectUseCase($io, $logger, $objectRepository, $fileRepository);
+        $useCase = new GitHashObjectUseCase($io, $objectRepository, $fileRepository);
 
         $result = $useCase($file);
 

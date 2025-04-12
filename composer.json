@@ -11,8 +11,7 @@
         "coverage": "docker compose run --rm --entrypoint '' php ./vendor/bin/pest -p --coverage"
     },
     "require": {
-        "symfony/console": "^7.2",
-        "monolog/monolog": "^3.9"
+        "symfony/console": "^7.2"
     },
     "require-dev": {
         "pestphp/pest": "^3.8"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\Command;
 
 use Phpgit\Domain\Result;
+use Phpgit\Lib\IO;
 use Phpgit\Lib\Logger;
 use Phpgit\UseCase\GitInitUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -24,9 +25,8 @@ final class GitInitCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $logger = Logger::console();
-        $io = new SymfonyStyle($input, $output);
-        $useCase = new GitInitUseCase($io, $logger);
+        $io = new IO($input, $output);
+        $useCase = new GitInitUseCase($io);
 
         $result = $useCase();
 

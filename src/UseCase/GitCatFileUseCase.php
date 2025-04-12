@@ -9,16 +9,13 @@ use Phpgit\Domain\CommandInput\GitCatFileOptionType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\StyleInterface;
+use Phpgit\Lib\IOInterface;
 use Throwable;
 
 final class GitCatFileUseCase
 {
     public function __construct(
-        private readonly StyleInterface&OutputInterface $io,
-        private readonly LoggerInterface $logger,
+        private readonly IOInterface $io,
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
@@ -34,11 +31,11 @@ final class GitCatFileUseCase
                 GitCatFileOptionType::PrettyPrint => $this->actionPrettyPrint($objectHash),
             };
         } catch (InvalidArgumentException) {
-            $this->io->warning(sprintf("Invalid argument in object: %s", $object));
+            $this->io->warning(sprintf("invalid argument in object: %s", $object));
 
             return Result::Invalid;
         } catch (Throwable $th) {
-            $this->logger->error('failed to cat file', ['exception' => $th]);
+            $this->io->stackTrace($th);
 
             return Result::Failure;
         }
@@ -47,41 +44,29 @@ final class GitCatFileUseCase
     private function actionType(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->io->warning(sprintf('git cat-file: could not get object info: %s', $objectHash->value()));
+            $this->io->warning(sprintf('could not get object info: %s', $objectHash->value()));
 
             return Result::Invalid;
         }
 
-        try {
-            $gitObject = $this->objectRepository->get($objectHash);
-            $this->io->success($gitObject->objectType->value);
+        $gitObject = $this->objectRepository->get($objectHash);
+        $this->io->success($gitObject->objectType->value);
 
-            return Result::Success;
-        } catch (Throwable $th) {
-            $this->logger->error('failed to getObject', ['exception' => $th]);
-
-            return Result::Failure;
-        }
+        return Result::Success;
     }
 
     private function actionSize(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->io->warning(sprintf('git cat-file: could not get object info: %s', $objectHash->value()));
+            $this->io->warning(sprintf('could not get object info: %s', $objectHash->value()));
 
             return Result::Invalid;
         }
 
-        try {
-            $gitObject = $this->objectRepository->get($objectHash);
-            $this->io->success(strval($gitObject->size));
+        $gitObject = $this->objectRepository->get($objectHash);
+        $this->io->success(strval($gitObject->size));
 
-            return Result::Success;
-        } catch (Throwable $th) {
-            $this->logger->error('failed to getObject', ['exception' => $th]);
-
-            return Result::Failure;
-        }
+        return Result::Success;
     }
 
     private function actionExists(ObjectHash $objectHash): Result
@@ -92,7 +77,7 @@ final class GitCatFileUseCase
             return Result::Success;
         }
 
-        $this->io->note('don\'t exists object');
+        $this->io->text('don\'t exists object');
 
         return Result::Failure;
     }
@@ -100,20 +85,14 @@ final class GitCatFileUseCase
     private function actionPrettyPrint(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->io->warning(sprintf('git cat-file: could not get object info: %s', $objectHash->value()));
+            $this->io->warning(sprintf('could not get object info: %s', $objectHash->value()));
 
             return Result::Invalid;
         }
 
-        try {
-            $gitObject = $this->objectRepository->get($objectHash);
-            $this->io->write($gitObject->body);
+        $gitObject = $this->objectRepository->get($objectHash);
+        $this->io->write($gitObject->body);
 
-            return Result::Success;
-        } catch (Throwable $th) {
-            $this->logger->error('failed to getObject', ['exception' => $th]);
-
-            return Result::Failure;
-        }
+        return Result::Success;
     }
 }
