@@ -17,6 +17,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/** @see https://git-scm.com/docs/git-cat-file */
 #[AsCommand(
     name: 'git:cat-file',
     description: '',
