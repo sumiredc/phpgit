@@ -32,11 +32,11 @@ final class GitHashObjectUseCase
         } catch (FileNotFoundException) {
             $this->io->writeln(sprintf('fatal: could not open \'$s\' for reading: No such file or directory', $file));
 
-            return Result::Failure;
+            return Result::GitError;
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
-            return Result::Failure;
+            return Result::GitError;
         }
     }
 }

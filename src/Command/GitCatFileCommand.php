@@ -45,11 +45,7 @@ final class GitCatFileCommand extends Command
 
         $result = $useCase($type, $object);
 
-        return match ($result) {
-            Result::Failure => self::FAILURE,
-            Result::Invalid => self::INVALID,
-            Result::Success => self::SUCCESS
-        };
+        return $result->value;
     }
 
     private function validateOptionType(InputInterface $input): ?GitCatFileOptionType

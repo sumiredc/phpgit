@@ -44,13 +44,16 @@ final class GitUpdateIndexUseCase
                 GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo($unixPermission, $objectHash, $file),
             };
         } catch (FileNotFoundException) {
-            $this->io->error(sprintf('file not found: %s', $file));
+            $this->io->error([
+                sprintf('error: %s: does not exist and --remove not passed', $file),
+                sprintf('fatal: Unable to process path %s', $file)
+            ]);
 
-            return Result::Invalid;
+            return Result::GitError;
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
-            return Result::Failure;
+            return Result::GitError;
         }
     }
 
@@ -129,7 +132,7 @@ final class GitUpdateIndexUseCase
                 sprintf('fatal: Unable to process path %s', $file)
             ]);
 
-            return Result::Failure;
+            return Result::GitError;
         }
     }
 
@@ -165,7 +168,7 @@ final class GitUpdateIndexUseCase
                 sprintf('fatal: git update-index: --cacheinfo cannot add %s', $file)
             ]);
 
-            return Result::Failure;
+            return Result::GitError;
         }
 
         $gitIndex = $this->indexRepository->getOrCreate();

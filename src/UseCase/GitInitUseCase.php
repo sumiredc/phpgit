@@ -34,7 +34,7 @@ final class GitInitUseCase
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
-            return Result::Failure;
+            return Result::GitError;
         }
     }
 }

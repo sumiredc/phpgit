@@ -61,11 +61,7 @@ final class GitLsFilesCommand extends Command
 
         $result = $useCase($action);
 
-        return match ($result) {
-            Result::Failure => self::FAILURE,
-            Result::Invalid => self::INVALID,
-            Result::Success => self::SUCCESS
-        };
+        return $result->value;
     }
 
     private function validateOptionAction(InputInterface $input): GitLsFileOptionAction

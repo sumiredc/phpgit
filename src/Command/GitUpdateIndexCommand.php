@@ -98,11 +98,7 @@ final class GitUpdateIndexCommand extends Command
 
         $result = $useCase($action, $file, $mode, $object);
 
-        return match ($result) {
-            Result::Failure => self::FAILURE,
-            Result::Invalid => self::INVALID,
-            Result::Success => self::SUCCESS
-        };
+        return $result->value;
     }
 
     private function validateOptionAction(InputInterface $input): ?GitUpdateIndexOptionAction

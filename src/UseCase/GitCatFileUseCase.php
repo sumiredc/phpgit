@@ -34,15 +34,15 @@ final class GitCatFileUseCase
         } catch (InvalidArgumentException) {
             $this->io->writeln(sprintf("fatal: Not a valid object name %s", $object));
 
-            return Result::Failure;
+            return Result::GitError;
         } catch (CannotGetObjectInfoException) {
             $this->io->writeln('fatal: git cat-file: could not get object info');
 
-            return Result::Failure;
+            return Result::GitError;
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
-            return Result::Failure;
+            return Result::GitError;
         }
     }
 

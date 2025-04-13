@@ -35,7 +35,7 @@ final class GitLsFilesUseCase
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
-            return Result::Failure;
+            return Result::GitError;
         }
     }
 

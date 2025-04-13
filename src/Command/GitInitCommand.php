@@ -30,10 +30,6 @@ final class GitInitCommand extends Command
 
         $result = $useCase();
 
-        return match ($result) {
-            Result::Failure => self::FAILURE,
-            Result::Invalid => self::INVALID,
-            Result::Success => self::SUCCESS
-        };
+        return $result->value;
     }
 }
