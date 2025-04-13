@@ -12,7 +12,7 @@ readonly final class TrackingFile
         public readonly string $path
     ) {}
 
-    public static function parse(string $path): self
+    public static function make(string $path): self
     {
         return new self($path);
     }

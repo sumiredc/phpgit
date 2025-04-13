@@ -42,19 +42,38 @@ readonly final class FileStat
     public static function make(array $stat): self
     {
         return new self(
-            $stat['dev'],
-            $stat['ino'],
-            $stat['mode'],
-            $stat['nlink'],
-            $stat['uid'],
-            $stat['gid'],
-            $stat['rdev'],
-            $stat['size'],
-            $stat['atime'],
-            $stat['mtime'],
-            $stat['ctime'],
-            $stat['blksize'],
-            $stat['blocks'],
+            dev: $stat['dev'],
+            ino: $stat['ino'],
+            mode: $stat['mode'],
+            nlink: $stat['nlink'],
+            uid: $stat['uid'],
+            gid: $stat['gid'],
+            rdev: $stat['rdev'],
+            size: $stat['size'],
+            atime: $stat['atime'],
+            mtime: $stat['mtime'],
+            ctime: $stat['ctime'],
+            blksize: $stat['blksize'],
+            blocks: $stat['blocks'],
+        );
+    }
+
+    public static function makeForCacheinfo(int $mode): self
+    {
+        return new self(
+            dev: 0,
+            ino: 0,
+            mode: $mode,
+            nlink: 0,
+            uid: 0,
+            gid: 0,
+            rdev: 0,
+            size: 0,
+            atime: 0,
+            mtime: 0,
+            ctime: 0,
+            blksize: 0,
+            blocks: 0,
         );
     }
 }

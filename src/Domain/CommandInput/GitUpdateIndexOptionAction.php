@@ -9,5 +9,5 @@ enum GitUpdateIndexOptionAction
     case Add;
     case Remove;
     case ForceRemove;
-    case Replace;
+    case Cacheinfo;
 }

@@ -11,6 +11,7 @@ use Phpgit\Repository\ObjectRepository;
 use Phpgit\UseCase\GitCatFileUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -40,12 +41,6 @@ final class GitCatFileCommand extends Command
         $useCase = new GitCatFileUseCase($io, $objectRepository);
 
         $type = $this->validateOptionType($input);
-        if (is_null($type)) {
-            $io->warning("missing required type option");
-
-            return self::INVALID;
-        }
-
         $object = strval($input->getArgument('object'));
 
         $result = $useCase($type, $object);
@@ -69,7 +64,7 @@ final class GitCatFileCommand extends Command
             $size => GitCatFileOptionType::Size,
             $exists => GitCatFileOptionType::Exists,
             $prettyPrint => GitCatFileOptionType::PrettyPrint,
-            default => null,
+            default => throw new InvalidOptionException('Not enough options'),
         };
     }
 }

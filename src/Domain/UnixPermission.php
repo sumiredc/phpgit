@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
-use Symfony\Component\Console\Exception\InvalidOptionException;
 use ValueError;
 
 enum UnixPermission: int
@@ -13,8 +12,16 @@ enum UnixPermission: int
     case RwxRxRx = 0755;
     case RwRR = 0644;
 
-    /** NOTE: 10 -> 8 */
-    public static function fromDecoct(int $dec): self
+    /** 
+     * NOTE: 10 -> UnixPermission
+     * 
+     * case1: 0 -> 0
+     * case2: 493 -> 0755
+     * case3: 420 -> 0644
+     * 
+     * other: -> ValueError
+     */
+    public static function fromDec(int $dec): self
     {
         return match ($dec) {
             self::Zero->value => self::Zero,
@@ -24,12 +31,32 @@ enum UnixPermission: int
         };
     }
 
+    /** 
+     * NOTE: (string)8 -> UnixPermission
+     * 
+     * ex1: 100755 -> 0755
+     * ex2: 100644 -> 0644
+     */
+    public static function fromOct(string $oct): self
+    {
+        $mode = intval($oct, 8);
+
+        return self::fromStatMode($mode);
+    }
+
     public static function fromStatMode(int $mode): self
     {
-        if (decoct($mode & 0777) & 0x0100) {
+        $permission = decoct($mode & 0777);
+        $owner = intval($permission[0]);
+        if ($owner & 1 === 1) {
             return self::RwxRxRx;
         }
 
         return self::RwRR;
+    }
+
+    public function mode(): int
+    {
+        return octdec(sprintf("100%o", $this->value));
     }
 }

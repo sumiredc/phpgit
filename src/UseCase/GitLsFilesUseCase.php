@@ -108,8 +108,8 @@ final class GitLsFilesUseCase
         foreach ($gitIndex->entries() as $indexEntry) {
             $entry = [
                 $indexEntry->trackingFile->path,
-                sprintf("  ctime: %d:%09d", $indexEntry->ctime, $indexEntry->ctimeNano),
-                sprintf("  mtime: %d:%09d", $indexEntry->mtime, $indexEntry->mtimeNano),
+                sprintf("  ctime: %d:%d", $indexEntry->ctime, $indexEntry->ctimeNano),
+                sprintf("  mtime: %d:%d", $indexEntry->mtime, $indexEntry->mtimeNano),
                 sprintf("  dev: %d\tino: %d", $indexEntry->dev, $indexEntry->ino),
                 sprintf("  uid: %d\tgid: %d", $indexEntry->uid, $indexEntry->gid),
                 sprintf("  size: %d\tflags: %d", $indexEntry->size, $indexEntry->flags())

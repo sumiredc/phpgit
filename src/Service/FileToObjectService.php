@@ -23,7 +23,7 @@ final class FileToObjectService
      */
     public function __invoke(string $file): array
     {
-        $trackingFile = TrackingFile::parse($file);
+        $trackingFile = TrackingFile::make($file);
         if (!$this->fileRepository->exists($trackingFile)) {
             throw new FileNotFoundException;
         }
