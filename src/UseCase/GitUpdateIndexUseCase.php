@@ -10,6 +10,7 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
+use Phpgit\Exception\CannotAddIndexException;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Lib\IOInterface;
 use Phpgit\Service\FileToHashService;
@@ -34,6 +35,14 @@ final class GitUpdateIndexUseCase
                 GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove(),
                 GitUpdateIndexOptionAction::Replace => $this->actionReplace(),
             };
+        } catch (CannotAddIndexException) { {
+                $this->io->writeln([
+                    sprintf('error: %s: cannot add to the index - missing --add option?', $file),
+                    sprintf('fatal: Unable to process path %s', $file)
+                ]);
+
+                return Result::Success; // NOTE: treat as normal end
+            }
         } catch (FileNotFoundException) {
             $this->io->error(sprintf('file not found: %s', $file));
 
@@ -71,30 +80,30 @@ final class GitUpdateIndexUseCase
 
     private function actionRemove(string $file): Result
     {
+        // NOTE: not found the index -> don't registed in index
+        if (!$this->indexRepository->exists()) {
+            throw new CannotAddIndexException();
+        }
+
+        $gitIndex = $this->indexRepository->get();
+
+        // NOTE: case of don't exists file
+        if (!$gitIndex->existsEntryByFilename($file)) {
+            throw new CannotAddIndexException();
+        }
+
+        // NOTE: don't registed in index
+        if (!$this->fileRepository->existsByFilename($file)) {
+            $gitIndex->removeEntryByFilename($file);
+
+            return Result::Success;
+        }
+
         $fileToHashService = new FileToHashService($this->fileRepository);
         [$trackingFile, $gitObject, $objectHash] = $fileToHashService($file);
 
         if (!$this->objectRepository->exists($objectHash)) {
             $this->objectRepository->save($gitObject);
-        }
-
-        $cannotAddIndexMessages = [
-            sprintf('error: %s: cannot add to the index - missing --add option?', $trackingFile->path),
-            sprintf('fatal: Unable to process path %s', $trackingFile->path)
-        ];
-
-        if (!$this->indexRepository->exists()) {
-            $this->io->writeln($cannotAddIndexMessages);
-
-            return Result::Success; // NOTE: treat as normal end
-        }
-
-        $gitIndex = $this->indexRepository->get();
-
-        if (!$gitIndex->existsEntry($trackingFile)) {
-            $this->io->writeln($cannotAddIndexMessages);
-
-            return Result::Success; // NOTE: treat as normal end
         }
 
         $fileStat = $this->fileRepository->getStat($trackingFile);

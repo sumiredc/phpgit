@@ -11,6 +11,8 @@ interface FileRepositoryInterface
 {
     public function exists(TrackingFile $trackingFile): bool;
 
+    public function existsByFilename(string $file): bool;
+
     public function getContents(TrackingFile $trackingFile): ?string;
 
     public function getStat(TrackingFile $trackingFile): ?FileStat;

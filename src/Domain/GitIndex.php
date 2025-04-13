@@ -98,4 +98,14 @@ final class GitIndex
     {
         return array_key_exists($trackingFile->path, $this->indexEntries);
     }
+
+    public function existsEntryByFilename(string $file): bool
+    {
+        return array_key_exists($file, $this->indexEntries);
+    }
+
+    public function removeEntryByFilename(string $file): void
+    {
+        unset($this->indexEntries[$file]);
+    }
 }

@@ -15,6 +15,11 @@ final class FileRepository implements FileRepositoryInterface
         return is_file($trackingFile->fullPath());
     }
 
+    public function existsByFilename(string $file): bool
+    {
+        return is_file(sprintf('%s/%s', F_GIT_TRACKING_ROOT, $file));
+    }
+
     public function getContents(TrackingFile $trackingFile): ?string
     {
         $content = file_get_contents($trackingFile->fullPath());
