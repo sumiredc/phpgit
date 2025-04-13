@@ -6,7 +6,6 @@ namespace Phpgit\Command;
 
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IO;
-use Phpgit\Lib\Logger;
 use Phpgit\Repository\FileRepository;
 use Phpgit\Repository\ObjectRepository;
 use Phpgit\UseCase\GitHashObjectUseCase;
@@ -15,7 +14,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 /** @see https://git-scm.com/docs/git-hash-object */
 #[AsCommand(

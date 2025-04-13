@@ -8,7 +8,7 @@ use Phpgit\Domain\FileStat;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\TrackingFile;
 
-final class FileRepository implements FileRepositoryInterface
+readonly final class FileRepository implements FileRepositoryInterface
 {
     public function exists(TrackingFile $trackingFile): bool
     {

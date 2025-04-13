@@ -18,3 +18,5 @@ define('F_GIT_OBJECTS_DIR', sprintf('%s/%s', F_GIT_DIR, GIT_OBJECTS_DIR));
 define('F_GIT_HEADS_DIR', sprintf('%s/%s', F_GIT_DIR, GIT_HEADS_DIR));
 define('F_GIT_HEAD', sprintf('%s/%s', F_GIT_DIR, GIT_HEAD));
 define('F_GIT_INDEX', sprintf('%s/%s', F_GIT_DIR, GIT_INDEX));
+
+define('GIT_BASE_BRANCH', 'main');

@@ -9,7 +9,7 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use RuntimeException;
 
-final class ObjectRepository implements ObjectRepositoryInterface
+readonly final class ObjectRepository implements ObjectRepositoryInterface
 {
     /** @throws RuntimeException */
     public function save(GitObject $gitObject): ObjectHash

@@ -9,7 +9,7 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use RuntimeException;
 
-final class IndexRepository implements IndexRepositoryInterface
+readonly final class IndexRepository implements IndexRepositoryInterface
 {
     public function save(GitIndex $gitIndex): void
     {

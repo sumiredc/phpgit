@@ -6,13 +6,12 @@ namespace Phpgit\Command;
 
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IO;
-use Phpgit\Lib\Logger;
+use Phpgit\Repository\GitResourceRepository;
 use Phpgit\UseCase\GitInitUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 /** @see https://git-scm.com/docs/git-init */
 #[AsCommand(
@@ -26,7 +25,8 @@ final class GitInitCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new IO($input, $output);
-        $useCase = new GitInitUseCase($io);
+        $gitResourceRepository = new GitResourceRepository();
+        $useCase = new GitInitUseCase($io, $gitResourceRepository);
 
         $result = $useCase();
 
