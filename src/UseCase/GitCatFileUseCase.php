@@ -9,6 +9,7 @@ use Phpgit\Domain\CommandInput\GitCatFileOptionType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
+use Phpgit\Exception\CannotGetObjectInfoException;
 use Phpgit\Lib\IOInterface;
 use Throwable;
 
@@ -31,9 +32,13 @@ final class GitCatFileUseCase
                 GitCatFileOptionType::PrettyPrint => $this->actionPrettyPrint($objectHash),
             };
         } catch (InvalidArgumentException) {
-            $this->io->warning(sprintf("invalid argument in object: %s", $object));
+            $this->io->writeln(sprintf("fatal: Not a valid object name %s", $object));
 
-            return Result::Invalid;
+            return Result::Failure;
+        } catch (CannotGetObjectInfoException) {
+            $this->io->writeln('fatal: git cat-file: could not get object info');
+
+            return Result::Failure;
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
@@ -44,13 +49,11 @@ final class GitCatFileUseCase
     private function actionType(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->io->warning(sprintf('could not get object info: %s', $objectHash->value()));
-
-            return Result::Invalid;
+            throw new CannotGetObjectInfoException;
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->success($gitObject->objectType->value);
+        $this->io->writeln($gitObject->objectType->value);
 
         return Result::Success;
     }
@@ -58,13 +61,11 @@ final class GitCatFileUseCase
     private function actionSize(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->io->warning(sprintf('could not get object info: %s', $objectHash->value()));
-
-            return Result::Invalid;
+            throw new CannotGetObjectInfoException;
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->success(strval($gitObject->size));
+        $this->io->writeln(strval($gitObject->size));
 
         return Result::Success;
     }
@@ -72,12 +73,8 @@ final class GitCatFileUseCase
     private function actionExists(ObjectHash $objectHash): Result
     {
         if ($this->objectRepository->exists($objectHash)) {
-            $this->io->success('exist object');
-
             return Result::Success;
         }
-
-        $this->io->text('don\'t exists object');
 
         return Result::Failure;
     }
@@ -85,9 +82,7 @@ final class GitCatFileUseCase
     private function actionPrettyPrint(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->io->warning(sprintf('could not get object info: %s', $objectHash->value()));
-
-            return Result::Invalid;
+            new InvalidArgumentException;
         }
 
         $gitObject = $this->objectRepository->get($objectHash);

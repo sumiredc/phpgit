@@ -9,7 +9,7 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Lib\IOInterface;
-use Phpgit\Service\FileToObjectService;
+use Phpgit\Service\FileToHashService;
 use Throwable;
 
 final class GitHashObjectUseCase
@@ -22,18 +22,17 @@ final class GitHashObjectUseCase
 
     public function __invoke(string $file): Result
     {
-        $fileToObjectService = new FileToObjectService($this->fileRepository);
+        $fileToHashService = new FileToHashService($this->fileRepository);
 
         try {
-            [$trakingFile, $gitObject] = $fileToObjectService($file);
-            $objectHash = $this->objectRepository->save($gitObject);
-            $this->io->success($objectHash->value);
+            [$trakingFile, $gitObject, $objectHash] = $fileToHashService($file);
+            $this->io->writeln($objectHash->value);
 
             return Result::Success;
         } catch (FileNotFoundException) {
-            $this->io->error(sprintf('file not found: %s', $file));
+            $this->io->writeln(sprintf('fatal: could not open \'$s\' for reading: No such file or directory', $file));
 
-            return Result::Invalid;
+            return Result::Failure;
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
