@@ -80,23 +80,35 @@ final class GitUpdateIndexUseCase
 
     private function actionRemove(string $file): Result
     {
-        // NOTE: not found the index -> don't registed in index
+        // NOTE: case of exists file
+        if ($this->fileRepository->existsByFilename($file)) {
+            $this->actionRemoveCaseOfExistsFile($file);
+        } else {
+            $this->actionRemoveCaseOfDontExistsFile($file);
+        }
+
+        return Result::Success;
+    }
+
+    /**
+     * NOTE: 
+     * 
+     * case of not found index
+     *  -> alert
+     * 
+     * case of don't registed index
+     *  -> alert
+     */
+    private function actionRemoveCaseOfExistsFile(string $file): void
+    {
         if (!$this->indexRepository->exists()) {
             throw new CannotAddIndexException();
         }
 
         $gitIndex = $this->indexRepository->get();
 
-        // NOTE: case of don't exists file
         if (!$gitIndex->existsEntryByFilename($file)) {
             throw new CannotAddIndexException();
-        }
-
-        // NOTE: don't registed in index
-        if (!$this->fileRepository->existsByFilename($file)) {
-            $gitIndex->removeEntryByFilename($file);
-
-            return Result::Success;
         }
 
         $fileToHashService = new FileToHashService($this->fileRepository);
@@ -115,8 +127,14 @@ final class GitUpdateIndexUseCase
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
+    }
 
-        return Result::Success;
+    private function actionRemoveCaseOfDontExistsFile(string $file): void
+    {
+        if (!$this->indexRepository->exists()) {
+            $gitIndex = $this->indexRepository->get();
+            $gitIndex->removeEntryByFilename($file);
+        }
     }
 
     private function actionForceRemove(): Result
