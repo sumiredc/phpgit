@@ -17,5 +17,9 @@ interface IndexRepositoryInterface
 
     public function exists(): bool;
 
-    public function createEmpty(): bool;
+    /** @throws RuntimeException */
+    public function create(): GitIndex;
+
+    /** @throws RuntimeException */
+    public function getOrCreate(): GitIndex;
 }

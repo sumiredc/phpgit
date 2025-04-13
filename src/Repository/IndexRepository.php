@@ -72,8 +72,24 @@ final class IndexRepository implements IndexRepositoryInterface
         return is_file(F_GIT_INDEX);
     }
 
-    public function createEmpty(): bool
+    public function create(): GitIndex
     {
-        return touch(F_GIT_INDEX);
+        if (!touch(F_GIT_INDEX)) {
+            throw new RuntimeException('failed to create index');
+        }
+
+        $gitIndex = GitIndex::make();
+        $this->save($gitIndex);
+
+        return $gitIndex;
+    }
+
+    public function getOrCreate(): GitIndex
+    {
+        if ($this->exists()) {
+            return $this->get();
+        }
+
+        return $this->create();
     }
 }

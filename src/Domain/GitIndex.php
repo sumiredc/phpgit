@@ -93,4 +93,9 @@ final class GitIndex
 
         return sprintf('%s%s', $data, $checksum);
     }
+
+    public function existsEntry(TrackingFile $trackingFile): bool
+    {
+        return array_key_exists($trackingFile->path, $this->indexEntries);
+    }
 }

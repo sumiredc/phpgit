@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phpgit\UseCase;
 
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
-use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
@@ -31,7 +30,7 @@ final class GitUpdateIndexUseCase
         try {
             return match ($action) {
                 GitUpdateIndexOptionAction::Add => $this->actionAdd($file),
-                GitUpdateIndexOptionAction::Remove => $this->actionRemove(),
+                GitUpdateIndexOptionAction::Remove => $this->actionRemove($file),
                 GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove(),
                 GitUpdateIndexOptionAction::Replace => $this->actionReplace(),
             };
@@ -60,17 +59,7 @@ final class GitUpdateIndexUseCase
             throw new RuntimeException('failed to get stat');
         }
 
-        $gitIndex = (function () {
-            if ($this->indexRepository->exists()) {
-                return $this->indexRepository->get();
-            }
-
-            if (!$this->indexRepository->createEmpty()) {
-                throw new RuntimeException('failed to create index');
-            }
-
-            return GitIndex::make();
-        })();
+        $gitIndex = $this->indexRepository->getOrCreate();
 
         $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);
         $gitIndex->addEntry($indexEntry);
@@ -80,8 +69,44 @@ final class GitUpdateIndexUseCase
         return Result::Success;
     }
 
-    private function actionRemove(): Result
+    private function actionRemove(string $file): Result
     {
+        $fileToHashService = new FileToHashService($this->fileRepository);
+        [$trackingFile, $gitObject, $objectHash] = $fileToHashService($file);
+
+        if (!$this->objectRepository->exists($objectHash)) {
+            $this->objectRepository->save($gitObject);
+        }
+
+        $cannotAddIndexMessages = [
+            sprintf('error: %s: cannot add to the index - missing --add option?', $trackingFile->path),
+            sprintf('fatal: Unable to process path %s', $trackingFile->path)
+        ];
+
+        if (!$this->indexRepository->exists()) {
+            $this->io->writeln($cannotAddIndexMessages);
+
+            return Result::Success; // NOTE: treat as normal end
+        }
+
+        $gitIndex = $this->indexRepository->get();
+
+        if (!$gitIndex->existsEntry($trackingFile)) {
+            $this->io->writeln($cannotAddIndexMessages);
+
+            return Result::Success; // NOTE: treat as normal end
+        }
+
+        $fileStat = $this->fileRepository->getStat($trackingFile);
+        if (is_null($fileStat)) {
+            throw new RuntimeException('failed to get stat');
+        }
+
+        $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);
+        $gitIndex->addEntry($indexEntry);
+
+        $this->indexRepository->save($gitIndex);
+
         return Result::Success;
     }
 
