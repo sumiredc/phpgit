@@ -13,4 +13,10 @@ final class IO extends SymfonyStyle implements IOInterface, StyleInterface, Outp
     {
         $this->error(strval($th));
     }
+
+    /** output plain text (include null-terminated string) */
+    public function echo(string $message): void
+    {
+        echo $message;
+    }
 }

@@ -8,6 +8,8 @@ interface IOInterface
 {
     public function stackTrace(Throwable $th): void;
 
+    public function echo(string $message): void;
+
     public function success(string|array $message): void;
 
     public function error(string|array $message): void;

@@ -26,6 +26,18 @@ final class GitLsFilesCommand extends Command
     {
         $this
             ->addOption(
+                'tag',
+                't',
+                InputOption::VALUE_NONE,
+                'Show status tags together with filenames.'
+            )
+            ->addOption(
+                'zero',
+                'z',
+                InputOption::VALUE_NONE,
+                '\0 line termination on output and do not quote filenames.'
+            )
+            ->addOption(
                 'stage',
                 's',
                 InputOption::VALUE_NONE,
@@ -59,6 +71,8 @@ final class GitLsFilesCommand extends Command
     private function validateOptionAction(InputInterface $input): GitLsFileOptionAction
     {
         return match (true) {
+            boolval($input->getOption('tag')) => GitLsFileOptionAction::Tag,
+            boolval($input->getOption('zero')) => GitLsFileOptionAction::Zero,
             boolval($input->getOption('stage')) => GitLsFileOptionAction::Stage,
             boolval($input->getOption('debug')) => GitLsFileOptionAction::Debug,
             default =>  GitLsFileOptionAction::Default,

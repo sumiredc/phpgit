@@ -27,6 +27,8 @@ final class GitLsFilesUseCase
         try {
             return match ($action) {
                 GitLsFileOptionAction::Default => $this->actionDefault(),
+                GitLsFileOptionAction::Tag => $this->actionTag(),
+                GitLsFileOptionAction::Zero => $this->actionZero(),
                 GitLsFileOptionAction::Stage => $this->actionStage(),
                 GitLsFileOptionAction::Debug => $this->actionDebug(),
             };
@@ -46,6 +48,37 @@ final class GitLsFilesUseCase
         );
 
         $this->io->writeln($list);
+
+        return Result::Success;
+    }
+
+    public function actionTag(): Result
+    {
+        $gitIndex = $this->indexRepository->get();
+        $list = array_map(
+            fn(IndexEntry $indexEntry) => sprintf(
+                '%s %s',
+                'H', // TODO: 一旦 Hash object で固定 https://git-scm.com/docs/git-ls-files#Documentation/git-ls-files.txt--t
+                $indexEntry->trackingFile->path
+            ),
+            $gitIndex->entries()
+        );
+
+        $this->io->writeln($list);
+
+        return Result::Success;
+    }
+
+    public function actionZero(): Result
+    {
+        $gitIndex = $this->indexRepository->get();
+        $line = array_reduce(
+            $gitIndex->entries(),
+            fn(string $carry, IndexEntry $indexEntry) => sprintf("%s%s\0", $carry, $indexEntry->trackingFile->path),
+            '',
+        );
+
+        $this->io->echo($line);
 
         return Result::Success;
     }
