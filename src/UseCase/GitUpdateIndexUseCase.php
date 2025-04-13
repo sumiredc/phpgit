@@ -32,7 +32,7 @@ final class GitUpdateIndexUseCase
             return match ($action) {
                 GitUpdateIndexOptionAction::Add => $this->actionAdd($file),
                 GitUpdateIndexOptionAction::Remove => $this->actionRemove($file),
-                GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove(),
+                GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove($file),
                 GitUpdateIndexOptionAction::Replace => $this->actionReplace(),
             };
         } catch (CannotAddIndexException) { {
@@ -80,27 +80,12 @@ final class GitUpdateIndexUseCase
 
     private function actionRemove(string $file): Result
     {
-        // NOTE: case of exists file
-        if ($this->fileRepository->existsByFilename($file)) {
-            $this->actionRemoveCaseOfExistsFile($file);
-        } else {
-            $this->actionRemoveCaseOfDontExistsFile($file);
+        if (!$this->fileRepository->existsByFilename($file)) {
+            // NOTE: case of don't exists file -> force-remove
+            return $this->actionForceRemove($file);
         }
 
-        return Result::Success;
-    }
-
-    /**
-     * NOTE: 
-     * 
-     * case of not found index
-     *  -> alert
-     * 
-     * case of don't registed index
-     *  -> alert
-     */
-    private function actionRemoveCaseOfExistsFile(string $file): void
-    {
+        // NOTE: case of exists file
         if (!$this->indexRepository->exists()) {
             throw new CannotAddIndexException();
         }
@@ -127,18 +112,20 @@ final class GitUpdateIndexUseCase
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
+
+        return Result::Success;
     }
 
-    private function actionRemoveCaseOfDontExistsFile(string $file): void
+    private function actionForceRemove(string $file): Result
     {
         if (!$this->indexRepository->exists()) {
-            $gitIndex = $this->indexRepository->get();
-            $gitIndex->removeEntryByFilename($file);
+            return Result::Success;
         }
-    }
 
-    private function actionForceRemove(): Result
-    {
+        $gitIndex = $this->indexRepository->get();
+        $gitIndex->removeEntryByFilename($file);
+        $this->indexRepository->save($gitIndex);
+
         return Result::Success;
     }
 
