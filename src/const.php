@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 // git index
 define('GIT_INDEX_SIGNATURE', 'DIRC');
 define('GIT_INDEX_VERSION', 2);

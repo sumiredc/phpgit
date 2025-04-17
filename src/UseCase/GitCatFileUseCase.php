@@ -65,7 +65,7 @@ final class GitCatFileUseCase
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->writeln(strval($gitObject->size));
+        $this->io->writeln(strval($gitObject->header->size));
 
         return Result::Success;
     }

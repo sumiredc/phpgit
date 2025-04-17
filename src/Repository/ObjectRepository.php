@@ -53,18 +53,9 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
     public function get(ObjectHash $objectHash): GitObject
     {
         $compressed = $this->getCompressed($objectHash);
-
         $uncompressed = $this->decompress($compressed);
-        if (is_null($uncompressed)) {
-            throw new RuntimeException('failed to decompress', 500);
-        }
 
-        $gitObject = GitObject::parse($uncompressed);
-        if (is_null($gitObject)) {
-            throw new RuntimeException('failed to parse for GitObject', 500);
-        }
-
-        return $gitObject;
+        return GitObject::parse($uncompressed);
     }
 
     public function exists(ObjectHash $objectHash): bool
@@ -76,7 +67,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
     {
         $compressed = gzcompress($object);
         if ($compressed === false) {
-            return null;
+            throw new RuntimeException('failed to compress object', 500);
         }
 
         return $compressed;
@@ -86,7 +77,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
     {
         $uncompressed = zlib_decode($compressed);
         if ($uncompressed === false) {
-            return null;
+            throw new RuntimeException('failed to decompress object', 500);
         }
 
         return $uncompressed;

@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Phpgit\Command;
 
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
+use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\Result;
-use Phpgit\Domain\UnixPermission;
 use Phpgit\Lib\IO;
 use Phpgit\Repository\FileRepository;
 use Phpgit\Repository\IndexRepository;
@@ -122,7 +121,7 @@ final class GitUpdateIndexCommand extends Command
      * 
      * @return array{
      *  0: string,
-     *  1: ?UnixPermission,
+     *  1: ?GitFileMode,
      *  2: ?ObjectHash,
      * }
      */
@@ -139,7 +138,7 @@ final class GitUpdateIndexCommand extends Command
                 try {
                     return [
                         $file,
-                        UnixPermission::fromOct($mode),
+                        GitFileMode::from($mode),
                         ObjectHash::parse($object)
                     ];
                 } catch (ValueError) {

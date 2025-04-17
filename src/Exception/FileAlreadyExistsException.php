@@ -9,5 +9,4 @@ use Exception;
 final class FileAlreadyExistsException extends Exception
 {
     protected $message = 'file already exists';
-    protected $code = 400;
 }

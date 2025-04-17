@@ -9,5 +9,4 @@ use Exception;
 final class CannotAddIndexException extends Exception
 {
     protected $message = 'cannot add to the index';
-    protected $code = 400;
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phpgit\Service;
 
+use Phpgit\Domain\BlobObject;
 use Phpgit\Domain\GitObject;
-use Phpgit\Domain\ObjectType;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\TrackingFile;
 use Phpgit\Exception\FileNotFoundException;
@@ -33,6 +33,6 @@ final class FileToObjectService
             throw new RuntimeException('failed to get contents');
         }
 
-        return [$trackingFile, GitObject::make(ObjectType::Blob, $content)];
+        return [$trackingFile, BlobObject::new($content)];
     }
 }

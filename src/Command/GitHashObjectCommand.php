@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Domain\Result;
 use Phpgit\Lib\IO;
 use Phpgit\Repository\FileRepository;
 use Phpgit\Repository\ObjectRepository;

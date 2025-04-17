@@ -32,7 +32,7 @@ readonly final class ObjectHash
         return new self($hash);
     }
 
-    public function value(): string
+    public function path(): string
     {
         return implode('', [$this->dir, $this->filename]);
     }

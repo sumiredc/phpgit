@@ -6,6 +6,7 @@ namespace Phpgit\UseCase;
 
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
 use Phpgit\Domain\FileStat;
+use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
@@ -33,7 +34,7 @@ final class GitUpdateIndexUseCase
     public function __invoke(
         GitUpdateIndexOptionAction $action,
         string $file,
-        ?UnixPermission $unixPermission,
+        ?GitFileMode $gitFileMode,
         ?ObjectHash $objectHash
     ): Result {
         try {
@@ -41,7 +42,7 @@ final class GitUpdateIndexUseCase
                 GitUpdateIndexOptionAction::Add => $this->actionAdd($file),
                 GitUpdateIndexOptionAction::Remove => $this->actionRemove($file),
                 GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove($file),
-                GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo($unixPermission, $objectHash, $file),
+                GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo($gitFileMode, $objectHash, $file),
             };
         } catch (FileNotFoundException) {
             $this->io->error([
@@ -158,7 +159,7 @@ final class GitUpdateIndexUseCase
      * @see https://git-scm.com/docs/git-update-index#Documentation/git-update-index.txt---cacheinfoltmodegtltobjectgtltpathgt-1
      */
     private function actionCacheinfo(
-        UnixPermission $unixPermission,
+        GitFileMode $gitFileMode,
         ObjectHash $objectHash,
         string $file
     ): Result {
@@ -174,7 +175,7 @@ final class GitUpdateIndexUseCase
         $gitIndex = $this->indexRepository->getOrCreate();
 
         $trackingFile = TrackingFile::make($file);
-        $fileStat = FileStat::makeForCacheinfo($unixPermission->mode());
+        $fileStat = FileStat::makeForCacheinfo($gitFileMode->fileStatMode());
 
         $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);
         $gitIndex->addEntry($indexEntry);

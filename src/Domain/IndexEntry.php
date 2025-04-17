@@ -19,6 +19,14 @@ use RuntimeException;
  */
 final class IndexEntry
 {
+    public GitFileMode $gitFileMode {
+        get => match ($this->indexObjectType) {
+            IndexObjectType::Normal => GitFileMode::from(decoct($this->mode)),
+            IndexObjectType::GitLink => GitFileMode::SubModule,
+            IndexObjectType::SymbolicLink => GitFileMode::SymbolicLink,
+        };
+    }
+
     private function __construct(
         public readonly int $ctime,
         public readonly int $ctimeNano,
@@ -182,9 +190,9 @@ final class IndexEntry
         $ids = pack('NN', $this->uid, $this->gid);
         $size = pack('N', $this->size);
 
-        $objectName = hex2bin($this->objectHash->value()); # 20byte
+        $objectName = hex2bin($this->objectHash->value); # 20byte
         if ($objectName === false) {
-            throw new RuntimeException(sprintf('failed to hex2bin: %s', $this->objectHash->value()));
+            throw new RuntimeException(sprintf('failed to hex2bin: %s', $this->objectHash->value));
         }
 
         $pathLength = strlen($this->trackingFile->path);

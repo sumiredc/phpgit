@@ -5,46 +5,63 @@ declare(strict_types=1);
 namespace Phpgit\Domain;
 
 use Phpgit\Domain\ObjectType;
+use RuntimeException;
+use TypeError;
+use ValueError;
 
-readonly final class GitObject
+abstract class GitObject
 {
-    private function __construct(
-        public readonly string $header,
-        public readonly string $body,
-        public readonly ObjectType $objectType,
-        public readonly int $size
-    ) {}
-
-    public static function make(ObjectType $type, string $content): self
-    {
-        $size = strlen($content);
-        $header = sprintf('%s %d\0', $type->value, $size);
-
-        return new self($header, $content, $type, $size);
+    public ObjectType $objectType {
+        get => $this->header->objectType;
     }
 
-    public static function parse(string $uncompressed): ?self
+    protected function __construct(
+        public readonly GitObjectHeader $header,
+        public string $body,
+    ) {}
+
+    /** @throws RuntimeException */
+    public static function parse(string $uncompressed): self
     {
-        [$header, $body] = explode('\0', $uncompressed, 2);
+        [$header, $body] = self::parseToHeaderAndBody($uncompressed);
+
+        return match ($header->objectType) {
+            ObjectType::Tree => new TreeObject($header, $body),
+            ObjectType::Blob => new BlobObject($header, $body),
+            default => throw new RuntimeException(
+                sprintf('don\'t support for object type: %s', $header->objectType->value)
+            ),
+        };
+    }
+
+    /** 
+     * @return array{0:GitObjectHeader,1:string} [header, body]
+     * @throws RuntimeException|ValueError|TypeError 
+     */
+    protected static function parseToHeaderAndBody(string $uncompressed): array
+    {
+        [$header, $body] = explode("\0", $uncompressed, 2);
+
         if (empty($header) || empty($body)) {
-            return null;
+            throw new RuntimeException(
+                sprintf('failed to parse BlobObject: header: %s, body: %s', $body, $header)
+            );
         }
 
         [$type, $size] = explode(' ', $header);
         if (empty($type) || is_null($size) || $size === '') {
-            return null;
+            throw new RuntimeException(
+                sprintf('failed to parse BlobObject: type: %s, size: %s', $type, $size)
+            );
         }
 
-        $objectType = ObjectType::tryFrom($type);
-        if (is_null($objectType)) {
-            return null;
-        }
+        $objectType = ObjectType::from($type);
 
-        return new self($header, $body, $objectType, intval($size));
+        return [GitObjectHeader::new($objectType, intval($size)), $body];
     }
 
-    public function data(): string
+    final public function data(): string
     {
-        return sprintf('%s%s', $this->header, $this->body);
+        return sprintf('%s%s', $this->header->raw, $this->body);
     }
 }

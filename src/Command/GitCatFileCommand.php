@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phpgit\Command;
 
 use Phpgit\Domain\CommandInput\GitCatFileOptionType;
-use Phpgit\Domain\Result;
 use Phpgit\Lib\IO;
 use Phpgit\Repository\ObjectRepository;
 use Phpgit\UseCase\GitCatFileUseCase;
