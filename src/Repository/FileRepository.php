@@ -37,6 +37,6 @@ readonly final class FileRepository implements FileRepositoryInterface
             return null;
         }
 
-        return FileStat::make($stat);
+        return FileStat::new($stat);
     }
 }

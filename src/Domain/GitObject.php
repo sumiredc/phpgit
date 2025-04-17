@@ -25,13 +25,7 @@ abstract class GitObject
     {
         [$header, $body] = self::parseToHeaderAndBody($uncompressed);
 
-        return match ($header->objectType) {
-            ObjectType::Tree => new TreeObject($header, $body),
-            ObjectType::Blob => new BlobObject($header, $body),
-            default => throw new RuntimeException(
-                sprintf('don\'t support for object type: %s', $header->objectType->value)
-            ),
-        };
+        return new static($header, $body);
     }
 
     /** 
@@ -44,7 +38,7 @@ abstract class GitObject
 
         if (empty($header) || empty($body)) {
             throw new RuntimeException(
-                sprintf('failed to parse BlobObject: header: %s, body: %s', $body, $header)
+                sprintf('failed to parse BlobObject: header: %s, body: %s', $header, $body)
             );
         }
 

@@ -31,21 +31,6 @@ enum UnixPermission: int
         };
     }
 
-    // /** 
-    //  * @deprecated 
-    //  * 
-    //  * NOTE: (string)8 -> UnixPermission
-    //  * 
-    //  * ex1: 100755 -> 0755
-    //  * ex2: 100644 -> 0644
-    //  */
-    // public static function fromOct(string $oct): self
-    // {
-    //     $mode = intval($oct, 8);
-
-    //     return self::fromStatMode($mode);
-    // }
-
     public static function fromStatMode(int $mode): self
     {
         $permission = decoct($mode & 0777);
@@ -56,19 +41,4 @@ enum UnixPermission: int
 
         return self::RwRR;
     }
-
-    // /** 
-    //  * @deprecated 
-    //  * 
-    //  * ex1: 0755 -> 100755
-    //  * ex2: 0644 -> 100644
-    //  */
-    // public function mode(): int
-    // {
-    //     if ($this === self::Zero) {
-    //         return 0;
-    //     }
-
-    //     return octdec(sprintf("100%o", $this->value));
-    // }
 }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Phpgit\Domain\FileStat;
 
-describe('make', function () {
+describe('new', function () {
     it('should match args to properties', function (array $stat) {
-        $fileStat = FileStat::make($stat);
+        $fileStat = FileStat::new($stat);
 
         expect($fileStat->dev)->toBe($stat['dev']);
         expect($fileStat->ino)->toBe($stat['ino']);
@@ -40,5 +40,29 @@ describe('make', function () {
                     'blocks' => 22,
                 ]
             ]
+        ]);
+});
+
+describe('newForCacheinfo', function () {
+    it('should match args to properties', function (int $mode) {
+        $fileStat = FileStat::newForCacheinfo($mode);
+
+        expect($fileStat->dev)->toBe(0);
+        expect($fileStat->ino)->toBe(0);
+        expect($fileStat->mode)->toBe($mode);
+        expect($fileStat->nlink)->toBe(0);
+        expect($fileStat->uid)->toBe(0);
+        expect($fileStat->gid)->toBe(0);
+        expect($fileStat->rdev)->toBe(0);
+        expect($fileStat->size)->toBe(0);
+        expect($fileStat->atime)->toBe(0);
+        expect($fileStat->mtime)->toBe(0);
+        expect($fileStat->ctime)->toBe(0);
+        expect($fileStat->blksize)->toBe(0);
+        expect($fileStat->blocks)->toBe(0);
+    })
+        ->with([
+            [33188],
+            [33261]
         ]);
 });

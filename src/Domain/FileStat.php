@@ -39,7 +39,7 @@ readonly final class FileStat
      *  blocks: int
      * } $stat
      */
-    public static function make(array $stat): self
+    public static function new(array $stat): self
     {
         return new self(
             dev: $stat['dev'],
@@ -58,7 +58,7 @@ readonly final class FileStat
         );
     }
 
-    public static function makeForCacheinfo(int $mode): self
+    public static function newForCacheinfo(int $mode): self
     {
         return new self(
             dev: 0,
