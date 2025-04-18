@@ -174,7 +174,7 @@ final class GitUpdateIndexUseCase
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        $trackingFile = TrackingFile::make($file);
+        $trackingFile = TrackingFile::new($file);
         $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
 
         $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);

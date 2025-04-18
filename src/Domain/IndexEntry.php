@@ -98,7 +98,7 @@ final class IndexEntry
         $unixPermission = UnixPermission::fromDec($permission);
 
         $objectHash = ObjectHash::parse($entryHeader['object_name']);
-        $trackingFile = TrackingFile::make($path);
+        $trackingFile = TrackingFile::new($path);
 
         $assumeValidFlag = ($entryHeader['flags'] >> 15) & 0b1; // the upper 1bit 
         $extendedFlag = ($entryHeader['flags'] >> 14) & 0b1; // 1bit from the two upper
