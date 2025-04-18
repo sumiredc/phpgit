@@ -18,7 +18,7 @@ enum GitFileMode: string
     {
         return match ($this) {
             self::DefaultFile, self::ExeFile => intval(octdec($this->value)),
-            default => throw new ValueError(sprintf('dont convert to stat mode: %s', $this->value)),
+            default => throw new ValueError(sprintf('don\'t convert to stat mode: %s', $this->value)),
         };
     }
 }
