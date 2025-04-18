@@ -18,7 +18,7 @@ readonly final class ObjectHash
         $this->filename = substr($value, 2);
     }
 
-    public static function make(string $object): self
+    public static function new(string $object): self
     {
         return new self(sha1($object));
     }

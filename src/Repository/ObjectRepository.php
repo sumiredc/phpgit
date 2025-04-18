@@ -14,7 +14,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
     /** @throws RuntimeException */
     public function save(GitObject $gitObject): ObjectHash
     {
-        $objectHash = ObjectHash::make($gitObject->data());
+        $objectHash = ObjectHash::new($gitObject->data());
 
         $objectDir = sprintf('%s/%s', F_GIT_OBJECTS_DIR, $objectHash->dir);
         if (!is_dir($objectDir)) {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Phpgit\Domain\ObjectHash;
 
-describe('make', function () {
+describe('new', function () {
     it('should match to hash', function (string $content, string $dir, string $filename) {
-        $actual = ObjectHash::make($content);
+        $actual = ObjectHash::new($content);
 
         expect($actual->value)->toBe($dir . $filename);
         expect($actual->dir)->toBe($dir);
