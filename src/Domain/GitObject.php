@@ -15,6 +15,10 @@ abstract class GitObject
         get => $this->header->objectType;
     }
 
+    public int $size {
+        get => $this->header->size;
+    }
+
     protected function __construct(
         public readonly GitObjectHeader $header,
         public string $body,

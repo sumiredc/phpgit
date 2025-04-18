@@ -9,7 +9,7 @@ describe('new', function () {
         $object = BlobObject::new($content);
 
         expect($object->body)->toBe($content);
-        expect($object->header->size)->toBe($size);
+        expect($object->size)->toBe($size);
         expect($object->header->raw)->toBe($raw);
     })
         ->with([
