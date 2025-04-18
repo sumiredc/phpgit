@@ -34,7 +34,7 @@ readonly final class ObjectHash
 
     public function path(): string
     {
-        return implode('', [$this->dir, $this->filename]);
+        return implode('/', [$this->dir, $this->filename]);
     }
 
     public function fullPath(): string

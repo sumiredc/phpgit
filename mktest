@@ -1,0 +1,29 @@
+# !/bin/sh
+
+files=$(docker compose run --rm test -p --coverage \
+    | grep '/' \
+    | grep -v '100.0%' \
+    | awk '{print $1}')
+
+for file in $files; do
+    case "$file" in
+        # ignore
+        Lib/*)
+            continue
+            ;;
+        # feature
+        Command/*|Repository/*)
+            path="tests/Feature/${file}Test.php"
+            ;;
+        # unit
+        *)
+            path="tests/Unit/${file}Test.php"
+            ;;
+    esac
+
+    if [ ! -f "$path" ]; then
+        mkdir -p "$(dirname "$path")"
+        echo "<?php\n\ndeclare(strict_types=1);\n\ndescribe('', function () {});" > "$path"
+        echo "Created: $path"
+    fi
+done

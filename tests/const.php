@@ -1,5 +1,5 @@
 <?php
-// TODO: .env で値を管理
+// TODO: .env.test で値を管理
 declare(strict_types=1);
 
 // git index
@@ -15,7 +15,7 @@ define('GIT_HEAD', 'HEAD');
 define('GIT_INDEX', 'index');
 
 // absolute path (ex: /{project-path}/{gitdir}/refs/heads)
-define('F_GIT_TRACKING_ROOT', sprintf("%s/%s", getcwd(), GIT_TRACKING_ROOT));
+define('F_GIT_TRACKING_ROOT', sprintf("%s/%s", '/test', GIT_TRACKING_ROOT));
 define('F_GIT_DIR', sprintf('%s/%s', F_GIT_TRACKING_ROOT, GIT_DIR));
 define('F_GIT_OBJECTS_DIR', sprintf('%s/%s', F_GIT_DIR, GIT_OBJECTS_DIR));
 define('F_GIT_HEADS_DIR', sprintf('%s/%s', F_GIT_DIR, GIT_HEADS_DIR));
