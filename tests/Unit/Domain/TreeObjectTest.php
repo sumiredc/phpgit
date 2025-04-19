@@ -14,6 +14,7 @@ describe('new', function () {
         expect($actual->objectType)->toBe(ObjectType::Tree);
         expect($actual->size)->toBe(0);
         expect($actual->body)->toBe('');
+        expect($actual->data)->toBe("tree 0\0");
     });
 });
 

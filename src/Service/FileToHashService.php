@@ -25,6 +25,6 @@ final class FileToHashService
         $fileToObject = new FileToObjectService($this->fileRepository);
         [$trackingFile, $gitObject] = $fileToObject($file);
 
-        return [$trackingFile, $gitObject, ObjectHash::new($gitObject->data())];
+        return [$trackingFile, $gitObject, ObjectHash::new($gitObject->data)];
     }
 }

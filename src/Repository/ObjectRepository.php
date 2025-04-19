@@ -14,7 +14,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
     /** @throws RuntimeException */
     public function save(GitObject $gitObject): ObjectHash
     {
-        $objectHash = ObjectHash::new($gitObject->data());
+        $objectHash = ObjectHash::new($gitObject->data);
 
         $objectDir = sprintf('%s/%s', F_GIT_OBJECTS_DIR, $objectHash->dir);
         if (!is_dir($objectDir)) {
@@ -25,7 +25,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
 
         $objectPath = sprintf('%s/%s', $objectDir, $objectHash->filename);
 
-        $compressed = $this->compress($gitObject->data());
+        $compressed = $this->compress($gitObject->data);
         if (is_null($compressed)) {
             throw new RuntimeException('failed to compress');
         }
