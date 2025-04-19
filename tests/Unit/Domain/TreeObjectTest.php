@@ -17,6 +17,23 @@ describe('new', function () {
     });
 });
 
+describe('parse', function () {
+    it('fails to parse', function (string $blob) {
+        TreeObject::parse($blob);
+    })
+        ->with([
+            ["blob 73\0" . 'package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello, world")
+}
+']
+        ])
+        ->throws(UnexpectedValueException::class, 'unexpected ObjectType value: blob');
+});
+
 describe('appendEntry', function () {
     it('should match body', function (array $entry1, array $entry2, string $expected) {
         $tree = TreeObject::new();
