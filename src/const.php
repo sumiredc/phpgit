@@ -5,6 +5,8 @@ declare(strict_types=1);
 // git index
 define('GIT_INDEX_SIGNATURE', 'DIRC');
 define('GIT_INDEX_VERSION', 2);
+define('GIT_INDEX_HEADER_LENGTH', 12);
+define('GIT_INDEX_ENTRY_HEADER_LENGTH', 64);
 
 // git-relative path (ex: refs/heads)
 define('GIT_TRACKING_ROOT', 'project');

@@ -78,7 +78,7 @@ final class GitUpdateIndexUseCase
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
@@ -121,7 +121,7 @@ final class GitUpdateIndexUseCase
                 throw new RuntimeException('failed to get stat');
             }
 
-            $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);
+            $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
             $gitIndex->addEntry($indexEntry);
 
             $this->indexRepository->save($gitIndex);
@@ -177,7 +177,7 @@ final class GitUpdateIndexUseCase
         $trackingFile = TrackingFile::new($file);
         $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
 
-        $indexEntry = IndexEntry::make($fileStat, $objectHash, $trackingFile);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);

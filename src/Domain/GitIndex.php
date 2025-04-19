@@ -81,12 +81,12 @@ final class GitIndex
     {
         return array_reduce(
             $this->indexEntries,
-            fn(string $blob, IndexEntry $entry) => sprintf('%s%s', $blob, $entry->blob()),
+            fn(string $blob, IndexEntry $entry) => sprintf('%s%s', $blob, $entry->asBlob()),
             ''
         );
     }
 
-    public function blob(): string
+    public function asBlob(): string
     {
         $data = sprintf('%s%s', $this->headerBlob(), $this->entriesBlob());
         $checksum = hash('sha1', $data, true);

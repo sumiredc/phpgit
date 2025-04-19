@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Phpgit\Repository;
 
+
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
+use Phpgit\Domain\IndexEntryPathSize;
+use Phpgit\Domain\IndexEntrySize;
+use Phpgit\Domain\IndexPaddingSize;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use RuntimeException;
 
@@ -13,7 +17,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
 {
     public function save(GitIndex $gitIndex): void
     {
-        if (file_put_contents(F_GIT_INDEX, $gitIndex->blob()) === false) {
+        if (file_put_contents(F_GIT_INDEX, $gitIndex->asBlob()) === false) {
             throw new RuntimeException('failed to save Git Index');
         };
     }
@@ -25,7 +29,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
             throw new RuntimeException('failed to fopen Git Index');
         }
 
-        $header = fread($handle, 12);
+        $header = fread($handle, GIT_INDEX_HEADER_LENGTH);
         if ($header === false) {
             throw new RuntimeException('failed to fread Git Index header');
         }
@@ -33,15 +37,16 @@ readonly final class IndexRepository implements IndexRepositoryInterface
         [$gitIndex, $entityCount] = GitIndex::parse($header);
 
         for ($i = 0; $i < $entityCount; $i++) {
-            $entryHeaderBlob = fread($handle, 64);
+            $entryHeaderBlob = fread($handle, GIT_INDEX_ENTRY_HEADER_LENGTH);
             if ($entryHeaderBlob === false) {
                 throw new RuntimeException('failed to fread Entry header');
             }
 
             $entryHeader = IndexEntry::parseHeader($entryHeaderBlob);
 
-            $pathLength = IndexEntry::parsePathLength($entryHeader['flags']);
-            $pathWithNull = fread($handle, $pathLength + 1);
+            $pathSize = IndexEntryPathSize::parse($entryHeader['flags']);
+
+            $pathWithNull = fread($handle, $pathSize->withNull);
             if ($pathWithNull === false) {
                 throw new RuntimeException('failed to fread Entry path');
             }
@@ -49,13 +54,17 @@ readonly final class IndexRepository implements IndexRepositoryInterface
             $path = substr($pathWithNull, 0, -1); // remove to null-terminated string
 
             // skipp padding()
-            $entrySize = 64 + $pathLength + 1; // 1byte is null-terminated string
-            $paddingLength = (8 - ($entrySize % 8)) % 8;
+            $entrySize = IndexEntrySize::new($pathSize);
+            $paddingSize = IndexPaddingSize::new($entrySize);
 
             $indexEntry = IndexEntry::parse($entryHeader, $path);
             $gitIndex->addEntry($indexEntry);
 
-            if ($paddingLength > 0 && fread($handle, $paddingLength) === false) {
+            if ($paddingSize->isEmpty()) {
+                continue;
+            }
+
+            if (fread($handle, $paddingSize->value) === false) {
                 throw new RuntimeException('failed to fread Entry padding');
             }
         }
