@@ -12,17 +12,13 @@ enum UnixPermission: int
     case RwxRxRx = 0755;
     case RwRR = 0644;
 
-    /** 
-     * NOTE: 10 -> UnixPermission
-     * 
-     * case1: 0 -> 0
-     * case2: 493 -> 0755
-     * case3: 420 -> 0644
-     * 
-     * other: -> ValueError
+    /**
+     * NOTE: the lower 9bit in object flags
      */
-    public static function fromDec(int $dec): self
+    public static function parseFlags(int $flags): self
     {
+        $dec = $flags & 0b1_1111_1111;
+
         return match ($dec) {
             self::Zero->value => self::Zero,
             intval(self::RwxRxRx->value) => self::RwxRxRx,

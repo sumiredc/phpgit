@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Phpgit\Domain\UnixPermission;
 
-describe('fromDec', function () {
+describe('parseFlags', function () {
     it('returns to match UnixPermission', function (int $dec, UnixPermission $expected) {
-        $actual = UnixPermission::fromDec($dec);
+        $actual = UnixPermission::parseFlags($dec);
 
         expect($actual)->toBe($expected);
     })
@@ -17,7 +17,7 @@ describe('fromDec', function () {
         ]);
 
     it('fails ValueError', function (int $dec) {
-        UnixPermission::fromDec($dec);
+        UnixPermission::parseFlags($dec);
     })
         ->with([
             [1],

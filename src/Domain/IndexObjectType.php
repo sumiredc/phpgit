@@ -11,6 +11,14 @@ enum IndexObjectType: int
     case GitLink = 0b1110;
 
     /**
+     * NOTE: the upper 4bit in object flags
+     */
+    public static function parseFlags(int $flags): self
+    {
+        return self::from(($flags >> 12) & 0b1111);
+    }
+
+    /**
      * NOTE: 4bit
      */
     public function asStorableValue(): int

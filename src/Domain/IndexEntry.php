@@ -92,10 +92,8 @@ final class IndexEntry
      */
     public static function parse(array $entryHeader, string $path): self
     {
-        $objectType = ($entryHeader['object_flags'] >> 12) & 0b1111; // the upper 4bit
-        $permission = $entryHeader['object_flags'] & 0b1_1111_1111; // the lower 9bit
-        $indexObjectType = IndexObjectType::from($objectType);
-        $unixPermission = UnixPermission::fromDec($permission);
+        $indexObjectType = IndexObjectType::parseFlags($entryHeader['object_flags']);
+        $unixPermission = UnixPermission::parseFlags($entryHeader['object_flags']);
 
         $objectHash = ObjectHash::parse($entryHeader['object_name']);
         $trackingFile = TrackingFile::new($path);
