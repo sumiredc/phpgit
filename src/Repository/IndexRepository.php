@@ -7,6 +7,7 @@ namespace Phpgit\Repository;
 
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
+use Phpgit\Domain\IndexEntryHeader;
 use Phpgit\Domain\IndexEntryPathSize;
 use Phpgit\Domain\IndexEntrySize;
 use Phpgit\Domain\IndexPaddingSize;
@@ -42,9 +43,8 @@ readonly final class IndexRepository implements IndexRepositoryInterface
                 throw new RuntimeException('failed to fread Entry header');
             }
 
-            $entryHeader = IndexEntry::parseHeader($entryHeaderBlob);
-
-            $pathSize = IndexEntryPathSize::parse($entryHeader['flags']);
+            $entryHeader = IndexEntryHeader::parse($entryHeaderBlob);
+            $pathSize = IndexEntryPathSize::parse($entryHeader->flags);
 
             $pathWithNull = fread($handle, $pathSize->withNull);
             if ($pathWithNull === false) {

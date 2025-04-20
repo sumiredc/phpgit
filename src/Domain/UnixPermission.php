@@ -27,6 +27,10 @@ enum UnixPermission: int
         };
     }
 
+    /**
+     * Owner has execution authority -> 0755
+     * Onwer don't has execution authority -> 0644
+     */
     public static function fromStatMode(int $mode): self
     {
         $permission = decoct($mode & 0777);

@@ -73,48 +73,31 @@ final class IndexEntry
         );
     }
 
-    /**
-     * @param array{
-     *  ctime_sec: int,
-     *  ctime_nsec: int,
-     *  mtime_sec: int,
-     *  mtime_nsec: int,
-     *  dev: int,
-     *  ino: int,
-     *  mode: int,
-     *  object_flags: int,
-     *  uid: int,
-     *  gid: int,
-     *  size: int,
-     *  object_name: string,
-     *  flags: int,
-     * } $entryHeader
-     */
-    public static function parse(array $entryHeader, string $path): self
+    public static function parse(IndexEntryHeader $header, string $path): self
     {
-        $indexObjectType = IndexObjectType::parseFlags($entryHeader['object_flags']);
-        $unixPermission = UnixPermission::parseFlags($entryHeader['object_flags']);
+        $indexObjectType = IndexObjectType::parseFlags($header->mode);
+        $unixPermission = UnixPermission::parseFlags($header->mode);
 
-        $objectHash = ObjectHash::parse($entryHeader['object_name']);
+        $objectHash = ObjectHash::parse($header->objectName);
         $trackingFile = TrackingFile::new($path);
 
-        $assumeValidFlag = ($entryHeader['flags'] >> 15) & 0b1; // the upper 1bit 
-        $extendedFlag = ($entryHeader['flags'] >> 14) & 0b1; // 1bit from the two upper
-        $stage = ($entryHeader['flags'] >> 12) & 0b11; // 2bit from the four upper
+        $assumeValidFlag = ($header->flags >> 15) & 0b1; // the upper 1bit 
+        $extendedFlag = ($header->flags >> 14) & 0b1; // 1bit from the two upper
+        $stage = ($header->flags >> 12) & 0b11; // 2bit from the four upper
 
         return new self(
-            ctime: $entryHeader['ctime_sec'],
-            ctimeNano: $entryHeader['ctime_nsec'],
-            mtime: $entryHeader['mtime_sec'],
-            mtimeNano: $entryHeader['mtime_nsec'],
-            dev: $entryHeader['dev'],
-            ino: $entryHeader['ino'],
-            mode: $entryHeader['mode'],
+            ctime: $header->ctime,
+            ctimeNano: $header->ctimeNano,
+            mtime: $header->mtime,
+            mtimeNano: $header->mtimeNano,
+            dev: $header->dev,
+            ino: $header->ino,
+            mode: $header->mode,
             indexObjectType: $indexObjectType,
             unixPermission: $unixPermission,
-            uid: $entryHeader['uid'],
-            gid: $entryHeader['gid'],
-            size: $entryHeader['size'],
+            uid: $header->uid,
+            gid: $header->gid,
+            size: $header->size,
             objectHash: $objectHash,
             trackingFile: $trackingFile,
             assumeValidFlag: $assumeValidFlag,
@@ -123,70 +106,16 @@ final class IndexEntry
         );
     }
 
-    /**
-     * @return array{
-     *  ctime_sec: int,
-     *  ctime_nsec: int,
-     *  mtime_sec: int,
-     *  mtime_nsec: int,
-     *  dev: int,
-     *  ino: int,
-     *  mode: int,
-     *  object_flags: int,
-     *  uid: int,
-     *  gid: int,
-     *  size: int,
-     *  object_name: string,
-     *  flags: int,
-     * }
-     */
-    public static function parseHeader(string $headerBlob): array
-    {
-        $header = unpack(
-            implode('/', [
-                'Nctime_sec',
-                'Nctime_nsec',
-                'Nmtime_sec',
-                'Nmtime_nsec',
-                'Ndev',
-                'Nino',
-                'Nmode',
-                'nobject_flags',
-                'Nuid',
-                'Ngid',
-                'Nsize',
-                'H40object_name',
-                'nflags'
-            ]),
-            $headerBlob
-        );
-
-        if ($header === false) {
-            throw new RuntimeException('failed to unpack Entry header');
-        }
-
-        return $header;
-    }
-
-    /** 
-     * NOTE: Path length is lowest 12 bit in flags 
-     * @deprecated replace \Phpgit\Domain\IndexEntryPathSize
-     */
-    public static function parsePathLength(int $flags): int
-    {
-        return $flags & 0x0FFF;
-    }
-
     public function asBlob(): string
     {
         $ctime = pack('NN', $this->ctime, $this->ctimeNano);
         $mtime = pack('NN', $this->mtime, $this->mtimeNano);
-        $meta = pack('NNN', $this->dev, $this->ino, $this->mode);
+        $meta = pack('NN', $this->dev, $this->ino);
 
         $objectType = $this->indexObjectType->asStorableValue();
         $unused = 0b000 << 9; # 3bit empty
         $permission = $this->unixPermission->value; # 9bit
-        $object = pack('n', $objectType | $unused | $permission);
+        $mode = pack('N', $objectType | $unused | $permission);
 
         $ids = pack('NN', $this->uid, $this->gid);
         $size = pack('N', $this->size);
@@ -214,7 +143,7 @@ final class IndexEntry
             $ctime,
             $mtime,
             $meta,
-            $object,
+            $mode,
             $ids,
             $size,
             $objectName,
