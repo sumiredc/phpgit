@@ -121,9 +121,12 @@ final class IndexEntry
         $size = pack('N', $this->size);
 
         $objectName = hex2bin($this->objectHash->value); # 20byte
+        // NOTE: This branch should never be reached, as the ObjectHash object use ensures the input is valid for hex2bin().
+        // @codeCoverageIgnoreStart
         if ($objectName === false) {
             throw new RuntimeException(sprintf('failed to hex2bin: %s', $this->objectHash->value));
         }
+        // @codeCoverageIgnoreEnd
 
         $pathSize = IndexEntryPathSize::new($this->trackingFile->path);
         if ($pathSize->isOverFlagsSpace()) {
@@ -131,9 +134,9 @@ final class IndexEntry
             throw new InvalidArgumentException(sprintf('the path length exceed of limit: %d', $pathSize->value));
         }
 
-        $assumeValidFlag = 0 << 15;
-        $extendedFlag = 0 << 14;
-        $stage = 0 << 12;
+        $assumeValidFlag = $this->assumeValidFlag << 15;
+        $extendedFlag = $this->extendedFlag << 14;
+        $stage = $this->stage << 12;
         $flags = pack('n', $assumeValidFlag | $extendedFlag | $stage | $pathSize->asStorableValue());
         $path = sprintf("%s\0", $this->trackingFile->path);
         $entrySize = IndexEntrySize::new($pathSize);

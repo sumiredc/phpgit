@@ -14,8 +14,7 @@ readonly final class IndexEntrySize
     {
         return new self(
             GIT_INDEX_ENTRY_HEADER_LENGTH
-                + $pathSize->value
-                + 1 // null-terminated string
+                + $pathSize->withNull
         );
     }
 }

@@ -6,8 +6,6 @@ namespace Phpgit\Domain;
 
 readonly final class TrackingFile
 {
-    public readonly string $fullPath;
-
     private function __construct(
         public readonly string $path
     ) {}
