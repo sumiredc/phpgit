@@ -4,57 +4,34 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
-use InvalidArgumentException;
-use RuntimeException;
-
 final class GitIndex
 {
-    /** 
-     * @var array<string,IndexEntry> key is filename
-     */
     private array $indexEntries = [];
 
+    /**
+     * @var array<string,IndexEntry> key is filename
+     */
+    public array $entries {
+        get => $this->indexEntries;
+    }
+
+    public int $count {
+        get => $this->header->count;
+    }
+
     private function __construct(
-        public readonly string $signature,
-        public readonly int $version
+        public private(set) GitIndexHeader $header
     ) {}
 
-    public static function make(): self
+    public static function new(): self
     {
-        return new self(GIT_INDEX_SIGNATURE, GIT_INDEX_VERSION);
+        $header = GitIndexHeader::new();
+        return new self($header);
     }
 
-    /** 
-     * @return array{
-     *  0:self,
-     *  1:int,  index entity count
-     * }
-     * @throws InvalidArgumentException
-     */
-    public static function parse(string $headerBlob): array
+    public static function parse(GitIndexHeader $header): self
     {
-        $header = unpack('a4signature/Nversion/Ncount', $headerBlob);
-        if ($header === false) {
-            throw new InvalidArgumentException('failed to unpack Git Index header');
-        }
-
-        $signature = $header['signature'] ?? '';
-        if ($signature !== GIT_INDEX_SIGNATURE) {
-            throw new RuntimeException(sprintf('invalid signature in git index: %s', $signature));
-        }
-
-        $version = $header['version'] ?? 0;
-        if ($version !== GIT_INDEX_VERSION) {
-            throw new RuntimeException(sprintf('invalid varsion in git index: %d', $version));
-        }
-
-        return [new self($signature, $version), intval($header['count'])];
-    }
-
-    /** @return array<IndexEntry> */
-    public function entries(): array
-    {
-        return $this->indexEntries;
+        return new self($header);
     }
 
     public function addEntry(IndexEntry $indexEntry): int
@@ -64,17 +41,7 @@ final class GitIndex
         // sort path in asc
         ksort($this->indexEntries, SORT_STRING);
 
-        return count($this->indexEntries);
-    }
-
-    public function headerBlob(): string
-    {
-        return pack(
-            'a4NN',
-            $this->signature,
-            $this->version,
-            count($this->indexEntries)
-        );
+        return $this->header->updateCount($this->indexEntries);
     }
 
     public function entriesBlob(): string
@@ -88,7 +55,7 @@ final class GitIndex
 
     public function asBlob(): string
     {
-        $data = sprintf('%s%s', $this->headerBlob(), $this->entriesBlob());
+        $data = sprintf('%s%s', $this->header->asBlob(), $this->entriesBlob());
         $checksum = hash('sha1', $data, true);
 
         return sprintf('%s%s', $data, $checksum);

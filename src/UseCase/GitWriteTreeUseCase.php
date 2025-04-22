@@ -57,7 +57,7 @@ final class GitWriteTreeUseCase
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        foreach ($gitIndex->entries() as $entry) {
+        foreach ($gitIndex->entries as $entry) {
             if (!$this->objectRepository->exists($entry->objectHash)) {
                 throw new InvalidObjectException(
                     sprintf(

@@ -6,6 +6,7 @@ namespace Phpgit\Repository;
 
 
 use Phpgit\Domain\GitIndex;
+use Phpgit\Domain\GitIndexHeader;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\IndexEntryHeader;
 use Phpgit\Domain\IndexEntryPathSize;
@@ -35,7 +36,8 @@ readonly final class IndexRepository implements IndexRepositoryInterface
             throw new RuntimeException('failed to fread Git Index header');
         }
 
-        [$gitIndex, $entityCount] = GitIndex::parse($header);
+        $indexHeader = GitIndexHeader::parse($header);
+        [$gitIndex, $entityCount] = GitIndex::parse($indexHeader);
 
         for ($i = 0; $i < $entityCount; $i++) {
             $entryHeaderBlob = fread($handle, GIT_INDEX_ENTRY_HEADER_LENGTH);
@@ -87,7 +89,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
             throw new RuntimeException('failed to create index');
         }
 
-        $gitIndex = GitIndex::make();
+        $gitIndex = GitIndex::new();
         $this->save($gitIndex);
 
         return $gitIndex;

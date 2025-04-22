@@ -44,7 +44,7 @@ final class GitLsFilesUseCase
         $gitIndex = $this->indexRepository->get();
         $list = array_map(
             fn(IndexEntry $indexEntry) => $indexEntry->trackingFile->path,
-            $gitIndex->entries()
+            $gitIndex->entries
         );
 
         $this->io->writeln($list);
@@ -61,7 +61,7 @@ final class GitLsFilesUseCase
                 'H', // TODO: 一旦 Hash object で固定 https://git-scm.com/docs/git-ls-files#Documentation/git-ls-files.txt--t
                 $indexEntry->trackingFile->path
             ),
-            $gitIndex->entries()
+            $gitIndex->entries
         );
 
         $this->io->writeln($list);
@@ -73,7 +73,7 @@ final class GitLsFilesUseCase
     {
         $gitIndex = $this->indexRepository->get();
         $line = array_reduce(
-            $gitIndex->entries(),
+            $gitIndex->entries,
             fn(string $carry, IndexEntry $indexEntry) => sprintf("%s%s\0", $carry, $indexEntry->trackingFile->path),
             '',
         );
@@ -94,7 +94,7 @@ final class GitLsFilesUseCase
                 $indexEntry->stage,
                 $indexEntry->trackingFile->path,
             ),
-            $gitIndex->entries()
+            $gitIndex->entries
         );
 
         $this->io->writeln($list);
@@ -105,7 +105,7 @@ final class GitLsFilesUseCase
     public function actionDebug(): Result
     {
         $gitIndex = $this->indexRepository->get();
-        foreach ($gitIndex->entries() as $indexEntry) {
+        foreach ($gitIndex->entries as $indexEntry) {
             $entry = [
                 $indexEntry->trackingFile->path,
                 sprintf("  ctime: %d:%d", $indexEntry->ctime, $indexEntry->ctimeNano),
