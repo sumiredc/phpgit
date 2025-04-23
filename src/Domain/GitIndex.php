@@ -6,21 +6,25 @@ namespace Phpgit\Domain;
 
 final class GitIndex
 {
-    private array $indexEntries = [];
-
     /**
      * @var array<string,IndexEntry> key is filename
      */
-    public array $entries {
-        get => $this->indexEntries;
-    }
+    public private(set) array $entries = [];
 
     public int $count {
         get => $this->header->count;
     }
 
+    public int $version {
+        get => $this->header->version;
+    }
+
+    public string $signature {
+        get => $this->header->signature;
+    }
+
     private function __construct(
-        public private(set) GitIndexHeader $header
+        private GitIndexHeader $header
     ) {}
 
     public static function new(): self
@@ -36,18 +40,18 @@ final class GitIndex
 
     public function addEntry(IndexEntry $indexEntry): int
     {
-        $this->indexEntries[$indexEntry->trackingFile->path] = $indexEntry;
+        $this->entries[$indexEntry->trackingFile->path] = $indexEntry;
 
         // sort path in asc
-        ksort($this->indexEntries, SORT_STRING);
+        ksort($this->entries, SORT_STRING);
 
-        return $this->header->updateCount($this->indexEntries);
+        return $this->header->updateCount($this->entries);
     }
 
     public function entriesBlob(): string
     {
         return array_reduce(
-            $this->indexEntries,
+            $this->entries,
             fn(string $blob, IndexEntry $entry) => sprintf('%s%s', $blob, $entry->asBlob()),
             ''
         );
@@ -63,16 +67,16 @@ final class GitIndex
 
     public function existsEntry(TrackingFile $trackingFile): bool
     {
-        return array_key_exists($trackingFile->path, $this->indexEntries);
+        return array_key_exists($trackingFile->path, $this->entries);
     }
 
     public function existsEntryByFilename(string $file): bool
     {
-        return array_key_exists($file, $this->indexEntries);
+        return array_key_exists($file, $this->entries);
     }
 
     public function removeEntryByFilename(string $file): void
     {
-        unset($this->indexEntries[$file]);
+        unset($this->entries[$file]);
     }
 }
