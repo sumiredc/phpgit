@@ -14,6 +14,7 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
         return is_dir(F_GIT_DIR);
     }
 
+    /** @throws RuntimeException */
     public function makeGitObjectDir(): void
     {
         if (mkdir(F_GIT_OBJECTS_DIR, 0755, true)) {
@@ -23,6 +24,7 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
         throw new RuntimeException(sprintf('failed to mkdir: %s', F_GIT_OBJECTS_DIR));
     }
 
+    /** @throws RuntimeException */
     public function makeGitHeadsDir(): void
     {
         if (mkdir(F_GIT_HEADS_DIR, 0755, true)) {
@@ -32,6 +34,7 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
         throw new RuntimeException(sprintf('failed to mkdir: %s', F_GIT_HEADS_DIR));
     }
 
+    /** @throws RuntimeException */
     public function createGitHead(): void
     {
         if (touch(F_GIT_HEAD)) {
@@ -41,6 +44,7 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
         throw new RuntimeException(sprintf('failed to touch: %s', F_GIT_HEAD));
     }
 
+    /** @throws RuntimeException */
     public function saveGitHead(string $branch): void
     {
         $data = sprintf('ref: %s/%s', GIT_HEADS_DIR, GIT_BASE_BRANCH);
