@@ -7,7 +7,7 @@
         }
     },
     "scripts": {
-        "test": "docker compose run --rm test",
+        "test": "docker compose run --rm test -p",
         "coverage": "docker compose run --rm test -p --coverage"
     },
     "require": {
