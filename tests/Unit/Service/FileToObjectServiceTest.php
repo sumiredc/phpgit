@@ -20,10 +20,10 @@ describe('__invoke', function () {
         $this->fileRepository->shouldReceive('getContents')->andReturn($content)->once();
 
         $service = new FileToObjectService($this->fileRepository);
-        [$actualTrackingFile, $actualExpectedBlobObject] = $service($file);
+        [$trackingFile, $blobObject] = $service($file);
 
-        expect($actualTrackingFile->path)->toBe($file);
-        expect($actualExpectedBlobObject->body)->toBe($content);
+        expect($trackingFile->path)->toBe($file);
+        expect($blobObject->body)->toBe($content);
     })
         ->with([
             [
