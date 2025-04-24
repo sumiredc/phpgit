@@ -30,7 +30,7 @@ final class GitInitUseCase
             $this->gitResourceRepository->createGitHead();
             $this->gitResourceRepository->saveGitHead(GIT_BASE_BRANCH);
 
-            $this->io->writeln(sprintf('initialized empty Git repository in %s', F_GIT_DIR));
+            $this->io->writeln(sprintf('Initialized empty Git repository in %s', F_GIT_DIR));
 
             return Result::Success;
         } catch (Throwable $th) {
