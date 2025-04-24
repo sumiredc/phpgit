@@ -46,6 +46,9 @@ final class GitCatFileUseCase
         }
     }
 
+    /**
+     * git cat-file -t <object>
+     */
     private function actionType(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
@@ -58,6 +61,9 @@ final class GitCatFileUseCase
         return Result::Success;
     }
 
+    /**
+     * git cat-file -s <object>
+     */
     private function actionSize(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
@@ -70,6 +76,9 @@ final class GitCatFileUseCase
         return Result::Success;
     }
 
+    /**
+     * git cat-file -e <object>
+     */
     private function actionExists(ObjectHash $objectHash): Result
     {
         if ($this->objectRepository->exists($objectHash)) {
@@ -79,10 +88,13 @@ final class GitCatFileUseCase
         return Result::Failure;
     }
 
+    /**
+     * git cat-file -p <object>
+     */
     private function actionPrettyPrint(ObjectHash $objectHash): Result
     {
         if (!$this->objectRepository->exists($objectHash)) {
-            new InvalidArgumentException;
+            throw new InvalidArgumentException;
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
