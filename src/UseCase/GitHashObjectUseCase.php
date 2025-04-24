@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phpgit\UseCase;
 
 use Phpgit\Domain\Repository\FileRepositoryInterface;
-use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Lib\IOInterface;
@@ -16,7 +15,6 @@ final class GitHashObjectUseCase
 {
     public function __construct(
         private readonly IOInterface $io,
-        private readonly ObjectRepositoryInterface $objectRepository,
         private readonly FileRepositoryInterface $fileRepository,
     ) {}
 

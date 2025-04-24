@@ -31,9 +31,8 @@ final class GitHashObjectCommand extends Command
         $file = strval($input->getArgument('file'));
 
         $io = new IO($input, $output);
-        $objectRepository = new ObjectRepository();
         $fileRepository = new FileRepository();
-        $useCase = new GitHashObjectUseCase($io, $objectRepository, $fileRepository);
+        $useCase = new GitHashObjectUseCase($io, $fileRepository);
 
         $result = $useCase($file);
 
