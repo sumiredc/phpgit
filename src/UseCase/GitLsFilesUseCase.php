@@ -88,7 +88,7 @@ final class GitLsFilesUseCase
         $gitIndex = $this->indexRepository->get();
         $list = array_map(
             fn(IndexEntry $indexEntry) => sprintf(
-                "%s %s %s\t%s",
+                "%s %s %d\t%s",
                 $indexEntry->gitFileMode->value,
                 $indexEntry->objectHash->value,
                 $indexEntry->stage,
@@ -117,6 +117,7 @@ final class GitLsFilesUseCase
 
             $this->io->writeln($entry);
         }
+
         return Result::Success;
     }
 }
