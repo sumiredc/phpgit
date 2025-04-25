@@ -35,8 +35,7 @@ describe('__invoke', function () {
 
         $this->io->shouldReceive('stackTrace')
             ->with(Mockery::on(function (Throwable $actual) use ($expected) {
-                $this->assertInstanceOf(RuntimeException::class, $actual);
-                $this->assertEquals($expected, $actual);
+                expect($actual)->toEqual($expected);
                 return true;
             }))
             ->once();
@@ -68,7 +67,7 @@ describe('__invoke -> actionDefault', function () {
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('writeln')
             ->with(Mockery::on(function (array $actual) use ($expected) {
-                $this->assertEquals($expected, $actual);
+                expect($actual)->toEqual($expected);
                 return true;
             }))
             ->once();
@@ -141,7 +140,7 @@ describe('__invoke -> actionTag', function () {
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('writeln')
             ->with(Mockery::on(function (array $actual) use ($expected) {
-                $this->assertEquals($expected, $actual);
+                expect($actual)->toEqual($expected);
                 return true;
             }))
             ->once();
@@ -267,7 +266,7 @@ describe('__invoke -> actionStage', function () {
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('writeln')
             ->with(Mockery::on(function (array $actual) use ($expected) {
-                $this->assertEquals($expected, $actual);
+                expect($actual)->toEqual($expected);
                 return true;
             }))
             ->once();
@@ -346,7 +345,7 @@ describe('__invoke -> actionDebug', function () {
         foreach ($expectedValues as $expected) {
             $this->io->shouldReceive('writeln')
                 ->with(Mockery::on(function (array $actual) use ($expected) {
-                    $this->assertEquals($expected, $actual);
+                    expect($actual)->toEqual($expected);
                     return true;
                 }))
                 ->once()

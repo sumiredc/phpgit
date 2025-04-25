@@ -213,8 +213,7 @@ describe('__invoke -> actionPrettyPrint', function () {
         $this->objectRepository->shouldReceive('get')->andThrow(RuntimeException::class);
         $this->io->shouldReceive('stackTrace')
             ->with(Mockery::on(function (Throwable $actual) use ($expected) {
-                $this->assertInstanceOf(RuntimeException::class, $actual);
-                $this->assertEquals($expected, $actual);
+                expect($actual)->toEqual($expected);
                 return true;
             }))
             ->once();

@@ -58,8 +58,7 @@ describe('__invoke', function () {
         $this->fileRepository->shouldReceive('getContents')->andReturnNull();
         $this->io->shouldReceive('stackTrace')
             ->with(Mockery::on(function (Throwable $actual) use ($expected) {
-                $this->assertInstanceOf(RuntimeException::class, $actual);
-                $this->assertEquals($expected, $actual);
+                expect($actual)->toEqual($expected);
                 return true;
             }))
             ->once();

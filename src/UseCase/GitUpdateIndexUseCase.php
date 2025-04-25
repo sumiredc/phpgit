@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\UseCase;
 
+use InvalidArgumentException;
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitFileMode;
@@ -14,7 +15,6 @@ use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
-use Phpgit\Domain\UnixPermission;
 use Phpgit\Exception\CannotAddIndexException;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Lib\IOInterface;
@@ -45,7 +45,7 @@ final class GitUpdateIndexUseCase
                 GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo($gitFileMode, $objectHash, $file),
             };
         } catch (FileNotFoundException) {
-            $this->io->error([
+            $this->io->writeln([
                 sprintf('error: %s: does not exist and --remove not passed', $file),
                 sprintf('fatal: Unable to process path %s', $file)
             ]);
@@ -159,10 +159,18 @@ final class GitUpdateIndexUseCase
      * @see https://git-scm.com/docs/git-update-index#Documentation/git-update-index.txt---cacheinfoltmodegtltobjectgtltpathgt-1
      */
     private function actionCacheinfo(
-        GitFileMode $gitFileMode,
-        ObjectHash $objectHash,
+        ?GitFileMode $gitFileMode,
+        ?ObjectHash $objectHash,
         string $file
     ): Result {
+        if (is_null($gitFileMode)) {
+            throw new InvalidArgumentException('invalid because gitFileMode in args is null');
+        }
+
+        if (is_null($objectHash)) {
+            throw new InvalidArgumentException('invalid because objectHash in args is null');
+        }
+
         if (!$this->fileRepository->existsByFilename($file)) {
             $this->io->writeln([
                 sprintf('error: %s: cannot add to the index - missing --add option?', $file),
