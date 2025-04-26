@@ -53,7 +53,9 @@ abstract class GitObject
 
     /** 
      * @return array{0:GitObjectHeader,1:string} [header, body]
-     * @throws RuntimeException|ValueError|TypeError 
+     * @throws RuntimeException
+     * @throws ValueError
+     * @throws TypeError 
      */
     protected static function parseToHeaderAndBody(string $uncompressed): array
     {

@@ -19,7 +19,8 @@ final class FileToObjectService
 
     /** 
      * @return array{0:TrackingFile,1:GitObject}
-     * @throws FileNotFoundException|RuntimeException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
      */
     public function __invoke(string $file): array
     {

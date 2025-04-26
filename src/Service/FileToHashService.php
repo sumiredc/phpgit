@@ -18,7 +18,8 @@ final class FileToHashService
 
     /** 
      * @return array{0:TrackingFile,1:GitObject,2:ObjectHash}
-     * @throws FileNotFoundException|RuntimeException 
+     * @throws FileNotFoundException
+     * @throws RuntimeException 
      */
     public function __invoke(string $file)
     {
