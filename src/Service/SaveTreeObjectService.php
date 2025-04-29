@@ -9,6 +9,7 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\ObjectType;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
+use Phpgit\Domain\SegmentTree;
 use Phpgit\Domain\TreeObject;
 use UnexpectedValueException;
 
@@ -18,7 +19,10 @@ final class SaveTreeObjectService
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
-    public function __invoke(array $segmentTree)
+    /**
+     * @throws UnexpectedValueException
+     */
+    public function __invoke(SegmentTree $segmentTree): ObjectHash
     {
         return $this->saveTreeObject(
             TreeObject::new(),
@@ -28,15 +32,14 @@ final class SaveTreeObjectService
     }
 
     /** 
-     * @param array<string,IndexEntry|array<string,IndexEntry,array>> $segmentTree
      * @throws UnexpectedValueException
      */
     private function saveTreeObject(
         TreeObject $treeObject,
-        array $segmentTree,
+        SegmentTree $segmentTree,
         string $currentDir
     ): ObjectHash {
-        foreach ($segmentTree as $segment => $segmentValue) {
+        foreach ($segmentTree->segments as $segment => $segmentValue) {
             $path = sprintf('%s/%s', $currentDir, $segment);
 
             /** 
@@ -45,7 +48,7 @@ final class SaveTreeObjectService
              * @var ObjectHash $hash
              */
             [$mode, $type, $hash] = match (true) {
-                is_array($segmentValue) => [
+                is_a($segmentValue, SegmentTree::class) => [
                     GitFileMode::Tree,
                     ObjectType::Tree,
                     $this->saveTreeObject(TreeObject::new(), $segmentValue, $path) // Recursive
@@ -53,9 +56,12 @@ final class SaveTreeObjectService
 
                 is_a($segmentValue, IndexEntry::class) => $this->getObjectMeta($segmentValue),
 
+                // NOTE: This branch is not reached, because it manages by SegmentTree class.
+                // @codeCoverageIgnoreStart
                 default => throw new UnexpectedValueException(
                     sprintf('unexpected segment value: %s', gettype($segmentValue))
                 ),
+                // @codeCoverageIgnoreEnd
             };
 
             $treeObject->appendEntry($mode, $type, $hash, $segment);
