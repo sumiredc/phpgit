@@ -72,9 +72,6 @@ final class GitUpdateIndexUseCase
         }
 
         $fileStat = $this->fileRepository->getStat($trackingFile);
-        if (is_null($fileStat)) {
-            throw new RuntimeException('failed to get stat');
-        }
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
@@ -117,9 +114,6 @@ final class GitUpdateIndexUseCase
             }
 
             $fileStat = $this->fileRepository->getStat($trackingFile);
-            if (is_null($fileStat)) {
-                throw new RuntimeException('failed to get stat');
-            }
 
             $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
             $gitIndex->addEntry($indexEntry);

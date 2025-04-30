@@ -7,6 +7,7 @@ namespace Phpgit\Repository;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\TrackingFile;
+use RuntimeException;
 
 readonly final class FileRepository implements FileRepositoryInterface
 {
@@ -20,21 +21,23 @@ readonly final class FileRepository implements FileRepositoryInterface
         return is_file(sprintf('%s/%s', F_GIT_TRACKING_ROOT, $file));
     }
 
-    public function getContents(TrackingFile $trackingFile): ?string
+    /** @throws RuntimeException */
+    public function getContents(TrackingFile $trackingFile): string
     {
         $content = file_get_contents($trackingFile->fullPath());
         if ($content === false) {
-            return null;
+            throw new RuntimeException(sprintf('failed to get contents: %s', $trackingFile->fullPath()));
         }
 
         return $content;
     }
 
-    public function getStat(TrackingFile $trackingFile): ?FileStat
+    /** @throws RuntimeException */
+    public function getStat(TrackingFile $trackingFile): FileStat
     {
         $stat = stat($trackingFile->fullPath());
         if ($stat === false) {
-            return null;
+            throw new RuntimeException(sprintf('failed to get stat: %s', $trackingFile->fullPath()));
         }
 
         return FileStat::new($stat);

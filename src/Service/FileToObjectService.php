@@ -30,9 +30,6 @@ final class FileToObjectService
         }
 
         $content = $this->fileRepository->getContents($trackingFile);
-        if (is_null($content)) {
-            throw new RuntimeException(sprintf('failed to get contents: %s', $file));
-        }
 
         return [$trackingFile, BlobObject::new($content)];
     }

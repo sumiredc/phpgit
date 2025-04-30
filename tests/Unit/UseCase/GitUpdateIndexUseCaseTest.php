@@ -15,6 +15,8 @@ use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
 use Phpgit\Lib\IOInterface;
 use Phpgit\UseCase\GitUpdateIndexUseCase;
+use Tests\Factory\FileStatFactory;
+use Tests\Factory\ObjectHashFactory;
 
 beforeEach(function () {
     $this->io = Mockery::mock(IOInterface::class);
@@ -127,7 +129,7 @@ describe('__invoke -> actionAdd', function () {
         $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
         $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->fileRepository->shouldReceive('getStat')->andReturnNull()->once();
+        $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
         $this->indexRepository->shouldReceive('getOrCreate')->never();
         $this->io->shouldReceive('stackTrace')
             ->with(Mockery::on(function (Throwable $actual) use ($expected) {
@@ -150,7 +152,7 @@ describe('__invoke -> actionAdd', function () {
             [
                 'README.md',
                 "# README\ndescription",
-                new RuntimeException('failed to get stat')
+                new RuntimeException('failed to get stat: /full/path')
             ]
         ]);
 });
@@ -172,11 +174,7 @@ describe('__invoke -> actionRemove', function () {
         $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->objectRepository->shouldReceive('save')->never();
-        $this->fileRepository->shouldReceive('getStat')
-            ->andReturn(
-                FileStat::newForCacheinfo(33180) # dummy
-            )
-            ->once();
+        $this->fileRepository->shouldReceive('getStat')->andReturn(FileStatFactory::new())->once();
         $this->indexRepository->shouldReceive('save')->once();
 
         $useCase = new GitUpdateIndexUseCase(
@@ -195,8 +193,8 @@ describe('__invoke -> actionRemove', function () {
 
     it('should returns success and save object when don\'t exists object', function (string $file) {
         $entry = IndexEntry::new(
-            FileStat::newForCacheinfo(33180), # dummy
-            ObjectHash::new('dummy object'), # dummy
+            FileStatFactory::new(),
+            ObjectHashFactory::new(),
             TrackingFile::new($file)
         );
         $index = GitIndex::new();
@@ -209,11 +207,7 @@ describe('__invoke -> actionRemove', function () {
         $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
         $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
         $this->objectRepository->shouldReceive('save')->andReturn(ObjectHash::new('dummy object'))->once();
-        $this->fileRepository->shouldReceive('getStat')
-            ->andReturn(
-                FileStat::newForCacheinfo(33180) # dummy
-            )
-            ->once();
+        $this->fileRepository->shouldReceive('getStat')->andReturn(FileStatFactory::new())->once();
         $this->indexRepository->shouldReceive('save')->once();
 
         $useCase = new GitUpdateIndexUseCase(
@@ -337,7 +331,7 @@ describe('__invoke -> actionRemove', function () {
             $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
             $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
-            $this->fileRepository->shouldReceive('getStat')->andReturnNull()->once();
+            $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
 
             $this->io->shouldReceive('stackTrace')
                 ->with(Mockery::on(function (Throwable $actual) use ($expected) {
@@ -358,7 +352,7 @@ describe('__invoke -> actionRemove', function () {
         }
     )
         ->with([
-            ['README.md', new RuntimeException('failed to get stat')]
+            ['README.md', new RuntimeException('failed to get stat: /full/path')]
         ]);
 });
 

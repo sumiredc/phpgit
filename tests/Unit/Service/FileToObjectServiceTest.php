@@ -43,10 +43,9 @@ describe('__invoke', function () {
 
     it('should throws the RuntimeException, when fails to get content', function () {
         $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->fileRepository->shouldReceive('getContents')->andReturnNull()->once();
+        $this->fileRepository->shouldReceive('getContents')->andThrow(new RuntimeException('failed to get contents: /full/path'))->once();
 
         $service = new FileToHashService($this->fileRepository);
-        $service('file');
-    })
-        ->throws(RuntimeException::class);
+        expect(fn() => $service('file'))->toThrow(new RuntimeException('failed to get contents: /full/path'));
+    });
 });

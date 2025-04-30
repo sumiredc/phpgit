@@ -13,7 +13,9 @@ interface FileRepositoryInterface
 
     public function existsByFilename(string $file): bool;
 
-    public function getContents(TrackingFile $trackingFile): ?string;
+    /** @throws RuntimeException */
+    public function getContents(TrackingFile $trackingFile): string;
 
-    public function getStat(TrackingFile $trackingFile): ?FileStat;
+    /** @throws RuntimeException */
+    public function getStat(TrackingFile $trackingFile): FileStat;
 }

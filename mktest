@@ -8,7 +8,7 @@ files=$(docker compose run --rm test -p --coverage \
 for file in $files; do
     case "$file" in
         # ignore
-        Lib/*)
+        Command/*|Repository/*|Lib/*)
             continue
             ;;
         # feature

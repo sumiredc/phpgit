@@ -54,8 +54,8 @@ describe('__invoke', function () {
         string $file,
         Throwable $expected
     ) {
-        $this->fileRepository->shouldReceive('exists')->andReturn(true);
-        $this->fileRepository->shouldReceive('getContents')->andReturnNull();
+        $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
+        $this->fileRepository->shouldReceive('getContents')->andThrow(new RuntimeException('failed to get contents: /full/path'))->once();
         $this->io->shouldReceive('stackTrace')
             ->with(Mockery::on(function (Throwable $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
@@ -69,6 +69,6 @@ describe('__invoke', function () {
         expect($actual)->toBe(Result::GitError);
     })
         ->with([
-            ['README.md', new RuntimeException('failed to get contents: README.md')],
+            ['README.md', new RuntimeException('failed to get contents: /full/path')],
         ]);
 });
