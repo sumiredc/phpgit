@@ -37,9 +37,9 @@ readonly final class IndexRepository implements IndexRepositoryInterface
         }
 
         $indexHeader = GitIndexHeader::parse($header);
-        [$gitIndex, $entityCount] = GitIndex::parse($indexHeader);
+        $gitIndex = GitIndex::parse($indexHeader);
 
-        for ($i = 0; $i < $entityCount; $i++) {
+        for ($i = 0; $i < $gitIndex->count; $i++) {
             $entryHeaderBlob = fread($handle, GIT_INDEX_ENTRY_HEADER_LENGTH);
             if ($entryHeaderBlob === false) {
                 throw new RuntimeException('failed to fread Entry header');
