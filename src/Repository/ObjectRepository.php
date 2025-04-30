@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Repository;
 
+use Phpgit\Domain\CompressedPayload;
 use Phpgit\Domain\GitObject;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
@@ -25,19 +26,17 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
 
         $objectPath = sprintf('%s/%s', $objectDir, $objectHash->filename);
 
-        $compressed = $this->compress($gitObject->data);
-        if (is_null($compressed)) {
-            throw new RuntimeException('failed to compress');
-        }
+        $compressed = CompressedPayload::new($gitObject->data);
 
-        if (file_put_contents($objectPath, $compressed) === false) {
+        if (file_put_contents($objectPath, $compressed->value) === false) {
             throw new RuntimeException('failed to file_put_contents');
         }
 
         return $objectHash;
     }
 
-    public function getCompressed(ObjectHash $objectHash): string
+    /** @throws RuntimeException */
+    public function getCompressedPayload(ObjectHash $objectHash): CompressedPayload
     {
         $path = $objectHash->fullPath();
 
@@ -46,40 +45,19 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
             throw new RuntimeException('failed to file_get_contents', 500);
         }
 
-        return $compressed;
+        return CompressedPayload::new($compressed);
     }
 
     /** @throws RuntimeException */
     public function get(ObjectHash $objectHash): GitObject
     {
-        $compressed = $this->getCompressed($objectHash);
-        $uncompressed = $this->decompress($compressed);
+        $compressed = $this->getCompressedPayload($objectHash);
 
-        return GitObject::parse($uncompressed);
+        return GitObject::parse($compressed->decompress());
     }
 
     public function exists(ObjectHash $objectHash): bool
     {
         return is_file($objectHash->fullPath());
-    }
-
-    private function compress(string $object): ?string
-    {
-        $compressed = gzcompress($object);
-        if ($compressed === false) {
-            throw new RuntimeException('failed to compress object', 500);
-        }
-
-        return $compressed;
-    }
-
-    private function decompress(string $compressed): ?string
-    {
-        $uncompressed = zlib_decode($compressed);
-        if ($uncompressed === false) {
-            throw new RuntimeException('failed to decompress object', 500);
-        }
-
-        return $uncompressed;
     }
 }
