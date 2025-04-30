@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /** @see https://git-scm.com/docs/git-cat-file */
 #[AsCommand(
     name: 'git:cat-file',
-    description: '',
+    description: 'Provide contents or details of repository objects',
 )]
 final class GitCatFileCommand extends Command
 {

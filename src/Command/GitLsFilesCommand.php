@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /** @see https://git-scm.com/docs/git-ls-files */
 #[AsCommand(
     name: 'git:ls-files',
-    description: '',
+    description: 'Show information about files in the index and the working tree',
 )]
 final class GitLsFilesCommand extends Command
 {

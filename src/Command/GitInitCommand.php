@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /** @see https://git-scm.com/docs/git-init */
 #[AsCommand(
     name: 'git:init',
-    description: '',
+    description: 'Create an empty Git repository or reinitialize an existing one',
 )]
 final class GitInitCommand extends Command
 {

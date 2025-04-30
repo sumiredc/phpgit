@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /** @see https://git-scm.com/docs/git-write-tree */
 #[AsCommand(
     name: 'git:write-tree',
-    description: '',
+    description: 'Create a tree object from the current index',
 )]
 final class GitWriteTreeCommand extends Command
 {

@@ -25,7 +25,7 @@ use ValueError;
 /** @see https://git-scm.com/docs/git-update-index */
 #[AsCommand(
     name: 'git:update-index',
-    description: '',
+    description: 'Register file contents in the working tree to the index',
 )]
 final class GitUpdateIndexCommand extends Command
 {
