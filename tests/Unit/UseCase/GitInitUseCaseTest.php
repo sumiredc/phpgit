@@ -19,6 +19,7 @@ describe('__invoke', function () {
         $this->gitResourceRepository->shouldReceive('makeGitHeadsDir')->once();
         $this->gitResourceRepository->shouldReceive('createGitHead')->once();
         $this->gitResourceRepository->shouldReceive('saveGitHead')->once();
+        $this->gitResourceRepository->shouldReceive('createConfig')->once();
         $this->io->shouldReceive('writeln')->once();
 
         $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository);

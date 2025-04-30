@@ -1,27 +1,35 @@
 <?php
-// TODO: .env.test で値を管理
+// TODO: .env で値を管理
 declare(strict_types=1);
 
 // git index
-define('GIT_INDEX_SIGNATURE', 'DIRC');
-define('GIT_INDEX_VERSION', 2);
-define('GIT_INDEX_HEADER_LENGTH', 12);
-define('GIT_INDEX_ENTRY_HEADER_LENGTH', 62);
+const GIT_INDEX_SIGNATURE = 'DIRC';
+const GIT_INDEX_VERSION = 2;
+const GIT_INDEX_HEADER_LENGTH = 12;
+const GIT_INDEX_ENTRY_HEADER_LENGTH = 62;
 
 // git-relative path (ex: refs/heads)
-define('GIT_TRACKING_ROOT', 'project');
-define('GIT_DIR', '.phpgit');
-define('GIT_OBJECTS_DIR', 'objects');
-define('GIT_HEADS_DIR', 'refs/heads');
-define('GIT_HEAD', 'HEAD');
-define('GIT_INDEX', 'index');
+const GIT_TRACKING_ROOT = 'project';
+const GIT_DIR = '.git';
+const GIT_OBJECTS_DIR = 'objects';
+const GIT_HEADS_DIR = 'refs/heads';
+const GIT_HEAD = 'HEAD';
+const GIT_INDEX = 'index';
+const GIT_CONFIG = 'config';
 
 // absolute path (ex: /{project-path}/{gitdir}/refs/heads)
 define('F_GIT_TRACKING_ROOT', sprintf("%s/%s", '/test', GIT_TRACKING_ROOT));
-define('F_GIT_DIR', sprintf('%s/%s', F_GIT_TRACKING_ROOT, GIT_DIR));
-define('F_GIT_OBJECTS_DIR', sprintf('%s/%s', F_GIT_DIR, GIT_OBJECTS_DIR));
-define('F_GIT_HEADS_DIR', sprintf('%s/%s', F_GIT_DIR, GIT_HEADS_DIR));
-define('F_GIT_HEAD', sprintf('%s/%s', F_GIT_DIR, GIT_HEAD));
-define('F_GIT_INDEX', sprintf('%s/%s', F_GIT_DIR, GIT_INDEX));
+const F_GIT_DIR = F_GIT_TRACKING_ROOT . '/' . GIT_DIR;
+const F_GIT_OBJECTS_DIR = F_GIT_DIR . '/' . GIT_OBJECTS_DIR;
+const F_GIT_HEADS_DIR = F_GIT_DIR . '/' . GIT_HEADS_DIR;
+const F_GIT_HEAD = F_GIT_DIR . '/' . GIT_HEAD;
+const F_GIT_INDEX = F_GIT_DIR . '/' . GIT_INDEX;
+const F_GIT_CONFIG = F_GIT_DIR . '/' . GIT_CONFIG;
 
-define('GIT_BASE_BRANCH', 'main');
+const GIT_BASE_BRANCH = 'main';
+const GIT_REPOSITORY_FORMAT_VERSION = 0;
+const GIT_FILEMODE = true;
+const GIT_BARE = false;
+const GIT_LOG_ALL_REF_UPDATES = true;
+const GIT_IGNORE_CASE = true;
+const GIT_PRE_COMPOSE_UNICODE = true;

@@ -29,6 +29,7 @@ final class GitInitUseCase
             $this->gitResourceRepository->makeGitHeadsDir();
             $this->gitResourceRepository->createGitHead();
             $this->gitResourceRepository->saveGitHead(GIT_BASE_BRANCH);
+            $this->gitResourceRepository->createConfig();
 
             $this->io->writeln(sprintf('Initialized empty Git repository in %s', F_GIT_DIR));
 
