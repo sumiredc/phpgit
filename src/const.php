@@ -27,6 +27,8 @@ const F_GIT_INDEX = F_GIT_DIR . '/' . GIT_INDEX;
 const F_GIT_CONFIG = F_GIT_DIR . '/' . GIT_CONFIG;
 
 const GIT_BASE_BRANCH = 'main';
+const GIT_DEFAULT_USER_NAME = 'sumire';
+const GIT_DEFAULT_USER_EMAIL = 'sumire@example.com';
 const GIT_REPOSITORY_FORMAT_VERSION = 0;
 const GIT_FILEMODE = true;
 const GIT_BARE = false;
