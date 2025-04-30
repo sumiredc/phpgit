@@ -10,7 +10,7 @@ define('GIT_INDEX_ENTRY_HEADER_LENGTH', 62);
 
 // git-relative path (ex: refs/heads)
 define('GIT_TRACKING_ROOT', 'project');
-define('GIT_DIR', '.phpgit');
+define('GIT_DIR', '.git');
 define('GIT_OBJECTS_DIR', 'objects');
 define('GIT_HEADS_DIR', 'refs/heads');
 define('GIT_HEAD', 'HEAD');

@@ -16,6 +16,7 @@ docker compose run --rm php git:{command-name}
 - `git:hash-object <file>`
 - `git:ls-files [ --stage | --debug | -t | -z ]`
 - `git:update-index [ --add <file> | --remove <file> | --force-remove <file> | --cacheinfo <mode> <object> <file> ]`
+- `git:write-tree`
 
 ## 📚️ Libraries & Resources
 
