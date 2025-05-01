@@ -53,32 +53,4 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
             throw new RuntimeException(sprintf('failed to write in file: %s', F_GIT_HEAD));
         }
     }
-
-    /** @throws RuntimeException */
-    public function createConfig(): void
-    {
-        if (!touch(F_GIT_CONFIG)) {
-            throw new RuntimeException(sprintf('failed to touch: %s', F_GIT_CONFIG));
-        }
-
-        $fp = fopen(F_GIT_CONFIG, "w");
-        if ($fp === false) {
-            throw new RuntimeException(sprintf('failed to fopen: %s', F_GIT_CONFIG));
-        }
-
-        $data = [
-            "[core]\n",
-            sprintf("\trepositoryformatversion = %d\n", GIT_REPOSITORY_FORMAT_VERSION),
-            sprintf("\tfilemode = %s\n", var_export(GIT_FILEMODE, true)),
-            sprintf("\tbare = %s\n", var_export(GIT_BARE, true)),
-            sprintf("\tlogallrefupdates = %s\n", var_export(GIT_LOG_ALL_REF_UPDATES, true)),
-            sprintf("\tignorecase = %s\n", var_export(GIT_IGNORE_CASE, true)),
-            sprintf("\tprecomposeunicode = %s\n", var_export(GIT_PRE_COMPOSE_UNICODE, true))
-        ];
-        foreach ($data as $v) {
-            if (fwrite($fp, $v) === false) {
-                throw new RuntimeException(sprintf('failed to fwrite: %s', $v));
-            }
-        }
-    }
 }

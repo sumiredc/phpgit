@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\Command;
 
 use Phpgit\Lib\IO;
+use Phpgit\Repository\GitConfigRepository;
 use Phpgit\Repository\GitResourceRepository;
 use Phpgit\UseCase\GitInitUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -25,7 +26,8 @@ final class GitInitCommand extends Command
     {
         $io = new IO($input, $output);
         $gitResourceRepository = new GitResourceRepository();
-        $useCase = new GitInitUseCase($io, $gitResourceRepository);
+        $gitConfigRepository = new GitConfigRepository();
+        $useCase = new GitInitUseCase($io, $gitResourceRepository, $gitConfigRepository);
 
         $result = $useCase();
 

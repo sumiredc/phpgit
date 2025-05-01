@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\UseCase;
 
+use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\GitResourceRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IOInterface;
@@ -13,7 +14,8 @@ final class GitInitUseCase
 {
     public function __construct(
         private readonly IOInterface $io,
-        private readonly GitResourceRepositoryInterface $gitResourceRepository
+        private readonly GitResourceRepositoryInterface $gitResourceRepository,
+        private readonly GitConfigRepositoryInterface $gitConfigRepository,
     ) {}
 
     public function __invoke(): Result
@@ -29,7 +31,7 @@ final class GitInitUseCase
             $this->gitResourceRepository->makeGitHeadsDir();
             $this->gitResourceRepository->createGitHead();
             $this->gitResourceRepository->saveGitHead(GIT_BASE_BRANCH);
-            $this->gitResourceRepository->createConfig();
+            $this->gitConfigRepository->create();
 
             $this->io->writeln(sprintf('Initialized empty Git repository in %s', F_GIT_DIR));
 

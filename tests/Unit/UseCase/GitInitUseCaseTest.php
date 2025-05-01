@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\GitResourceRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IOInterface;
@@ -10,6 +11,7 @@ use Phpgit\UseCase\GitInitUseCase;
 beforeEach(function () {
     $this->io = Mockery::mock(IOInterface::class);
     $this->gitResourceRepository = Mockery::mock(GitResourceRepositoryInterface::class);
+    $this->gitConfigRepository = Mockery::mock(GitConfigRepositoryInterface::class);
 });
 
 describe('__invoke', function () {
@@ -19,10 +21,10 @@ describe('__invoke', function () {
         $this->gitResourceRepository->shouldReceive('makeGitHeadsDir')->once();
         $this->gitResourceRepository->shouldReceive('createGitHead')->once();
         $this->gitResourceRepository->shouldReceive('saveGitHead')->once();
-        $this->gitResourceRepository->shouldReceive('createConfig')->once();
+        $this->gitConfigRepository->shouldReceive('create')->once();
         $this->io->shouldReceive('writeln')->once();
 
-        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository);
+        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
         $actual = $useCase();
 
         expect($actual)->toBe(Result::Success);
@@ -33,7 +35,7 @@ describe('__invoke', function () {
         $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->never();
         $this->io->shouldReceive('writeln')->once();
 
-        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository);
+        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
         $actual = $useCase();
 
         expect($actual)->toBe(Result::Success);
@@ -44,7 +46,7 @@ describe('__invoke', function () {
         $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->andThrows(RuntimeException::class);
         $this->io->shouldReceive('stackTrace')->once();
 
-        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository);
+        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
         $actual = $useCase();
 
         expect($actual)->toBe(Result::GitError);

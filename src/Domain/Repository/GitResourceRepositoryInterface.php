@@ -21,7 +21,4 @@ interface GitResourceRepositoryInterface
 
     /** @throws RuntimeException */
     public function saveGitHead(string $branch): void;
-
-    /** @throws RuntimeException */
-    public function createConfig(): void;
 }
