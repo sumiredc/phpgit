@@ -11,7 +11,23 @@ describe('new', function () {
         expect($actual->value)->toBe($expected);
     })
         ->with([
-            ['compressed string', 'compressed string'],
+            [
+                gzcompress('compressed string'),
+                gzcompress('compressed string')
+            ],
+        ]);
+
+    it(
+        'throws the InvalidArgumentException when take a uncompressed string',
+        function (string $value, Throwable $expected) {
+            expect(fn() => CompressedPayload::new($value))->toThrow($expected);
+        }
+    )
+        ->with([
+            [
+                'uncompressed string',
+                new InvalidArgumentException('not uncompressed: uncompressed string')
+            ],
         ]);
 });
 

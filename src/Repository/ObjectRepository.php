@@ -26,7 +26,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
 
         $objectPath = sprintf('%s/%s', $objectDir, $objectHash->filename);
 
-        $compressed = CompressedPayload::new($gitObject->data);
+        $compressed = CompressedPayload::fromOriginal($gitObject->data);
 
         if (file_put_contents($objectPath, $compressed->value) === false) {
             throw new RuntimeException('failed to file_put_contents');

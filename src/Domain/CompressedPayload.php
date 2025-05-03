@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
+use InvalidArgumentException;
 use RuntimeException;
 
 readonly final class CompressedPayload
@@ -12,14 +13,17 @@ readonly final class CompressedPayload
 
     public static function new(string $compressed): self
     {
+        if (@zlib_decode($compressed) === false) {
+            throw new InvalidArgumentException(sprintf('not uncompressed: %s', $compressed));
+        }
+
         return new self($compressed);
     }
 
     /** @throws RuntimeException */
     public static function fromOriginal(string $original): self
     {
-        $compressed = gzcompress($original);
-        // NOTE: This branch should never be reached, as the length check ensures the input is valid for unpack().
+        $compressed = @gzcompress($original);
         // @codeCoverageIgnoreStart
         if ($compressed === false) {
             throw new RuntimeException('failed to compress object', 500);
@@ -32,8 +36,7 @@ readonly final class CompressedPayload
     /** @throws RuntimeException */
     public function decompress(): string
     {
-        $uncompressed = zlib_decode($this->value);
-        // NOTE: This branch should never be reached, as the length check ensures the input is valid for unpack().
+        $uncompressed = @zlib_decode($this->value);
         // @codeCoverageIgnoreStart
         if ($uncompressed === false) {
             throw new RuntimeException('failed to decompress object', 500);
