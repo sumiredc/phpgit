@@ -12,7 +12,7 @@ docker compose run --rm php git:{command-name}
 ## 💻️ Features
 
 - `git:init`
-- `git:cat-file [ -t | -s | -e | -p ] <file>`
+- `git:cat-file [ -t | -s | -e | -p ] <object>`
 - `git:hash-object <file>`
 - `git:ls-files [ --stage | --debug | -t | -z ]`
 - `git:update-index [ --add <file> | --remove <file> | --force-remove <file> | --cacheinfo <mode> <object> <file> ]`
