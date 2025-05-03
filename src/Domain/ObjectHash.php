@@ -23,6 +23,7 @@ readonly final class ObjectHash
         return new self(sha1($object));
     }
 
+    /** @throws InvalidArgumentException */
     public static function parse(string $hash): self
     {
         if (preg_match('/^[0-9a-f]{40}$/i', $hash) !== 1) {

@@ -41,11 +41,11 @@ abstract class GitObject
         return match ($header->objectType) {
             ObjectType::Blob => new BlobObject($header, $body),
             ObjectType::Tree => new TreeObject($header, $body),
-            ObjectType::Commit => new Error('NOT SUPPORT OBJECT'), // TODO
-            ObjectType::Tag => new Error('NOT SUPPORT OBJECT'), // TODO
+            ObjectType::Commit => new CommitObject($header, $body),
+            ObjectType::Tag => throw new Error('NOT SUPPORT OBJECT'), // TODO
 
             // NOTE: not reachable unless ObjectType is extended
-            default => new RuntimeException(
+            default => throw new RuntimeException(
                 sprintf('failed to initialize object, because not support: %s', $header->objectType->value)
             )
         };

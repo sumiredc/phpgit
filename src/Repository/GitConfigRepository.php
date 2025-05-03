@@ -14,20 +14,35 @@ readonly final class GitConfigRepository implements GitConfigRepositoryInterface
     /** @throws RuntimeException */
     public function get(): GitConfig
     {
-        $config = parse_ini_file(GIT_CONFIG, true);
+        $config = parse_ini_file(F_GIT_CONFIG, true);
         if ($config === false) {
-            throw new RuntimeException(sprintf('failed to load ini: %s', GIT_CONFIG));
+            throw new RuntimeException(sprintf('failed to load ini: %s', F_GIT_CONFIG));
         }
 
+        $repositoryFormatVersion = $config['core']['repositoryformatversion']
+            ?? throw new ParseError('failed to parse to core.repositoryformatversion');
+        $fileMode = $config['core']['filemode']
+            ?? throw new ParseError('failed to parse to core.filemode');
+        $bare = $config['core']['bare']
+            ?? throw new ParseError('failed to parse to core.bare');
+        $logAllRefUpdates = $config['core']['logallrefupdates']
+            ?? throw new ParseError('failed to parse to core.logallrefupdates');
+        $ignoreCase = $config['core']['ignorecase']
+            ?? throw new ParseError('failed to parse to core.ignorecase');
+        $preComposeUnicode = $config['core']['precomposeunicode']
+            ?? throw new ParseError('failed to parse to core.precomposeunicode');
+        $userName =  strval($config['user']['name'] ?? GIT_DEFAULT_USER_NAME);
+        $userEmail = strval($config['user']['email'] ?? GIT_DEFAULT_USER_EMAIL);
+
         return GitConfig::new(
-            $config['core']['repositoryformatversion'] ?? throw new ParseError('failed to parse to core.repositoryformatversion'),
-            $config['core']['filemode'] ?? throw new ParseError('failed to parse to core.filemode'),
-            $config['core']['bare'] ?? throw new ParseError('failed to parse to core.bare'),
-            $config['core']['logallrefupdates'] ?? throw new ParseError('failed to parse to core.logallrefupdates'),
-            $config['core']['ignorecase'] ?? throw new ParseError('failed to parse to core.ignorecase'),
-            $config['core']['precomposeunicode'] ?? throw new ParseError('failed to parse to core.precomposeunicode'),
-            $config['user']['name'] ?? GIT_DEFAULT_USER_NAME,
-            $config['user']['email'] ?? GIT_DEFAULT_USER_EMAIL,
+            intval($repositoryFormatVersion),
+            boolval($fileMode),
+            boolval($bare),
+            boolval($logAllRefUpdates),
+            boolval($ignoreCase),
+            boolval($preComposeUnicode),
+            $userName,
+            $userEmail,
         );
     }
 
