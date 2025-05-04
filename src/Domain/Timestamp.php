@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
-use DateTime;
+use DateTimeImmutable;
+use InvalidArgumentException;
+use UnderflowException;
 
 readonly final class Timestamp
 {
@@ -15,20 +17,28 @@ readonly final class Timestamp
 
     public static function new(): self
     {
-        $now = new DateTime();
-        $timestamp = $now->getTimestamp();
+        $now = new DateTimeImmutable();
 
-        $offsetSeconds = $now->getOffset();
-        $sign = ($offsetSeconds < 0) ? '-' : '+';
-        $absOffset = abs($offsetSeconds);
-        $hours = floor($absOffset / 3600);
-        $minutes = ($absOffset % 3600) / 60;
-
-        return new self(
-            $timestamp,
-            sprintf('%s%02d%02d', $sign, $hours, $minutes),
-        );
+        return new self($now->getTimestamp(), $now->format("O"));
     }
+
+    /** 
+     * @throws UnderflowException
+     * @throws InvalidArgumentException
+     */
+    public static function parse(int $timestamp, string $offset): self
+    {
+        if ($timestamp < 0) {
+            throw new UnderflowException(sprintf('the lower bound for timestamps is 0: %d', $timestamp));
+        }
+
+        if (!preg_match('/^[\+|\-]\d{4}$/', $offset, $matches)) {
+            throw new InvalidArgumentException(sprintf('not offset pattern: %s', $offset));
+        }
+
+        return new self($timestamp, $offset);
+    }
+
 
     public function toRawString(): string
     {

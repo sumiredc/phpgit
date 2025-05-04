@@ -28,7 +28,7 @@ final class CommitObject extends GitObject
         string $message
     ): self {
         $type = ObjectType::Commit;
-        $content = sprintf("%s %s\n", $type->value, $treeHash->value)
+        $content = sprintf("%s %s\n", ObjectType::Tree->value, $treeHash->value)
             . sprintf("author %s\n", $author->toRawString())
             . sprintf("committer %s\n", $committer->toRawString())
             . "\n"
@@ -38,13 +38,6 @@ final class CommitObject extends GitObject
         $size = strlen($content);
         $header = GitObjectHeader::new($type, $size);
 
-        return new self(
-            $header,
-            $content,
-            $treeHash,
-            $author,
-            $committer,
-            $message
-        );
+        return new self($header, $content);
     }
 }
