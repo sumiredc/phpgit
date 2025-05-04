@@ -6,7 +6,7 @@ namespace Phpgit\Command;
 
 use Phpgit\Lib\IO;
 use Phpgit\Repository\FileRepository;
-use Phpgit\Repository\ObjectRepository;
+use Phpgit\Request\GitHashObjectRequest;
 use Phpgit\UseCase\GitHashObjectUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -28,13 +28,13 @@ final class GitHashObjectCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $file = strval($input->getArgument('file'));
+        $request = GitHashObjectRequest::new($input);
 
         $io = new IO($input, $output);
         $fileRepository = new FileRepository();
         $useCase = new GitHashObjectUseCase($io, $fileRepository);
 
-        $result = $useCase($file);
+        $result = $useCase($request);
 
         return $result->value;
     }
