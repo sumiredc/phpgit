@@ -16,6 +16,10 @@
         <exclude>
             <file>./src/app.php</file>
             <file>./src/const.php</file>
+            <file>./src/env.php</file>
         </exclude>
     </source>
+    <php>
+        <env name="APP_ENV" value="testing" />
+    </php>
 </phpunit>
