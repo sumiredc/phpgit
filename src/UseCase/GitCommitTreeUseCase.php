@@ -16,6 +16,7 @@ use Phpgit\Domain\Timestamp;
 use Phpgit\Exception\InvalidObjectException;
 use Phpgit\Exception\InvalidObjectTypeException;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitCommitTreeRequest;
 use Throwable;
 
 final class GitCommitTreeUseCase
@@ -26,10 +27,10 @@ final class GitCommitTreeUseCase
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
-    public function __invoke(string $object, string $message): Result
+    public function __invoke(GitCommitTreeRequest $request): Result
     {
         try {
-            $objectHash = ObjectHash::parse($object);
+            $objectHash = ObjectHash::parse($request->tree);
             if (!$this->objectRepository->exists($objectHash)) {
                 throw new InvalidObjectException();
             }
@@ -39,20 +40,20 @@ final class GitCommitTreeUseCase
                 throw new InvalidObjectTypeException();
             }
 
-            $commitHash = $this->createCommitTree($objectHash, $message);
+            $commitHash = $this->createCommitTree($objectHash, $request->message);
             $this->io->writeln($commitHash->value);
 
             return Result::Success;
         } catch (InvalidArgumentException) {
-            $this->io->writeln(sprintf('fatal: not a valid object name %s', $object));
+            $this->io->writeln(sprintf('fatal: not a valid object name %s', $request->tree));
 
             return Result::GitError;
         } catch (InvalidObjectException) {
-            $this->io->writeln(sprintf('fatal: %s is not a valid object', $object));
+            $this->io->writeln(sprintf('fatal: %s is not a valid object', $request->tree));
 
             return Result::GitError;
         } catch (InvalidObjectTypeException) {
-            $this->io->writeln(sprintf('fatal: %s is not a valid \'tree\' object', $object));
+            $this->io->writeln(sprintf('fatal: %s is not a valid \'tree\' object', $request->tree));
 
             return Result::GitError;
         } catch (Throwable $th) {
