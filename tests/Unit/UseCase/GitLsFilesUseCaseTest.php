@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Phpgit\Domain\CommandInput\GitLsFileOptionAction;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
@@ -11,37 +10,49 @@ use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitLsFilesRequest;
 use Phpgit\UseCase\GitLsFilesUseCase;
+use Symfony\Component\Console\Input\InputInterface;
+use Tests\Factory\FileStatFactory;
+use Tests\Factory\ObjectHashFactory;
 
 beforeEach(function () {
+    $this->input = Mockery::mock(InputInterface::class);
     $this->io = Mockery::mock(IOInterface::class);
     $this->indexRepository = Mockery::mock(IndexRepositoryInterface::class);
 });
 
 describe('__invoke', function () {
     it('should returns success and don\'t output, when not exists index', function () {
+        $this->input->shouldReceive('getOption')->andReturn(false)->times(4);
+
         $this->indexRepository->shouldReceive('exists')->andReturn(false)->once();
         $this->io->shouldReceive('writeln')->never();
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Default);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     });
 
     it('should returns error and outputs stack trace, when throws RuntimeException', function (Throwable $expected) {
+        $this->input->shouldReceive('getOption')->andReturn(false)->times(4);
+
         $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->indexRepository->shouldReceive('get')->andThrow($expected)->once();
 
         $this->io->shouldReceive('stackTrace')
             ->with(Mockery::on(function (Throwable $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
+
                 return true;
             }))
             ->once();
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Default);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::GitError);
     })
@@ -52,9 +63,11 @@ describe('__invoke', function () {
 
 describe('__invoke -> actionDefault', function () {
     it('should returns success and output path list', function (array $paths, array $expected) {
+        $this->input->shouldReceive('getOption')->andReturn(false)->times(4);
+
         $entries = array_map(fn(string $path) => IndexEntry::new(
-            FileStat::newForCacheinfo(33188), // dummy
-            ObjectHash::new('c22da5372d73178c9a7317365c7fd127595df433'), // dummy
+            FileStatFactory::new(),
+            ObjectHashFactory::new(),
             TrackingFile::new($path),
         ), $paths);
 
@@ -68,12 +81,14 @@ describe('__invoke -> actionDefault', function () {
         $this->io->shouldReceive('writeln')
             ->with(Mockery::on(function (array $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
+
                 return true;
             }))
             ->once();
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Default);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -125,9 +140,14 @@ describe('__invoke -> actionDefault', function () {
 
 describe('__invoke -> actionTag', function () {
     it('should returns success and output list', function (array $paths, array $expected) {
+        $this->input->shouldReceive('getOption')->with('tag')->andReturn(true)->once();
+        $this->input->shouldReceive('getOption')->with('zero')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('stage')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('debug')->andReturn(false)->once();
+
         $entries = array_map(fn(string $path) => IndexEntry::new(
-            FileStat::newForCacheinfo(33188), // dummy
-            ObjectHash::new('c22da5372d73178c9a7317365c7fd127595df433'), // dummy
+            FileStatFactory::new(),
+            ObjectHashFactory::new(),
             TrackingFile::new($path),
         ), $paths);
 
@@ -141,12 +161,14 @@ describe('__invoke -> actionTag', function () {
         $this->io->shouldReceive('writeln')
             ->with(Mockery::on(function (array $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
+
                 return true;
             }))
             ->once();
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Tag);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -198,9 +220,14 @@ describe('__invoke -> actionTag', function () {
 
 describe('__invoke -> actionZero', function () {
     it('should returns success and output list', function (array $paths, string $expected) {
+        $this->input->shouldReceive('getOption')->with('tag')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('zero')->andReturn(true)->once();
+        $this->input->shouldReceive('getOption')->with('stage')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('debug')->andReturn(false)->once();
+
         $entries = array_map(fn(string $path) => IndexEntry::new(
-            FileStat::newForCacheinfo(33188), // dummy
-            ObjectHash::new('c22da5372d73178c9a7317365c7fd127595df433'), // dummy
+            FileStatFactory::new(),
+            ObjectHashFactory::new(),
             TrackingFile::new($path),
         ), $paths);
 
@@ -213,8 +240,9 @@ describe('__invoke -> actionZero', function () {
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('echo')->with($expected)->once();
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Zero);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -247,6 +275,11 @@ describe('__invoke -> actionZero', function () {
 
 describe('__invoke -> actionStage', function () {
     it('should returns success and output list', function (array $args, array $expected) {
+        $this->input->shouldReceive('getOption')->with('tag')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('zero')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('stage')->andReturn(true)->once();
+        $this->input->shouldReceive('getOption')->with('debug')->andReturn(false)->once();
+
         $entries = array_map(function (array $arg) {
             [$mode, $hash, $path] = $arg;
 
@@ -267,12 +300,14 @@ describe('__invoke -> actionStage', function () {
         $this->io->shouldReceive('writeln')
             ->with(Mockery::on(function (array $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
+
                 return true;
             }))
             ->once();
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Stage);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -324,12 +359,17 @@ describe('__invoke -> actionStage', function () {
 
 describe('__invoke -> actionDebug', function () {
     it('should returns success and output list', function (array $args, array $expectedValues) {
+        $this->input->shouldReceive('getOption')->with('tag')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('zero')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('stage')->andReturn(false)->once();
+        $this->input->shouldReceive('getOption')->with('debug')->andReturn(true)->once();
+
         $entries = array_map(function (array $arg) {
             [$path, $stat] = $arg;
 
             return IndexEntry::new(
                 $stat,
-                ObjectHash::new('c22da5372d73178c9a7317365c7fd127595df433'), // dummy
+                ObjectHashFactory::new(),
                 TrackingFile::new($path),
             );
         }, $args);
@@ -346,14 +386,16 @@ describe('__invoke -> actionDebug', function () {
             $this->io->shouldReceive('writeln')
                 ->with(Mockery::on(function (array $actual) use ($expected) {
                     expect($actual)->toEqual($expected);
+
                     return true;
                 }))
                 ->once()
                 ->ordered();
         }
 
+        $request = GitLsFilesRequest::new($this->input);
         $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
-        $actual = $useCase(GitLsFileOptionAction::Debug);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })

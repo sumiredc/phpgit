@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phpgit\UseCase;
 
-use Phpgit\Domain\CommandInput\GitLsFileOptionAction;
+use Phpgit\Domain\CommandInput\GitLsFilesOptionAction;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitLsFilesRequest;
 use Throwable;
 
 final class GitLsFilesUseCase
@@ -18,19 +19,19 @@ final class GitLsFilesUseCase
         private readonly IndexRepositoryInterface $indexRepository,
     ) {}
 
-    public function __invoke(GitLsFileOptionAction $action): Result
+    public function __invoke(GitLsFilesRequest $request): Result
     {
         if (!$this->indexRepository->exists()) {
             return Result::Success;
         }
 
         try {
-            return match ($action) {
-                GitLsFileOptionAction::Default => $this->actionDefault(),
-                GitLsFileOptionAction::Tag => $this->actionTag(),
-                GitLsFileOptionAction::Zero => $this->actionZero(),
-                GitLsFileOptionAction::Stage => $this->actionStage(),
-                GitLsFileOptionAction::Debug => $this->actionDebug(),
+            return match ($request->action) {
+                GitLsFilesOptionAction::Default => $this->actionDefault(),
+                GitLsFilesOptionAction::Tag => $this->actionTag(),
+                GitLsFilesOptionAction::Zero => $this->actionZero(),
+                GitLsFilesOptionAction::Stage => $this->actionStage(),
+                GitLsFilesOptionAction::Debug => $this->actionDebug(),
             };
         } catch (Throwable $th) {
             $this->io->stackTrace($th);

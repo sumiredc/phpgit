@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain\CommandInput;
 
-enum GitLsFileOptionAction
+enum GitLsFilesOptionAction
 {
     case Default;
     case Tag;

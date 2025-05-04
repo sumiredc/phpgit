@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Domain\CommandInput\GitLsFileOptionAction;
 use Phpgit\Lib\IO;
 use Phpgit\Repository\IndexRepository;
+use Phpgit\Request\GitLsFilesRequest;
 use Phpgit\UseCase\GitLsFilesUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -52,25 +52,14 @@ final class GitLsFilesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $request = GitLsFilesRequest::new($input);
+
         $io = new IO($input, $output);
         $indexRepository = new IndexRepository();
         $useCase = new GitLsFilesUseCase($io, $indexRepository);
 
-        $action = $this->validateOptionAction($input);
-
-        $result = $useCase($action);
+        $result = $useCase($request);
 
         return $result->value;
-    }
-
-    private function validateOptionAction(InputInterface $input): GitLsFileOptionAction
-    {
-        return match (true) {
-            boolval($input->getOption('tag')) => GitLsFileOptionAction::Tag,
-            boolval($input->getOption('zero')) => GitLsFileOptionAction::Zero,
-            boolval($input->getOption('stage')) => GitLsFileOptionAction::Stage,
-            boolval($input->getOption('debug')) => GitLsFileOptionAction::Debug,
-            default =>  GitLsFileOptionAction::Default,
-        };
     }
 }
