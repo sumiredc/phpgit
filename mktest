@@ -1,6 +1,14 @@
 # !/bin/sh
 
-files=$(docker compose run --rm test -p --coverage \
+output=$(docker compose run --rm test -p --coverage)
+res=$?
+
+if [ "$res" -ne 0 ]; then
+    echo "failed test"
+    exit "$res"
+fi
+
+files=$(echo "$output" \
     | grep '/' \
     | grep -v '100.0%' \
     | awk '{print $1}')
