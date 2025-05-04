@@ -15,6 +15,7 @@ readonly final class GitCatFileRequest
         public readonly string $object,
     ) {}
 
+    /** @throws InvalidOptionException */
     public static function new(InputInterface $input): self
     {
         $type = boolval($input->getOption('type'));
