@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Phpgit\Domain\BlobObject;
+use Phpgit\Domain\CommitObject;
 use Phpgit\Domain\GitObject;
 use Phpgit\Domain\ObjectType;
 use Phpgit\Domain\TreeObject;
@@ -46,44 +47,52 @@ func main() {
 '
             ],
             'tree' => [
-                "tree 67\0" . '100644 blob 59e0b395a6ee16f4673442df6f59d4be1f0daea6	README.md
-040000 tree 59e0b395a6ee16f4673442df6f59d4be1f0daea6	src
-',
+                "tree 67\0" . "100644 blob 59e0b395a6ee16f4673442df6f59d4be1f0daea6\tREADME.md\n040000 tree 59e0b395a6ee16f4673442df6f59d4be1f0daea6\tsrc\n",
                 TreeObject::class,
                 ObjectType::Tree,
                 67,
-                '100644 blob 59e0b395a6ee16f4673442df6f59d4be1f0daea6	README.md
-040000 tree 59e0b395a6ee16f4673442df6f59d4be1f0daea6	src
-'
+                "100644 blob 59e0b395a6ee16f4673442df6f59d4be1f0daea6\tREADME.md\n040000 tree 59e0b395a6ee16f4673442df6f59d4be1f0daea6\tsrc\n"
             ],
+            'commit' => [
+                "commit 178\0tree 829c3804401b0727f70f73d4415e162400cbe57b\nauthor Dummy Author <author@dummy.d> 1234567890 +0900\ncommitter Dummy Committer <committer@dummy.d> 1234567890 +0900\n\ndummy message\n",
+                CommitObject::class,
+                ObjectType::Commit,
+                178,
+                "tree 829c3804401b0727f70f73d4415e162400cbe57b\nauthor Dummy Author <author@dummy.d> 1234567890 +0900\ncommitter Dummy Committer <committer@dummy.d> 1234567890 +0900\n\ndummy message\n"
+            ]
         ]);
 
-    it('fails to parse object, throws RuntimeException', function (string $object) {
-        GitObject::parse($object);
+    it('throws an exception when invalid header', function (string $object, Throwable $expected) {
+        expect(fn() => GitObject::parse($object))->toThrow($expected);
     })
         ->with([
-            'no header' => ["\0" . 'body string'],
-            'no null-terminated string, because unescaped' => ['blob 11\0body string'],
-            'cannot get type' => ["tree0\0"],
-            'cannot get size, is null' => ["blob\0"],
-            'cannot get size, is empty string' => ["tree \0"],
-
-        ])
-        ->throws(RuntimeException::class);
-
-    it('fails to parse object, throws TypeError', function (string $object) {
-        GitObject::parse($object);
-    })
-        ->with([
-            'size is not number' => ["blob a\0a"],
-        ])
-        ->throws(TypeError::class);
-
-    it('fails to parse object, throws ValueError', function (string $object) {
-        GitObject::parse($object);
-    })
-        ->with([
-            'not allowed ObjectType' => ["image 0\0"]
-        ])
-        ->throws(ValueError::class);
+            'no header' => [
+                "\0" . 'body string',
+                new RuntimeException('failed to parse GitObject: header: , body: body string')
+            ],
+            'no null-terminated string, because unescaped' => [
+                'blob 11\0body string',
+                new RuntimeException('failed to parse GitObject: header: blob 11\0body string, body: '),
+            ],
+            'cannot get type' => [
+                "tree0\0",
+                new RuntimeException('failed to parse GitObject: type: tree0, size: ')
+            ],
+            'cannot get size, is null' => [
+                "blob\0",
+                new RuntimeException('failed to parse GitObject: type: blob, size: ')
+            ],
+            'cannot get size, is empty string' => [
+                "tree \0",
+                new RuntimeException('failed to parse GitObject: type: tree, size: ')
+            ],
+            'size is not number' => [
+                "blob a\0a",
+                new TypeError('size don\'t be number: a')
+            ],
+            'not allowed ObjectType' => [
+                "image 0\0",
+                new ValueError('"image" is not a valid backing value for enum Phpgit\Domain\ObjectType'),
+            ],
+        ]);
 });
