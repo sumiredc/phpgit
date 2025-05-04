@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-use Phpgit\Domain\CommandInput\GitCatFileOptionType;
 use Phpgit\Domain\GitObject;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitCatFileRequest;
 use Phpgit\UseCase\GitCatFileUseCase;
+use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
+    $this->input = Mockery::mock(InputInterface::class);
     $this->io = Mockery::mock(IOInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
 });
@@ -19,11 +21,18 @@ describe('__invoke', function () {
         string $object,
         string $expected
     ) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(true);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->never();
         $this->io->shouldReceive('writeln')->with($expected)->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::PrettyPrint, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::GitError);
     })
@@ -45,12 +54,19 @@ describe('__invoke -> actionType', function () {
         string $blob,
         string $expected
     ) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(true);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(false);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->objectRepository->shouldReceive('get')->andReturn(GitObject::parse($blob))->once();
         $this->io->shouldReceive('writeln')->with($expected)->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::Type, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -68,12 +84,19 @@ describe('__invoke -> actionType', function () {
         ]);
 
     it('should returns error, then throws CannotGetObjectInfoException', function (string $object) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(true);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(false);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
         $this->objectRepository->shouldReceive('get')->never();
         $this->io->shouldReceive('writeln')->with('fatal: git cat-file: could not get object info')->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::Type, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::GitError);
     })
@@ -88,12 +111,19 @@ describe('__invoke -> actionSize', function () {
         string $blob,
         string $expected
     ) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(true);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(false);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->objectRepository->shouldReceive('get')->andReturn(GitObject::parse($blob))->once();
         $this->io->shouldReceive('writeln')->with($expected)->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::Size, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -111,12 +141,19 @@ describe('__invoke -> actionSize', function () {
         ]);
 
     it('should returns error, then throws CannotGetObjectInfoException', function (string $object) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(true);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(false);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
         $this->objectRepository->shouldReceive('get')->never();
         $this->io->shouldReceive('writeln')->with('fatal: git cat-file: could not get object info')->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::Size, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::GitError);
     })
@@ -127,11 +164,18 @@ describe('__invoke -> actionSize', function () {
 
 describe('__invoke -> actionExists', function () {
     it('should returns success when exists object', function (string $object) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(true);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(false);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->io->shouldReceive('writeln')->never();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::Exists, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -140,11 +184,18 @@ describe('__invoke -> actionExists', function () {
         ]);
 
     it('should returns failure when not exists object', function (string $object) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(true);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(false);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
         $this->io->shouldReceive('writeln')->never();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::Exists, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Failure);
     })
@@ -159,12 +210,19 @@ describe('__invoke -> actionPrettyPrint', function () {
         string $blob,
         string $expected
     ) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(true);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->objectRepository->shouldReceive('get')->andReturn(GitObject::parse($blob))->once();
         $this->io->shouldReceive('write')->with($expected)->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::PrettyPrint, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::Success);
     })
@@ -185,12 +243,19 @@ describe('__invoke -> actionPrettyPrint', function () {
         string $object,
         string $expected
     ) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(true);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
         $this->objectRepository->shouldReceive('get')->never();
         $this->io->shouldReceive('writeln')->with($expected)->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::PrettyPrint, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::GitError);
     })
@@ -209,6 +274,12 @@ describe('__invoke -> actionPrettyPrint', function () {
         string $object,
         Throwable $expected
     ) {
+        $this->input->shouldReceive('getOption')->with('type')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('size')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('exists')->andReturn(false);
+        $this->input->shouldReceive('getOption')->with('pretty-print')->andReturn(true);
+        $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->objectRepository->shouldReceive('get')->andThrow(RuntimeException::class);
         $this->io->shouldReceive('stackTrace')
@@ -218,8 +289,9 @@ describe('__invoke -> actionPrettyPrint', function () {
             }))
             ->once();
 
+        $request = GitCatFileRequest::new($this->input);
         $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
-        $actual = $useCase(GitCatFileOptionType::PrettyPrint, $object);
+        $actual = $useCase($request);
 
         expect($actual)->toBe(Result::GitError);
     })

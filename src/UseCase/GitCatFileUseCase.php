@@ -11,6 +11,7 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\CannotGetObjectInfoException;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitCatFileRequest;
 use Throwable;
 
 final class GitCatFileUseCase
@@ -20,19 +21,19 @@ final class GitCatFileUseCase
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
-    public function __invoke(GitCatFileOptionType $type, string $object): Result
+    public function __invoke(GitCatFileRequest $request): Result
     {
         try {
-            $objectHash = ObjectHash::parse($object);
+            $objectHash = ObjectHash::parse($request->object);
 
-            return match ($type) {
+            return match ($request->type) {
                 GitCatFileOptionType::Type => $this->actionType($objectHash),
                 GitCatFileOptionType::Size => $this->actionSize($objectHash),
                 GitCatFileOptionType::Exists => $this->actionExists($objectHash),
                 GitCatFileOptionType::PrettyPrint => $this->actionPrettyPrint($objectHash),
             };
         } catch (InvalidArgumentException) {
-            $this->io->writeln(sprintf("fatal: Not a valid object name %s", $object));
+            $this->io->writeln(sprintf("fatal: Not a valid object name %s", $request->object));
 
             return Result::GitError;
         } catch (CannotGetObjectInfoException) {
