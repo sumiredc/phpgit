@@ -26,8 +26,17 @@ final class GitCommitTreeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('tree', InputArgument::REQUIRED, 'An existing tree object.')
-            ->addOption('message', '-m', InputOption::VALUE_REQUIRED);
+            ->addArgument(
+                'tree',
+                InputArgument::REQUIRED,
+                'An existing tree object.'
+            )
+            ->addOption(
+                'message',
+                '-m',
+                InputOption::VALUE_REQUIRED,
+                'A paragraph in the commit log message. This can be given more than once and each <message> becomes its own paragraph.'
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
