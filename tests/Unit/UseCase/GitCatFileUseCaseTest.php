@@ -283,10 +283,11 @@ describe('__invoke -> actionPrettyPrint', function () {
         $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->objectRepository->shouldReceive('get')->andThrow(RuntimeException::class);
         $this->io->shouldReceive('stackTrace')
-            ->with(Mockery::on(function (Throwable $actual) use ($expected) {
+            ->withArgs(function (Throwable $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
+
                 return true;
-            }))
+            })
             ->once();
 
         $request = GitCatFileRequest::new($this->input);

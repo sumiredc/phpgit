@@ -43,11 +43,11 @@ describe('__invoke', function () {
         $this->indexRepository->shouldReceive('get')->andThrow($expected)->once();
 
         $this->io->shouldReceive('stackTrace')
-            ->with(Mockery::on(function (Throwable $actual) use ($expected) {
+            ->withArgs(function (Throwable $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
 
                 return true;
-            }))
+            })
             ->once();
 
         $request = GitLsFilesRequest::new($this->input);
@@ -79,11 +79,11 @@ describe('__invoke -> actionDefault', function () {
         $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('writeln')
-            ->with(Mockery::on(function (array $actual) use ($expected) {
+            ->withArgs(function (array $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
 
                 return true;
-            }))
+            })
             ->once();
 
         $request = GitLsFilesRequest::new($this->input);
@@ -159,11 +159,11 @@ describe('__invoke -> actionTag', function () {
         $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('writeln')
-            ->with(Mockery::on(function (array $actual) use ($expected) {
+            ->withArgs(function (array $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
 
                 return true;
-            }))
+            })
             ->once();
 
         $request = GitLsFilesRequest::new($this->input);
@@ -298,11 +298,11 @@ describe('__invoke -> actionStage', function () {
         $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
         $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
         $this->io->shouldReceive('writeln')
-            ->with(Mockery::on(function (array $actual) use ($expected) {
+            ->withArgs(function (array $actual) use ($expected) {
                 expect($actual)->toEqual($expected);
 
                 return true;
-            }))
+            })
             ->once();
 
         $request = GitLsFilesRequest::new($this->input);
@@ -384,11 +384,11 @@ describe('__invoke -> actionDebug', function () {
 
         foreach ($expectedValues as $expected) {
             $this->io->shouldReceive('writeln')
-                ->with(Mockery::on(function (array $actual) use ($expected) {
+                ->withArgs(function (array $actual) use ($expected) {
                     expect($actual)->toEqual($expected);
 
                     return true;
-                }))
+                })
                 ->once()
                 ->ordered();
         }
