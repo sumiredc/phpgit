@@ -169,7 +169,7 @@ describe('__invoke -> actionAdd', function () {
             );
             $actual = $useCase($request);
 
-            expect($actual)->toBe(Result::GitError);
+            expect($actual)->toBe(Result::InternalError);
         }
     )
         ->with([
@@ -423,7 +423,7 @@ describe('__invoke -> actionRemove', function () {
             );
             $actual = $useCase($request);
 
-            expect($actual)->toBe(Result::GitError);
+            expect($actual)->toBe(Result::InternalError);
         }
     )
         ->with([

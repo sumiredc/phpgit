@@ -59,7 +59,7 @@ final class GitCommitTreeUseCase
         } catch (Throwable $th) {
             $this->io->stackTrace($th);
 
-            return Result::Failure;
+            return Result::InternalError;
         }
     }
 

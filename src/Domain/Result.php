@@ -10,5 +10,7 @@ enum Result: int
     case Failure = 1;
     case Invalid = 2;
 
+    case InternalError = 70;
+
     case GitError = 128;
 }

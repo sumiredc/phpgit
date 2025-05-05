@@ -151,7 +151,7 @@ describe('__invoke', function () {
             $useCase = new GitCommitTreeUseCase($this->io, $this->gitConfigRepository, $this->objectRepository);
             $actual = $useCase($request);
 
-            expect($actual)->toBe(Result::Failure);
+            expect($actual)->toBe(Result::InternalError);
         }
     )
         ->with([

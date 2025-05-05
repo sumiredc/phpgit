@@ -15,40 +15,49 @@ beforeEach(function () {
 });
 
 describe('__invoke', function () {
-    it('should returns success code when initializes', function () {
-        $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(false)->once();
-        $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->once();
-        $this->gitResourceRepository->shouldReceive('makeGitHeadsDir')->once();
-        $this->gitResourceRepository->shouldReceive('createGitHead')->once();
-        $this->gitResourceRepository->shouldReceive('saveGitHead')->once();
-        $this->gitConfigRepository->shouldReceive('create')->once();
-        $this->io->shouldReceive('writeln')->once();
+    it(
+        'should returns success code when initializes',
+        function () {
+            $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(false)->once();
+            $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->once();
+            $this->gitResourceRepository->shouldReceive('makeGitHeadsDir')->once();
+            $this->gitResourceRepository->shouldReceive('createGitHead')->once();
+            $this->gitResourceRepository->shouldReceive('saveGitHead')->once();
+            $this->gitConfigRepository->shouldReceive('create')->once();
+            $this->io->shouldReceive('writeln')->once();
 
-        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
-        $actual = $useCase();
+            $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
+            $actual = $useCase();
 
-        expect($actual)->toBe(Result::Success);
-    });
+            expect($actual)->toBe(Result::Success);
+        }
+    );
 
-    it('should returns success code when reinitializes', function () {
-        $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(true)->once();
-        $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->never();
-        $this->io->shouldReceive('writeln')->once();
+    it(
+        'should returns success code when reinitializes',
+        function () {
+            $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(true)->once();
+            $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->never();
+            $this->io->shouldReceive('writeln')->once();
 
-        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
-        $actual = $useCase();
+            $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
+            $actual = $useCase();
 
-        expect($actual)->toBe(Result::Success);
-    });
+            expect($actual)->toBe(Result::Success);
+        }
+    );
 
-    it('should calls io::stackTrace and returns git error, when throws Exception', function () {
-        $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(false)->once();
-        $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->andThrows(RuntimeException::class);
-        $this->io->shouldReceive('stackTrace')->once();
+    it(
+        'should calls io::stackTrace and returns git error, when throws Exception',
+        function () {
+            $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(false)->once();
+            $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->andThrows(RuntimeException::class);
+            $this->io->shouldReceive('stackTrace')->once();
 
-        $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
-        $actual = $useCase();
+            $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
+            $actual = $useCase();
 
-        expect($actual)->toBe(Result::GitError);
-    });
+            expect($actual)->toBe(Result::InternalError);
+        }
+    );
 });

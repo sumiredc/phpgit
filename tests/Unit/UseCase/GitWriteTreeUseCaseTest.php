@@ -96,7 +96,7 @@ describe('__invoke', function () {
             $useCase = new GitWriteTreeUseCase($this->io, $this->indexRepository, $this->objectRepository);
             $actual = $useCase();
 
-            expect($actual)->toBe(Result::GitError);
+            expect($actual)->toBe(Result::InternalError);
         }
     )
         ->with([
