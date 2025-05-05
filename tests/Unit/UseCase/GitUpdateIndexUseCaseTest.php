@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
 use Phpgit\Domain\FileStat;
-use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
@@ -14,11 +12,14 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitUpdateIndexRequest;
 use Phpgit\UseCase\GitUpdateIndexUseCase;
+use Symfony\Component\Console\Input\InputInterface;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\ObjectHashFactory;
 
 beforeEach(function () {
+    $this->input = Mockery::mock(InputInterface::class);
     $this->io = Mockery::mock(IOInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
     $this->fileRepository = Mockery::mock(FileRepositoryInterface::class);
@@ -26,57 +27,68 @@ beforeEach(function () {
 });
 
 describe('__invoke -> actionAdd', function () {
-    it('should returns success when exists object', function (
-        string $file,
-        string $content,
-        FileStat $fileStat
-    ) {
-        $this->fileRepository->shouldReceive('exists')->andReturn(true);
-        $this->fileRepository->shouldReceive('getContents')->andReturn($content);
-        $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->objectRepository->shouldReceive('save')->never();
-        $this->fileRepository->shouldReceive('getStat')->andReturn($fileStat)->once();
-        $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
-        $this->indexRepository->shouldReceive('save')->once();
+    it(
+        'should returns success when exists object',
+        function (string $file, string $content, FileStat $fileStat) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Add, $file, null, null);
+            $this->fileRepository->shouldReceive('exists')->andReturn(true);
+            $this->fileRepository->shouldReceive('getContents')->andReturn($content);
+            $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->objectRepository->shouldReceive('save')->never();
+            $this->fileRepository->shouldReceive('getStat')->andReturn($fileStat)->once();
+            $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
+            $this->indexRepository->shouldReceive('save')->once();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             ['README.md', "# README\ndescription", FileStat::newForCacheinfo(33188)]
         ]);
 
-    it('should returns success and save object when don\'t exists object', function (
-        string $file,
-        string $content,
-        string $hash,
-        FileStat $fileStat
-    ) {
-        $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
-        $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
-        $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
-        $this->objectRepository->shouldReceive('save')->andReturn(ObjectHash::parse($hash))->once();
-        $this->fileRepository->shouldReceive('getStat')->andReturn($fileStat)->once();
-        $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
-        $this->indexRepository->shouldReceive('save')->once();
+    it(
+        'should returns success and save object when don\'t exists object',
+        function (string $file, string $content, string $hash, FileStat $fileStat) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Add, $file, null, null);
+            $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
+            $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
+            $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
+            $this->objectRepository->shouldReceive('save')->andReturn(ObjectHash::parse($hash))->once();
+            $this->fileRepository->shouldReceive('getStat')->andReturn($fileStat)->once();
+            $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
+            $this->indexRepository->shouldReceive('save')->once();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             [
                 'file' => 'README.md',
@@ -88,25 +100,30 @@ describe('__invoke -> actionAdd', function () {
 
     it(
         'should returns error and outputs does not exists message when throws FileNotFoundException',
-        function (
-            string $file,
-            array $expected
-        ) {
+        function (string $file, array $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+
             $this->fileRepository->shouldReceive('exists')->andReturn(false); # in service
             $this->io->shouldReceive('writeln')
-                ->with(Mockery::on(function (array $actual) use ($expected) {
+                ->withArgs(function (array $actual) use ($expected) {
                     expect($actual)->toEqual($expected);
+
                     return true;
-                }))
+                })
                 ->once();
 
+            $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
                 $this->io,
                 $this->objectRepository,
                 $this->fileRepository,
                 $this->indexRepository
             );
-            $actual = $useCase(GitUpdateIndexOptionAction::Add, $file, null, null);
+            $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
         }
@@ -121,33 +138,40 @@ describe('__invoke -> actionAdd', function () {
             ]
         ]);
 
-    it('should returns error and outputs stack trace when throws RuntimeException', function (
-        string $file,
-        string $content,
-        Throwable $expected
-    ) {
-        $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
-        $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
-        $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
-        $this->indexRepository->shouldReceive('getOrCreate')->never();
-        $this->io->shouldReceive('stackTrace')
-            ->with(Mockery::on(function (Throwable $actual) use ($expected) {
-                expect($actual)->toEqual($expected);
-                return true;
-            }))
-            ->once();
+    it(
+        'should returns error and outputs stack trace when throws RuntimeException',
+        function (string $file, string $content, Throwable $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Add, $file, null, null);
+            $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
+            $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
+            $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
+            $this->indexRepository->shouldReceive('getOrCreate')->never();
+            $this->io->shouldReceive('stackTrace')
+                ->withArgs(function (Throwable $actual) use ($expected) {
+                    expect($actual)->toEqual($expected);
 
-        expect($actual)->toBe(Result::GitError);
-    })
+                    return true;
+                })
+                ->once();
+
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::GitError);
+        }
+    )
         ->with([
             [
                 'README.md',
@@ -158,68 +182,88 @@ describe('__invoke -> actionAdd', function () {
 });
 
 describe('__invoke -> actionRemove', function () {
-    it('should returns success when exists object', function (string $file) {
-        $entry = IndexEntry::new(
-            FileStat::newForCacheinfo(33180), # dummy
-            ObjectHash::new('dummy object'), # dummy
-            TrackingFile::new($file)
-        );
-        $index = GitIndex::new();
-        $index->addEntry($entry);
+    it(
+        'should returns success when exists object',
+        function (string $file) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
-        $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-        $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
-        $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
-        $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->objectRepository->shouldReceive('save')->never();
-        $this->fileRepository->shouldReceive('getStat')->andReturn(FileStatFactory::new())->once();
-        $this->indexRepository->shouldReceive('save')->once();
+            $entry = IndexEntry::new(
+                FileStatFactory::new(),
+                ObjectHashFactory::new(),
+                TrackingFile::new($file)
+            );
+            $index = GitIndex::new();
+            $index->addEntry($entry);
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Remove, $file, null, null);
+            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
+            $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
+            $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->objectRepository->shouldReceive('save')->never();
+            $this->fileRepository->shouldReceive('getStat')->andReturn(FileStatFactory::new())->once();
+            $this->indexRepository->shouldReceive('save')->once();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             ['README.md'],
         ]);
 
-    it('should returns success and save object when don\'t exists object', function (string $file) {
-        $entry = IndexEntry::new(
-            FileStatFactory::new(),
-            ObjectHashFactory::new(),
-            TrackingFile::new($file)
-        );
-        $index = GitIndex::new();
-        $index->addEntry($entry);
+    it(
+        'should returns success and save object when don\'t exists object',
+        function (string $file) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
-        $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-        $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
-        $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
-        $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
-        $this->objectRepository->shouldReceive('save')->andReturn(ObjectHash::new('dummy object'))->once();
-        $this->fileRepository->shouldReceive('getStat')->andReturn(FileStatFactory::new())->once();
-        $this->indexRepository->shouldReceive('save')->once();
+            $entry = IndexEntry::new(
+                FileStatFactory::new(),
+                ObjectHashFactory::new(),
+                TrackingFile::new($file)
+            );
+            $index = GitIndex::new();
+            $index->addEntry($entry);
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Remove, $file, null, null);
+            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
+            $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
+            $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
+            $this->objectRepository->shouldReceive('save')->andReturn(ObjectHash::new('dummy object'))->once();
+            $this->fileRepository->shouldReceive('getStat')->andReturn(FileStatFactory::new())->once();
+            $this->indexRepository->shouldReceive('save')->once();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             ['README.md'],
         ]);;
@@ -227,18 +271,25 @@ describe('__invoke -> actionRemove', function () {
     it(
         'should returns success and call method by actionForceRemove when don\'t exists file',
         function (string $file) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(false)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true);
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
             $this->indexRepository->shouldReceive('save')->once();
 
+            $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
                 $this->io,
                 $this->objectRepository,
                 $this->fileRepository,
                 $this->indexRepository
             );
-            $actual = $useCase(GitUpdateIndexOptionAction::Remove, $file, null, null);
+            $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
         }
@@ -250,22 +301,30 @@ describe('__invoke -> actionRemove', function () {
     it(
         'should returns error and outputs cannot add message, when don\'t exists index',
         function (string $file, array $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->io->shouldReceive('writeln')
-                ->with(Mockery::on(function (array $actual) use ($expected) {
+                ->withArgs(function (array $actual) use ($expected) {
                     expect($actual)->toEqual($expected);
+
                     return true;
-                }))
+                })
                 ->once();
 
+            $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
                 $this->io,
                 $this->objectRepository,
                 $this->fileRepository,
                 $this->indexRepository
             );
-            $actual = $useCase(GitUpdateIndexOptionAction::Remove, $file, null, null);
+            $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
         }
@@ -283,23 +342,31 @@ describe('__invoke -> actionRemove', function () {
     it(
         'should returns error and outputs cannot add message, when don\'t exists entry in index',
         function (string $file, array $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
             $this->io->shouldReceive('writeln')
-                ->with(Mockery::on(function (array $actual) use ($expected) {
+                ->withArgs(function (array $actual) use ($expected) {
                     expect($actual)->toEqual($expected);
+
                     return true;
-                }))
+                })
                 ->once();
 
+            $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
                 $this->io,
                 $this->objectRepository,
                 $this->fileRepository,
                 $this->indexRepository
             );
-            $actual = $useCase(GitUpdateIndexOptionAction::Remove, $file, null, null);
+            $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
         }
@@ -317,6 +384,12 @@ describe('__invoke -> actionRemove', function () {
     it(
         'should returns error when throws RuntimeException because fileStat is null',
         function (string $file, Throwable $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+
             $entry = IndexEntry::new(
                 FileStat::newForCacheinfo(33180), # dummy
                 ObjectHash::new('dummy object'), # dummy
@@ -334,19 +407,21 @@ describe('__invoke -> actionRemove', function () {
             $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
 
             $this->io->shouldReceive('stackTrace')
-                ->with(Mockery::on(function (Throwable $actual) use ($expected) {
+                ->withArgs(function (Throwable $actual) use ($expected) {
                     expect($actual)->toEqual($expected);
+
                     return true;
-                }))
+                })
                 ->once();
 
+            $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
                 $this->io,
                 $this->objectRepository,
                 $this->fileRepository,
                 $this->indexRepository
             );
-            $actual = $useCase(GitUpdateIndexOptionAction::Remove, $file, null, null);
+            $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
         }
@@ -357,114 +432,187 @@ describe('__invoke -> actionRemove', function () {
 });
 
 describe('__invoke -> actionForceRemove', function () {
-    it('should returns success when exists file', function (string $file) {
-        $this->indexRepository->shouldReceive('exists')->andReturn(true);
-        $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
-        $this->indexRepository->shouldReceive('save')->once();
+    it(
+        'should returns success when exists file',
+        function (string $file) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::ForceRemove, $file, null, null);
+            $this->indexRepository->shouldReceive('exists')->andReturn(true);
+            $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
+            $this->indexRepository->shouldReceive('save')->once();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             ['README.md']
         ]);
 
-    it('should returns success when don\'t exists file', function (string $file) {
-        $this->indexRepository->shouldReceive('exists')->andReturn(false);
-        $this->indexRepository->shouldReceive('get')->never();
+    it(
+        'should returns success when don\'t exists file',
+        function (string $file) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(true);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::ForceRemove, $file, null, null);
+            $this->indexRepository->shouldReceive('exists')->andReturn(false);
+            $this->indexRepository->shouldReceive('get')->never();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             ['README.md']
         ]);
 });
 
 describe('__invoke -> actionCacheinfo', function () {
-    it('should returns success', function (
-        string $file,
-        GitFileMode $gitFileMode,
-        ObjectHash $objectHash,
-    ) {
-        $this->fileRepository->shouldReceive('existsByFilename')->andReturn(true)->once();
-        $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
-        $this->indexRepository->shouldReceive('save')
-            ->with(Mockery::on(function (GitIndex $actual) use ($file, $gitFileMode, $objectHash) {
-                expect($actual->existsEntryByFilename($file))->toBeTrue();
+    it(
+        'should returns success',
+        function (string $file, string $mode, string $object) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(true);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($mode);
+            $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+            $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 
-                $entry = $actual->entries[$file];
-                expect($entry->gitFileMode->value)->toBe($gitFileMode->value);
-                expect($entry->objectHash->value)->toBe($objectHash->value);
+            $this->fileRepository->shouldReceive('existsByFilename')->andReturn(true)->once();
+            $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
+            $this->indexRepository->shouldReceive('save')
+                ->withArgs(function (GitIndex $actual) use ($file, $mode, $object) {
+                    expect($actual->existsEntryByFilename($file))->toBeTrue();
 
-                return true;
-            }))
-            ->once();
+                    $entry = $actual->entries[$file];
+                    expect($entry->gitFileMode->value)->toBe($mode);
+                    expect($entry->objectHash->value)->toBe($object);
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Cacheinfo, $file, $gitFileMode, $objectHash);
+                    return true;
+                })
+                ->once();
 
-        expect($actual)->toBe(Result::Success);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
         ->with([
             [
                 'README.md',
-                GitFileMode::DefaultFile,
-                ObjectHash::parse('91d4a6610e67a14af17e800c2049b6b0a01162ef')
+                '100644',
+                '91d4a6610e67a14af17e800c2049b6b0a01162ef',
             ],
             [
                 'src/main.rs',
-                GitFileMode::ExeFile,
-                ObjectHash::parse('4b569f42a6967dec04275af54f4ca9ab6a4eee64')
+                '100755',
+                '4b569f42a6967dec04275af54f4ca9ab6a4eee64',
             ]
         ]);
 
-    it('should returns error and output fatal message, when don\'t exists file', function (
-        string $file,
-        array $expected
-    ) {
-        $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
-        $this->io->shouldReceive('writeln')
-            ->with(Mockery::on(function (array $actual) use ($expected) {
-                expect($actual)->toEqual($expected);
-                return true;
-            }))
-            ->once();
+    it(
+        'it throws an exception on given to invalid args and output fatal error',
+        function (string $file, string $mode, string $object, string $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(true);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($mode);
+            $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
+            $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(
-            GitUpdateIndexOptionAction::Cacheinfo,
-            $file,
-            GitFileMode::DefaultFile,
-            ObjectHash::parse('91d4a6610e67a14af17e800c2049b6b0a01162ef')
-        );
+            $this->io->shouldReceive('writeln')->with($expected)->once();
 
-        expect($actual)->toBe(Result::GitError);
-    })
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::GitError);
+        }
+    )
+        ->with([
+            'mode is invalid value' => [
+                'file' => 'README.md',
+                'mode' => 'aaa',
+                'object' => 'f8e79b0708e78c524f092ff6bc9a2f7bab70f006',
+                'expected' => 'fatal: git update-index: --cacheinfo cannot add aaa',
+            ],
+            'object is not sha1' => [
+                'file' => 'src/main.rs',
+                'mode' => '100644',
+                'object' => 'invalid-hash-string',
+                'expected' => 'fatal: git update-index: --cacheinfo cannot add invalid-hash-string'
+            ],
+        ]);
+
+    it(
+        'should returns error and output fatal message, when don\'t exists file',
+        function (string $file, array $expected) {
+            $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
+            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(true);
+            $this->input->shouldReceive('getArgument')->with('mode')->andReturn('100644');
+            $this->input->shouldReceive('getArgument')->with('object')->andReturn('91d4a6610e67a14af17e800c2049b6b0a01162ef');
+            $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
+
+            $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
+            $this->io->shouldReceive('writeln')
+                ->withArgs(function (array $actual) use ($expected) {
+                    expect($actual)->toEqual($expected);
+
+                    return true;
+                })
+                ->once();
+
+            $request = GitUpdateIndexRequest::new($this->input);
+            $useCase = new GitUpdateIndexUseCase(
+                $this->io,
+                $this->objectRepository,
+                $this->fileRepository,
+                $this->indexRepository
+            );
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::GitError);
+        }
+    )
         ->with([
             [
                 'file' => 'README.md',
@@ -473,43 +621,5 @@ describe('__invoke -> actionCacheinfo', function () {
                     'fatal: git update-index: --cacheinfo cannot add README.md',
                 ]
             ]
-        ]);
-
-    it('should returns error and outputs stack trace, when gitFileMode or objectHash is null', function (
-        string $file,
-        ?GitFileMode $gitFileMode,
-        ?ObjectHash $objectHash,
-        Throwable $expected
-    ) {
-        $this->io->shouldReceive('stackTrace')
-            ->with(Mockery::on(function (Throwable $actual) use ($expected) {
-                expect($actual)->toEqual($expected);
-                return true;
-            }))
-            ->once();
-
-        $useCase = new GitUpdateIndexUseCase(
-            $this->io,
-            $this->objectRepository,
-            $this->fileRepository,
-            $this->indexRepository
-        );
-        $actual = $useCase(GitUpdateIndexOptionAction::Cacheinfo, $file, $gitFileMode, $objectHash);
-
-        expect($actual)->toBe(Result::GitError);
-    })
-        ->with([
-            'gitFileMode is null' => [
-                'README.md',
-                null,
-                ObjectHash::new('dummy contents'),
-                new InvalidArgumentException('invalid because gitFileMode in args is null')
-            ],
-            'objectHash is null' => [
-                'src/main.rs',
-                GitFileMode::DefaultFile,
-                null,
-                new InvalidArgumentException('invalid because objectHash in args is null')
-            ],
         ]);
 });

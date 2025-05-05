@@ -33,6 +33,15 @@ readonly final class ObjectHash
         return new self($hash);
     }
 
+    public static function tryParse(string $hash): ?self
+    {
+        try {
+            return self::parse($hash);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+    }
+
     public function path(): string
     {
         return implode('/', [$this->dir, $this->filename]);

@@ -18,8 +18,8 @@ use Phpgit\Domain\TrackingFile;
 use Phpgit\Exception\CannotAddIndexException;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Lib\IOInterface;
+use Phpgit\Request\GitUpdateIndexRequest;
 use Phpgit\Service\FileToHashService;
-use RuntimeException;
 use Throwable;
 
 final class GitUpdateIndexUseCase
@@ -31,23 +31,23 @@ final class GitUpdateIndexUseCase
         private readonly IndexRepositoryInterface $indexRepository,
     ) {}
 
-    public function __invoke(
-        GitUpdateIndexOptionAction $action,
-        string $file,
-        ?GitFileMode $gitFileMode,
-        ?ObjectHash $objectHash
-    ): Result {
+    public function __invoke(GitUpdateIndexRequest $request): Result
+    {
         try {
-            return match ($action) {
-                GitUpdateIndexOptionAction::Add => $this->actionAdd($file),
-                GitUpdateIndexOptionAction::Remove => $this->actionRemove($file),
-                GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove($file),
-                GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo($gitFileMode, $objectHash, $file),
+            return match ($request->action) {
+                GitUpdateIndexOptionAction::Add => $this->actionAdd($request->file),
+                GitUpdateIndexOptionAction::Remove => $this->actionRemove($request->file),
+                GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove($request->file),
+                GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo(
+                    $request->mode, // never null
+                    $request->object, // never null
+                    $request->file
+                ),
             };
         } catch (FileNotFoundException) {
             $this->io->writeln([
-                sprintf('error: %s: does not exist and --remove not passed', $file),
-                sprintf('fatal: Unable to process path %s', $file)
+                sprintf('error: %s: does not exist and --remove not passed', $request->file),
+                sprintf('fatal: Unable to process path %s', $request->file)
             ]);
 
             return Result::GitError;
@@ -152,20 +152,39 @@ final class GitUpdateIndexUseCase
      * git update-index --cacheinfo <mode> <object> <file>
      * @see https://git-scm.com/docs/git-update-index#Documentation/git-update-index.txt---cacheinfoltmodegtltobjectgtltpathgt-1
      */
-    private function actionCacheinfo(
-        ?GitFileMode $gitFileMode,
-        ?ObjectHash $objectHash,
-        string $file
-    ): Result {
-        if (is_null($gitFileMode)) {
-            throw new InvalidArgumentException('invalid because gitFileMode in args is null');
-        }
+    private function actionCacheinfo(string $mode, string $object, string $file): Result
+    {
+        try {
+            $gitFileMode = GitFileMode::tryFrom($mode);
+            if (is_null($gitFileMode)) {
+                throw new InvalidArgumentException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $mode));
+            }
 
-        if (is_null($objectHash)) {
-            throw new InvalidArgumentException('invalid because objectHash in args is null');
-        }
+            $objectHash = ObjectHash::tryParse($object);
+            if (is_null($objectHash)) {
+                throw new InvalidArgumentException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $object));
+            }
 
-        if (!$this->fileRepository->existsByFilename($file)) {
+            if (!$this->fileRepository->existsByFilename($file)) {
+                throw new FileNotFoundException();
+            }
+
+            $gitIndex = $this->indexRepository->getOrCreate();
+
+            $trackingFile = TrackingFile::new($file);
+            $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
+
+            $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+            $gitIndex->addEntry($indexEntry);
+
+            $this->indexRepository->save($gitIndex);
+
+            return Result::Success;
+        } catch (InvalidArgumentException $ex) {
+            $this->io->writeln($ex->getMessage());
+
+            return Result::GitError;
+        } catch (FileNotFoundException) {
             $this->io->writeln([
                 sprintf('error: %s: cannot add to the index - missing --add option?', $file),
                 sprintf('fatal: git update-index: --cacheinfo cannot add %s', $file)
@@ -173,17 +192,5 @@ final class GitUpdateIndexUseCase
 
             return Result::GitError;
         }
-
-        $gitIndex = $this->indexRepository->getOrCreate();
-
-        $trackingFile = TrackingFile::new($file);
-        $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
-
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
-        $gitIndex->addEntry($indexEntry);
-
-        $this->indexRepository->save($gitIndex);
-
-        return Result::Success;
     }
 }

@@ -11,6 +11,7 @@ use Phpgit\Lib\IO;
 use Phpgit\Repository\FileRepository;
 use Phpgit\Repository\IndexRepository;
 use Phpgit\Repository\ObjectRepository;
+use Phpgit\Request\GitUpdateIndexRequest;
 use Phpgit\UseCase\GitUpdateIndexUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -75,6 +76,8 @@ final class GitUpdateIndexCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $request = GitUpdateIndexRequest::new($input);
+
         $io = new IO($input, $output);
         $objectRepository = new ObjectRepository;
         $fileRepository = new FileRepository;
@@ -86,16 +89,7 @@ final class GitUpdateIndexCommand extends Command
             $indexRepository
         );
 
-        $action = $this->validateOptionAction($input);
-        [$file, $mode, $object] = $this->validateArguments($input, $action);
-
-        if (is_null($action)) {
-            $io->warning("missing required action option");
-
-            return self::INVALID;
-        }
-
-        $result = $useCase($action, $file, $mode, $object);
+        $result = $useCase($request);
 
         return $result->value;
     }
