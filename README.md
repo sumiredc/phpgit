@@ -17,6 +17,7 @@ docker compose run --rm php git:{command-name}
 - `git:ls-files [ --stage | --debug | -t | -z ]`
 - `git:update-index [ --add <file> | --remove <file> | --force-remove <file> | --cacheinfo <mode> <object> <file> ]`
 - `git:write-tree`
+- `git:commit-tree <tree> -m <message>`
 
 ## 📚️ Libraries & Resources
 
