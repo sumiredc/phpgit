@@ -23,7 +23,7 @@ enum UnixPermission: int
             self::Zero->value => self::Zero,
             intval(self::RwxRxRx->value) => self::RwxRxRx,
             intval(self::RwRR->value) => self::RwRR,
-            default => throw new ValueError(sprintf('value error: %d', $dec)),
+            default => throw new ValueError(sprintf('value error: %d', $flags)),
         };
     }
 

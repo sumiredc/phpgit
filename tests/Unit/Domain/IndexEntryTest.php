@@ -258,11 +258,15 @@ describe('asBlob', function () {
             ],
         ]);
 
-    it('fails to over path size, throws InvalidArgumentException', function (string $blob, string $path) {
-        $header = IndexEntryHeader::parse($blob);
-        $entry = IndexEntry::parse($header, $path);
-        $entry->asBlob();
-    })
+    it(
+        'fails to over path size, throws InvalidArgumentException',
+        function (string $blob, string $path, Throwable $expected) {
+            $header = IndexEntryHeader::parse($blob);
+            $entry = IndexEntry::parse($header, $path);
+
+            expect(fn() => $entry->asBlob())->toThrow($expected);
+        }
+    )
         ->with([
             [
                 // ctime, ctimeNano, mtime, mtimeNano, dev, ino, mode
@@ -274,9 +278,9 @@ describe('asBlob', function () {
                     // flags
                     . pack('n', (0 << 15) | (0 << 14) | (0 << 12) | 4095),
                 str_repeat('a', 4096),
+                new InvalidArgumentException('the path length exceed of limit: 4096')
             ]
-        ])
-        ->throws(InvalidArgumentException::class);
+        ]);
 });
 
 describe('flags', function () {

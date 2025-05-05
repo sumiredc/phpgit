@@ -5,14 +5,17 @@ declare(strict_types=1);
 use Phpgit\Domain\BlobObject;
 
 describe('new', function () {
-    it('should initialize object', function (string $content, int $size, string $rawHeader, string $data) {
-        $object = BlobObject::new($content);
+    it(
+        'should initialize object',
+        function (string $content, int $size, string $rawHeader, string $data) {
+            $object = BlobObject::new($content);
 
-        expect($object->body)->toBe($content);
-        expect($object->size)->toBe($size);
-        expect($object->header->raw)->toBe($rawHeader);
-        expect($object->data)->toBe($data);
-    })
+            expect($object->body)->toBe($content);
+            expect($object->size)->toBe($size);
+            expect($object->header->raw)->toBe($rawHeader);
+            expect($object->data)->toBe($data);
+        }
+    )
         ->with([
             // case 1: PHP
             [
@@ -54,15 +57,18 @@ func main() {
             ]
         ]);
 
-    it('miss match object type', function (string $content) {
-        BlobObject::parse($content);
-    })
-        ->throws(UnexpectedValueException::class, 'unexpected ObjectType value: tree')
+    it(
+        'miss match object type',
+        function (string $content, Throwable $expected) {
+            expect(fn() => BlobObject::parse($content))->toThrow($expected);
+        }
+    )
         ->with([
             [
                 "tree 67\0" . '100644 blob 59e0b395a6ee16f4673442df6f59d4be1f0daea6	README.md
 040000 tree 59e0b395a6ee16f4673442df6f59d4be1f0daea6	src
-'
+',
+                new UnexpectedValueException('unexpected ObjectType value: tree')
             ]
         ]);
 });

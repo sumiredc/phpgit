@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
+use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\SegmentTree;
 use Phpgit\Domain\TrackingFile;
@@ -18,22 +20,22 @@ beforeEach(function () {
 });
 
 describe('__invoke', function () {
-    it('should match to segmentTree', function (
-        array $entries,
-        SegmentTree $expected
-    ) {
-        $index = GitIndex::new();
-        foreach ($entries as $entry) {
-            $index->addEntry($entry);
+    it(
+        'should match to segmentTree',
+        function (array $entries, SegmentTree $expected) {
+            $index = GitIndex::new();
+            foreach ($entries as $entry) {
+                $index->addEntry($entry);
+            }
+
+            $this->objectRepository->shouldReceive('exists')->andReturn(true)->times(count($entries));
+
+            $service = new CreateSegmentTreeService($this->objectRepository);
+            $actual = $service($index);
+
+            expect($actual)->toEqual($expected);
         }
-
-        $this->objectRepository->shouldReceive('exists')->andReturn(true)->times(count($entries));
-
-        $service = new CreateSegmentTreeService($this->objectRepository);
-        $actual = $service($index);
-
-        expect($actual)->toEqual($expected);
-    })
+    )
         ->with([
             'no entries' => [
                 'entries' => [],
@@ -101,7 +103,7 @@ describe('__invoke', function () {
 
     it(
         'fails to throws InvalidObjectException when does not exist object',
-        function (array $entries) {
+        function (array $entries, Throwable $expected) {
             $index = GitIndex::new();
             foreach ($entries as $entry) {
                 $index->addEntry($entry);
@@ -110,15 +112,15 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('exists')->andReturn(false);
 
             $service = new CreateSegmentTreeService($this->objectRepository);
-            $service($index);
+
+            expect(fn() => $service($index))->toThrow($expected);
         }
     )
-        ->throws(InvalidObjectException::class)
         ->with([
             [
                 array_map(fn(string $file) => IndexEntry::new(
-                    FileStatFactory::new(),
-                    ObjectHashFactory::new(),
+                    FileStat::newForCacheinfo(33188),
+                    ObjectHash::parse('829c3804401b0727f70f73d4415e162400cbe57b'),
                     TrackingFile::new($file),
                 ), [
                     'README.md',
@@ -129,6 +131,9 @@ describe('__invoke', function () {
                     'html/errors/internal-server-error.html',
                     'html/errors/forbidden.html',
                 ]),
+                new InvalidObjectException(
+                    'error: invalid object 100644 829c3804401b0727f70f73d4415e162400cbe57b for \'CONTRIBUTING.md\''
+                )
             ]
         ]);
 });

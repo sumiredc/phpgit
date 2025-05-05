@@ -8,42 +8,50 @@ use Phpgit\Domain\ObjectType;
 use Phpgit\Domain\TreeObject;
 
 describe('new', function () {
-    it('should initialize', function () {
-        $actual = TreeObject::new();
+    it(
+        'should initialize',
+        function () {
+            $actual = TreeObject::new();
 
-        expect($actual->objectType)->toBe(ObjectType::Tree);
-        expect($actual->size)->toBe(0);
-        expect($actual->body)->toBe('');
-        expect($actual->data)->toBe("tree 0\0");
-    });
+            expect($actual->objectType)->toBe(ObjectType::Tree);
+            expect($actual->size)->toBe(0);
+            expect($actual->body)->toBe('');
+            expect($actual->data)->toBe("tree 0\0");
+        }
+    );
 });
 
 describe('parse', function () {
-    it('fails to parse', function (string $blob) {
-        TreeObject::parse($blob);
+    it('fails to parse', function (string $blob, Throwable $expected) {
+        expect(fn() => TreeObject::parse($blob))->toThrow($expected);
     })
         ->with([
-            ["blob 73\0" . 'package main
+            [
+                "blob 73\0" . 'package main
 
 import "fmt"
 
 func main() {
 	fmt.Println("Hello, world")
 }
-']
-        ])
-        ->throws(UnexpectedValueException::class, 'unexpected ObjectType value: blob');
+',
+                new UnexpectedValueException('unexpected ObjectType value: blob')
+            ]
+        ]);
 });
 
 describe('appendEntry', function () {
-    it('should match body', function (array $entry1, array $entry2, string $expected) {
-        $tree = TreeObject::new();
-        foreach ([$entry1, $entry2] as [$mode, $type, $hash, $name]) {
-            $tree->appendEntry($mode, $type, $hash, $name);
-        }
+    it(
+        'should match body',
+        function (array $entry1, array $entry2, string $expected) {
+            $tree = TreeObject::new();
+            foreach ([$entry1, $entry2] as [$mode, $type, $hash, $name]) {
+                $tree->appendEntry($mode, $type, $hash, $name);
+            }
 
-        expect($tree->body)->toBe($expected);
-    })
+            expect($tree->body)->toBe($expected);
+        }
+    )
         ->with([
             [
                 [

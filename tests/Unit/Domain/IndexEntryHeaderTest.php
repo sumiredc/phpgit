@@ -6,36 +6,39 @@ use Phpgit\Domain\IndexEntryHeader;
 
 
 describe('parse', function () {
-    it('should match to properties', function (
-        string $blob,
-        int $ctime,
-        int $ctimeNano,
-        int $mtime,
-        int $mtimeNano,
-        int $dev,
-        int $ino,
-        int $mode,
-        int $uid,
-        int $gid,
-        int $size,
-        string $objectName,
-        int $flags,
-    ) {
-        $actual = IndexEntryHeader::parse($blob);
+    it(
+        'should match to properties',
+        function (
+            string $blob,
+            int $ctime,
+            int $ctimeNano,
+            int $mtime,
+            int $mtimeNano,
+            int $dev,
+            int $ino,
+            int $mode,
+            int $uid,
+            int $gid,
+            int $size,
+            string $objectName,
+            int $flags,
+        ) {
+            $actual = IndexEntryHeader::parse($blob);
 
-        expect($actual->ctime)->toBe($ctime);
-        expect($actual->ctimeNano)->toBe($ctimeNano);
-        expect($actual->mtime)->toBe($mtime);
-        expect($actual->mtimeNano)->toBe($mtimeNano);
-        expect($actual->dev)->toBe($dev);
-        expect($actual->ino)->toBe($ino);
-        expect($actual->mode)->toBe($mode);
-        expect($actual->uid)->toBe($uid);
-        expect($actual->gid)->toBe($gid);
-        expect($actual->size)->toBe($size);
-        expect($actual->objectName)->toBe($objectName);
-        expect($actual->flags)->toBe($flags);
-    })
+            expect($actual->ctime)->toBe($ctime);
+            expect($actual->ctimeNano)->toBe($ctimeNano);
+            expect($actual->mtime)->toBe($mtime);
+            expect($actual->mtimeNano)->toBe($mtimeNano);
+            expect($actual->dev)->toBe($dev);
+            expect($actual->ino)->toBe($ino);
+            expect($actual->mode)->toBe($mode);
+            expect($actual->uid)->toBe($uid);
+            expect($actual->gid)->toBe($gid);
+            expect($actual->size)->toBe($size);
+            expect($actual->objectName)->toBe($objectName);
+            expect($actual->flags)->toBe($flags);
+        }
+    )
         ->with([
             [
                 // ctime, ctimeNano, mtime, mtimeNano, dev, ino, mode,
@@ -62,11 +65,13 @@ describe('parse', function () {
         ]);
 
 
-    it('fails to parse', function (string $blob) {
-        IndexEntryHeader::parse($blob);
-    })
+    it(
+        'fails to parse',
+        function (string $blob, Throwable $expected) {
+            expect(fn() => IndexEntryHeader::parse($blob))->toThrow($expected);
+        }
+    )
         ->with([
-            'fails pack' => [''],
-        ])
-        ->throws(InvalidArgumentException::class);
+            'fails pack' => ['', new InvalidArgumentException('length is not enough: 0')],
+        ]);
 });

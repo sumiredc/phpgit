@@ -12,40 +12,44 @@ beforeEach(function () {
 });
 
 describe('__invoke', function () {
-    it('should convert file to object', function (
-        string $file,
-        string $content,
-    ) {
-        $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->fileRepository->shouldReceive('getContents')->andReturn($content)->once();
+    it(
+        'should convert file to object',
+        function (string $file, string $content) {
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('getContents')->andReturn($content)->once();
 
-        $service = new FileToObjectService($this->fileRepository);
-        [$trackingFile, $blobObject] = $service($file);
+            $service = new FileToObjectService($this->fileRepository);
+            [$trackingFile, $blobObject] = $service($file);
 
-        expect($trackingFile->path)->toBe($file);
-        expect($blobObject->body)->toBe($content);
-    })
+            expect($trackingFile->path)->toBe($file);
+            expect($blobObject->body)->toBe($content);
+        }
+    )
         ->with([
-            [
-                'README.md',
-                'file contents',
-            ]
+            ['README.md', 'file contents',]
         ]);
 
-    it('should throws the FileNotFoundException, when don\'t exists file', function () {
-        $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
-        $this->fileRepository->shouldReceive('getContents')->never();
+    it(
+        'should throws the FileNotFoundException, when don\'t exists file',
+        function () {
+            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
+            $this->fileRepository->shouldReceive('getContents')->never();
 
-        $service = new FileToHashService($this->fileRepository);
-        $service('file');
-    })
-        ->throws(FileNotFoundException::class);
+            $service = new FileToHashService($this->fileRepository);
+            expect(fn() => $service('file'))->tothrow(new FileNotFoundException);
+        }
+    );
 
-    it('should throws the RuntimeException, when fails to get content', function () {
-        $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
-        $this->fileRepository->shouldReceive('getContents')->andThrow(new RuntimeException('failed to get contents: /full/path'))->once();
+    it(
+        'should throws the RuntimeException, when fails to get content',
+        function () {
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('getContents')
+                ->andThrow(new RuntimeException('failed to get contents: /full/path'))
+                ->once();
 
-        $service = new FileToHashService($this->fileRepository);
-        expect(fn() => $service('file'))->toThrow(new RuntimeException('failed to get contents: /full/path'));
-    });
+            $service = new FileToHashService($this->fileRepository);
+            expect(fn() => $service('file'))->toThrow(new RuntimeException('failed to get contents: /full/path'));
+        }
+    );
 });
