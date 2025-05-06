@@ -27,11 +27,11 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
     /** @throws RuntimeException */
     public function makeGitHeadsDir(): void
     {
-        if (mkdir(F_GIT_HEADS_DIR, 0755, true)) {
+        if (mkdir(F_GIT_REFS_HEADS_DIR, 0755, true)) {
             return;
         }
 
-        throw new RuntimeException(sprintf('failed to mkdir: %s', F_GIT_HEADS_DIR));
+        throw new RuntimeException(sprintf('failed to mkdir: %s', F_GIT_REFS_HEADS_DIR));
     }
 
     /** @throws RuntimeException */
@@ -47,7 +47,7 @@ readonly final class GitResourceRepository implements GitResourceRepositoryInter
     /** @throws RuntimeException */
     public function saveGitHead(string $branch): void
     {
-        $data = sprintf('ref: %s/%s', GIT_HEADS_DIR, GIT_BASE_BRANCH);
+        $data = sprintf('ref: %s/%s', GIT_REFS_HEADS_DIR, GIT_BASE_BRANCH);
 
         if (file_put_contents(F_GIT_HEAD, $data, FILE_APPEND) === false) {
             throw new RuntimeException(sprintf('failed to write in file: %s', F_GIT_HEAD));

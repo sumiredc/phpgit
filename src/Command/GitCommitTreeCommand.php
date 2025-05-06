@@ -7,6 +7,7 @@ namespace Phpgit\Command;
 use Phpgit\Lib\IO;
 use Phpgit\Repository\GitConfigRepository;
 use Phpgit\Repository\ObjectRepository;
+use Phpgit\Repository\RefRepository;
 use Phpgit\Request\GitCommitTreeRequest;
 use Phpgit\UseCase\GitCommitTreeUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -46,7 +47,13 @@ final class GitCommitTreeCommand extends Command
         $io = new IO($input, $output);
         $gitConfigRepository = new GitConfigRepository;
         $objectRepository = new ObjectRepository;
-        $useCase = new GitCommitTreeUseCase($io, $gitConfigRepository, $objectRepository);
+        $refRepository = new RefRepository;
+        $useCase = new GitCommitTreeUseCase(
+            $io,
+            $gitConfigRepository,
+            $objectRepository,
+            $refRepository
+        );
 
         $result = $useCase($request);
 
