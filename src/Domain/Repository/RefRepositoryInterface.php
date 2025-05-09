@@ -32,4 +32,9 @@ interface RefRepositoryInterface
      * @throws RuntimeException
      */
     public function resolve(Reference $ref): ObjectHash;
+
+    /**
+     * @throws RuntimeException
+     */
+    public function resolveHead(): ?ObjectHash;
 }
