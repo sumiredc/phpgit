@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\Domain;
 
 use InvalidArgumentException;
+use Phpgit\Domain\Service\HashPattern;
 
 readonly final class ObjectHash
 {
@@ -24,13 +25,13 @@ readonly final class ObjectHash
     }
 
     /** @throws InvalidArgumentException */
-    public static function parse(string $hash): self
+    public static function parse(string $sha1): self
     {
-        if (preg_match('/^[0-9a-f]{40}$/i', $hash) !== 1) {
-            throw new InvalidArgumentException(sprintf('invalid argument: %s', $hash));
+        if (HashPattern::sha1($sha1)) {
+            return new self($sha1);
         }
 
-        return new self($hash);
+        throw new InvalidArgumentException(sprintf('invalid argument: %s', $sha1));
     }
 
     public static function tryParse(string $hash): ?self
