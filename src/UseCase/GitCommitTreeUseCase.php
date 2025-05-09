@@ -10,7 +10,6 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\ObjectType;
 use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
-use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Timestamp;
 use Phpgit\Exception\InvalidObjectException;
@@ -26,7 +25,6 @@ final class GitCommitTreeUseCase
         private readonly IOInterface $io,
         private readonly GitConfigRepositoryInterface $gitConfigRepository,
         private readonly ObjectRepositoryInterface $objectRepository,
-        private readonly RefRepositoryInterface $refRepository,
     ) {}
 
     public function __invoke(GitCommitTreeRequest $request): Result
@@ -53,7 +51,6 @@ final class GitCommitTreeUseCase
             }
 
             $commitHash = $this->createCommitTree($objectHash, $request->message);
-            $this->createRef($commitHash);
 
             $this->io->writeln($commitHash->value);
 
@@ -83,11 +80,5 @@ final class GitCommitTreeUseCase
         $commit = CommitObject::new($objectHash, $author, $committer, $message);
 
         return $this->objectRepository->save($commit);
-    }
-
-    private function createRef(ObjectHash $commitHash): void
-    {
-        $headRef = $this->refRepository->head();
-        $this->refRepository->create($headRef, $commitHash);
     }
 }

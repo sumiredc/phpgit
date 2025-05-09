@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 use Phpgit\Domain\GitObject;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
-use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Lib\IOInterface;
 use Phpgit\Request\GitCommitTreeRequest;
@@ -23,7 +21,6 @@ beforeEach(function () {
     $this->io = Mockery::mock(IOInterface::class);
     $this->gitConfigRepository = Mockery::mock(GitConfigRepositoryInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
-    $this->refRepository = Mockery::mock(RefRepositoryInterface::class);
 });
 
 describe('__invoke', function () {
@@ -37,8 +34,6 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('get')->andReturn(TreeObjectFactory::new())->once();
             $this->gitConfigRepository->shouldReceive('get')->andReturn(GitConfigFactory::new())->once();
             $this->objectRepository->shouldReceive('save')->andReturn($commitHash)->once();
-            $this->refRepository->shouldReceive('head')->andReturn(Reference::parse('refs/heads/main'))->once();
-            $this->refRepository->shouldReceive('create')->once();
             $this->io->shouldReceive('writeln')->with($expected)->once();
 
             $request = GitCommitTreeRequest::new($this->input);
@@ -46,7 +41,6 @@ describe('__invoke', function () {
                 $this->io,
                 $this->gitConfigRepository,
                 $this->objectRepository,
-                $this->refRepository,
             );
             $actual = $useCase($request);
 
@@ -75,7 +69,6 @@ describe('__invoke', function () {
                 $this->io,
                 $this->gitConfigRepository,
                 $this->objectRepository,
-                $this->refRepository,
             );
             $actual = $useCase($request);
 
@@ -103,7 +96,6 @@ describe('__invoke', function () {
                 $this->io,
                 $this->gitConfigRepository,
                 $this->objectRepository,
-                $this->refRepository,
             );
             $actual = $useCase($request);
 
@@ -132,7 +124,6 @@ describe('__invoke', function () {
                 $this->io,
                 $this->gitConfigRepository,
                 $this->objectRepository,
-                $this->refRepository,
             );
             $actual = $useCase($request);
 
@@ -177,7 +168,6 @@ describe('__invoke', function () {
                 $this->io,
                 $this->gitConfigRepository,
                 $this->objectRepository,
-                $this->refRepository,
             );
             $actual = $useCase($request);
 
