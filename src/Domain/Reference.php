@@ -46,4 +46,13 @@ final class Reference
 
         return new self($refType, $name);
     }
+
+    public static function tryParse(string $ref): ?self
+    {
+        try {
+            return self::parse($ref);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+    }
 }

@@ -104,3 +104,42 @@ describe('parse', function () {
             ['/refs/notes/ccc', new InvalidArgumentException('failed to parse reference: /refs/notes/ccc')],
         ]);
 });
+
+
+describe('tryParse', function () {
+    it(
+        'parses to name and type from ref',
+        function (
+            string $ref,
+            ReferenceType $expectedRefType,
+            string $expectedName
+        ) {
+            $actual = Reference::tryParse($ref);
+
+            expect($actual->refType)->toBe($expectedRefType);
+            expect($actual->name)->toBe($expectedName);
+        }
+    )
+        ->with([
+            ['refs/heads/lll', ReferenceType::Local, 'lll'],
+            ['refs/remotes/rr/mm', ReferenceType::Remote, 'rr/mm'],
+            ['refs/tags/v1.0.0', ReferenceType::Tag, 'v1.0.0'],
+            ['refs/notes/nnn', ReferenceType::Note, 'nnn'],
+            ['refs/stash/sss', ReferenceType::Stash, 'sss'],
+            ['refs/replace/rrrrr', ReferenceType::Replace, 'rrrrr'],
+            ['refs/bisect/bbb', ReferenceType::Bisect, 'bbb'],
+        ]);
+
+    it(
+        'returns null on not match to reference',
+        function (string $ref) {
+            expect(Reference::tryParse($ref))->toBeNull();
+        }
+    )
+        ->with([
+            ['ref/heads/aaa'],
+            ['refs/remote/bbb'],
+            ['refstags/v1.0.0'],
+            ['/refs/notes/ccc'],
+        ]);
+});
