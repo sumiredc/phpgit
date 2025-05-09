@@ -26,56 +26,57 @@ readonly final class IndexRepository implements IndexRepositoryInterface
 
     public function get(): GitIndex
     {
-        $handle = fopen(F_GIT_INDEX, 'rb');
-        if ($handle === false) {
-            throw new RuntimeException('failed to fopen Git Index');
-        }
+        $fp = @fopen(F_GIT_INDEX, 'rb');
 
-        $header = fread($handle, GIT_INDEX_HEADER_LENGTH);
-        if ($header === false) {
-            throw new RuntimeException('failed to fread Git Index header');
-        }
-
-        $indexHeader = GitIndexHeader::parse($header);
-        $gitIndex = GitIndex::parse($indexHeader);
-
-        for ($i = 0; $i < $gitIndex->count; $i++) {
-            $entryHeaderBlob = fread($handle, GIT_INDEX_ENTRY_HEADER_LENGTH);
-            if ($entryHeaderBlob === false) {
-                throw new RuntimeException('failed to fread Entry header');
+        try {
+            if ($fp === false) {
+                throw new RuntimeException('failed to fopen Git Index');
             }
 
-            $entryHeader = IndexEntryHeader::parse($entryHeaderBlob);
-            $pathSize = IndexEntryPathSize::parse($entryHeader->flags);
-
-            $pathWithNull = fread($handle, $pathSize->withNull);
-            if ($pathWithNull === false) {
-                throw new RuntimeException('failed to fread Entry path');
+            $header = fread($fp, GIT_INDEX_HEADER_LENGTH);
+            if ($header === false) {
+                throw new RuntimeException('failed to fread Git Index header');
             }
 
-            $path = substr($pathWithNull, 0, -1); // remove to null-terminated string
+            $indexHeader = GitIndexHeader::parse($header);
+            $gitIndex = GitIndex::parse($indexHeader);
 
-            // skipp padding()
-            $entrySize = IndexEntrySize::new($pathSize);
-            $paddingSize = IndexPaddingSize::new($entrySize);
+            for ($i = 0; $i < $gitIndex->count; $i++) {
+                $entryHeaderBlob = fread($fp, GIT_INDEX_ENTRY_HEADER_LENGTH);
+                if ($entryHeaderBlob === false) {
+                    throw new RuntimeException('failed to fread Entry header');
+                }
 
-            $indexEntry = IndexEntry::parse($entryHeader, $path);
-            $gitIndex->addEntry($indexEntry);
+                $entryHeader = IndexEntryHeader::parse($entryHeaderBlob);
+                $pathSize = IndexEntryPathSize::parse($entryHeader->flags);
 
-            if ($paddingSize->isEmpty()) {
-                continue;
+                $pathWithNull = fread($fp, $pathSize->withNull);
+                if ($pathWithNull === false) {
+                    throw new RuntimeException('failed to fread Entry path');
+                }
+
+                $path = substr($pathWithNull, 0, -1); // remove to null-terminated string
+
+                // skipp padding()
+                $entrySize = IndexEntrySize::new($pathSize);
+                $paddingSize = IndexPaddingSize::new($entrySize);
+
+                $indexEntry = IndexEntry::parse($entryHeader, $path);
+                $gitIndex->addEntry($indexEntry);
+
+                if ($paddingSize->isEmpty()) {
+                    continue;
+                }
+
+                if (fread($fp, $paddingSize->value) === false) {
+                    throw new RuntimeException('failed to fread Entry padding');
+                }
             }
 
-            if (fread($handle, $paddingSize->value) === false) {
-                throw new RuntimeException('failed to fread Entry padding');
-            }
+            return $gitIndex;
+        } finally {
+            fclose($fp);
         }
-
-        if (!fclose($handle)) {
-            throw new RuntimeException('failed to fclose');
-        }
-
-        return $gitIndex;
     }
 
     public function exists(): bool

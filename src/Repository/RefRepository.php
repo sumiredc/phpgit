@@ -7,6 +7,7 @@ namespace Phpgit\Repository;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
+use Phpgit\Domain\Service\RefPattern;
 use Phpgit\Exception\FileAlreadyExistsException;
 use Phpgit\Exception\FileNotFoundException;
 use RuntimeException;
@@ -55,22 +56,28 @@ readonly final class RefRepository implements RefRepositoryInterface
      */
     public function head(): ?Reference
     {
-        $fp = fopen(F_GIT_HEAD, 'r');
-        if ($fp === false) {
-            throw new RuntimeException('failed to fopen by HEAD');
-        }
+        $fp = @fopen(F_GIT_HEAD, 'r');
 
-        $line = fgets($fp);
-        if ($line === false) {
-            throw new RuntimeException('failed to fgets by HEAD first line');
-        }
+        try {
+            if ($fp === false) {
+                throw new RuntimeException('failed to fopen by HEAD');
+            }
 
-        if (!preg_match('/^ref: (.+)/', $line, $matches)) {
-            // NOTE: The hash written directly
-            return null;
-        }
+            $line = fgets($fp);
+            if ($line === false) {
+                throw new RuntimeException('failed to fgets by HEAD first line');
+            }
 
-        return Reference::parse($matches[1]);
+            $ref = RefPattern::parsePath($line);
+            if (is_null($ref)) {
+                // NOTE: The hash written directly
+                return null;
+            }
+
+            return Reference::parse($ref);
+        } finally {
+            fclose($fp);
+        }
     }
 
     /**
@@ -78,16 +85,51 @@ readonly final class RefRepository implements RefRepositoryInterface
      */
     public function resolve(Reference $ref): ObjectHash
     {
-        $fp = fopen($ref->fullPath, 'r');
-        if ($fp === false) {
-            throw new RuntimeException(sprintf('failed to fopen: %s', $ref->fullPath));
-        }
+        $fp = @fopen($ref->fullPath, 'r');
 
-        $hash = fgets($fp);
-        if ($hash === false) {
-            throw new RuntimeException(sprintf('failed to fgets: %s', $ref->fullPath));
-        }
+        try {
+            if ($fp === false) {
+                throw new RuntimeException(sprintf('failed to fopen: %s', $ref->fullPath));
+            }
 
-        return ObjectHash::parse($hash);
+            $hash = fgets($fp);
+            if ($hash === false) {
+                throw new RuntimeException(sprintf('failed to fgets: %s', $ref->fullPath));
+            }
+
+            return ObjectHash::parse(preg_replace('/\r\n|\n|\r/', '', $hash));
+        } finally {
+            fclose($fp);
+        }
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function resolveHead(): ?ObjectHash
+    {
+        $fp = @fopen(F_GIT_HEAD, 'r');
+
+        try {
+            if ($fp === false) {
+                throw new RuntimeException('failed to fopen by HEAD');
+            }
+
+            $line = fgets($fp);
+            if ($line === false) {
+                throw new RuntimeException('failed to fgets by HEAD first line');
+            }
+
+            $ref = RefPattern::parsePath($line);
+            if (!is_null($ref)) {
+                $ref = Reference::parse($ref);
+
+                return $this->resolve($ref);
+            }
+
+            return ObjectHash::parse($line);
+        } finally {
+            fclose($fp);
+        }
     }
 }

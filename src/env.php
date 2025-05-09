@@ -8,33 +8,41 @@ use Error;
 
 final class Env
 {
-    /** @return array<string,mixed> */
+    /** 
+     * @return array<string,mixed> 
+     * @throws Error
+     */
     public static function load(string $filename): array
     {
-        $fp = fopen($filename, 'r');
-        if ($fp === false) {
-            throw new Error(sprintf('failed to load %s', $filename));
-        }
+        $fp = @fopen($filename, 'r');
 
-        $env = new self();
-        $data = [];
-
-        while (($line = fgets($fp)) !== false) {
-            if (empty($line)) {
-                continue;
+        try {
+            if ($fp === false) {
+                throw new Error(sprintf('failed to load %s', $filename));
             }
 
-            $kvStr = str_replace("\n", '', $line);
-            $kv = $env->parseKeyValue($kvStr);
-            if (empty($kv)) {
-                continue;
+            $env = new self();
+            $data = [];
+
+            while (($line = fgets($fp)) !== false) {
+                if (empty($line)) {
+                    continue;
+                }
+
+                $kvStr = str_replace("\n", '', $line);
+                $kv = $env->parseKeyValue($kvStr);
+                if (empty($kv)) {
+                    continue;
+                }
+
+                [$key, $value] = $kv;
+                $data[$key] = $value;
             }
 
-            [$key, $value] = $kv;
-            $data[$key] = $value;
+            return $data;
+        } finally {
+            fclose($fp);
         }
-
-        return $data;
     }
 
     /** 
