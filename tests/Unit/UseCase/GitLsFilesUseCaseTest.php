@@ -46,14 +46,7 @@ describe('__invoke', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andThrow($expected)->once();
-
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
             $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
@@ -86,13 +79,7 @@ describe('__invoke -> actionDefault', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
             $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
@@ -169,13 +156,7 @@ describe('__invoke -> actionTag', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
             $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
@@ -314,13 +295,7 @@ describe('__invoke -> actionStage', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
             $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
@@ -403,14 +378,7 @@ describe('__invoke -> actionDebug', function () {
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
 
             foreach ($expectedValues as $expected) {
-                $this->io->shouldReceive('writeln')
-                    ->withArgs(function (array $actual) use ($expected) {
-                        expect($actual)->toEqual($expected);
-
-                        return true;
-                    })
-                    ->once()
-                    ->ordered();
+                $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
             }
 
             $request = GitLsFilesRequest::new($this->input);

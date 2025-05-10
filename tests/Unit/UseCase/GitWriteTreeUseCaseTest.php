@@ -44,14 +44,7 @@ describe('__invoke', function () {
         function (GitIndex $index, array $expected) {
             $this->indexRepository->shouldReceive('getOrCreate')->andReturn($index)->once();
             $this->objectRepository->shouldReceive('exists')->andReturn(false);
-
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $useCase = new GitWriteTreeUseCase($this->io, $this->indexRepository, $this->objectRepository);
             $actual = $useCase();
@@ -84,14 +77,7 @@ describe('__invoke', function () {
         function (Throwable $expected) {
             $this->indexRepository->shouldReceive('getOrCreate')->andThrow($expected)->once();
             $this->objectRepository->shouldReceive('exists')->andReturn(false);
-
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $useCase = new GitWriteTreeUseCase($this->io, $this->indexRepository, $this->objectRepository);
             $actual = $useCase();

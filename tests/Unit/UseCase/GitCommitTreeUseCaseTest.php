@@ -155,13 +155,7 @@ describe('__invoke', function () {
 
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->objectRepository->shouldReceive('get')->andThrow($th)->once();
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitCommitTreeRequest::new($this->input);
             $useCase = new GitCommitTreeUseCase(

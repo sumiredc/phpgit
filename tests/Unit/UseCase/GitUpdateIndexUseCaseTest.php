@@ -108,13 +108,7 @@ describe('__invoke -> actionAdd', function () {
             $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('exists')->andReturn(false); # in service
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
@@ -152,13 +146,7 @@ describe('__invoke -> actionAdd', function () {
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
             $this->indexRepository->shouldReceive('getOrCreate')->never();
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
@@ -309,13 +297,7 @@ describe('__invoke -> actionRemove', function () {
 
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(false)->once();
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
@@ -351,13 +333,7 @@ describe('__invoke -> actionRemove', function () {
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
@@ -405,14 +381,7 @@ describe('__invoke -> actionRemove', function () {
             $this->fileRepository->shouldReceive('getContents')->andReturn('dummy contents'); # in service
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->fileRepository->shouldReceive('getStat')->andThrow(new RuntimeException('failed to get stat: /full/path'))->once();
-
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(
@@ -593,13 +562,7 @@ describe('__invoke -> actionCacheinfo', function () {
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 
             $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
-            $this->io->shouldReceive('writeln')
-                ->withArgs(function (array $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitUpdateIndexRequest::new($this->input);
             $useCase = new GitUpdateIndexUseCase(

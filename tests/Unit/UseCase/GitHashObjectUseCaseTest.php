@@ -68,13 +68,7 @@ describe('__invoke', function () {
 
             $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->fileRepository->shouldReceive('getContents')->andThrow(new RuntimeException('failed to get contents: /full/path'))->once();
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitHashObjectRequest::new($this->input);
             $useCase = new GitHashObjectUseCase($this->io, $this->fileRepository);

@@ -290,13 +290,7 @@ describe('__invoke -> actionPrettyPrint', function () {
 
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->objectRepository->shouldReceive('get')->andThrow(RuntimeException::class);
-            $this->io->shouldReceive('stackTrace')
-                ->withArgs(function (Throwable $actual) use ($expected) {
-                    expect($actual)->toEqual($expected);
-
-                    return true;
-                })
-                ->once();
+            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitCatFileRequest::new($this->input);
             $useCase = new GitCatFileUseCase($this->io, $this->objectRepository);
