@@ -51,34 +51,34 @@ readonly final class RefRepository implements RefRepositoryInterface
         }
     }
 
-    /**
-     * @throws RuntimeException
-     */
-    public function head(): ?Reference
-    {
-        $fp = @fopen(F_GIT_HEAD, 'r');
+    // /**
+    //  * @throws RuntimeException
+    //  */
+    // public function head(): ?Reference
+    // {
+    //     $fp = @fopen(F_GIT_HEAD, 'r');
 
-        try {
-            if ($fp === false) {
-                throw new RuntimeException('failed to fopen by HEAD');
-            }
+    //     try {
+    //         if ($fp === false) {
+    //             throw new RuntimeException('failed to fopen by HEAD');
+    //         }
 
-            $line = fgets($fp);
-            if ($line === false) {
-                throw new RuntimeException('failed to fgets by HEAD first line');
-            }
+    //         $line = fgets($fp);
+    //         if ($line === false) {
+    //             throw new RuntimeException('failed to fgets by HEAD first line');
+    //         }
 
-            $ref = RefPattern::parsePath($line);
-            if (is_null($ref)) {
-                // NOTE: The hash written directly
-                return null;
-            }
+    //         $ref = RefPattern::parsePath($line);
+    //         if (is_null($ref)) {
+    //             // NOTE: The hash written directly
+    //             return null;
+    //         }
 
-            return Reference::parse($ref);
-        } finally {
-            fclose($fp);
-        }
-    }
+    //         return Reference::parse($ref);
+    //     } finally {
+    //         fclose($fp);
+    //     }
+    // }
 
     /**
      * @throws RuntimeException
@@ -92,12 +92,13 @@ readonly final class RefRepository implements RefRepositoryInterface
                 throw new RuntimeException(sprintf('failed to fopen: %s', $ref->fullPath));
             }
 
-            $hash = fgets($fp);
-            if ($hash === false) {
+            $line = fgets($fp);
+            if ($line === false) {
                 throw new RuntimeException(sprintf('failed to fgets: %s', $ref->fullPath));
             }
 
-            return ObjectHash::parse(preg_replace('/\r\n|\n|\r/', '', $hash));
+            $hash = preg_replace('/\r\n|\n|\r/', '', $line);
+            return ObjectHash::parse($hash);
         } finally {
             fclose($fp);
         }
@@ -120,14 +121,17 @@ readonly final class RefRepository implements RefRepositoryInterface
                 throw new RuntimeException('failed to fgets by HEAD first line');
             }
 
-            $ref = RefPattern::parsePath($line);
-            if (!is_null($ref)) {
-                $ref = Reference::parse($ref);
+            $path = RefPattern::parsePath($line);
+            if (is_null($path)) {
+                // NOTE: The hash written directly
+                $hash = preg_replace('/\r\n|\n|\r/', '', $line);
 
-                return $this->resolve($ref);
+                return ObjectHash::parse($hash);
             }
 
-            return ObjectHash::parse($line);
+            $ref = Reference::parse($path);
+
+            return $this->resolve($ref);
         } finally {
             fclose($fp);
         }

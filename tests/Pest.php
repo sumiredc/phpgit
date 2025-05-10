@@ -39,7 +39,18 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * This function is giving to "withArgs" method arg in Mockery
+ * 
+ * ex: 
+ *  $mock = Mockery::mock(Someting::class);
+ *  $mock->shouldReceive('someting')->withArgs(expectEqualArg($expected));
+ */
+function expectEqualArg(mixed $expected): callable
 {
-    // ..
+    return function (mixed $actual) use ($expected): bool {
+        expect($actual)->toEqual($expected);
+
+        return true;
+    };
 }

@@ -26,11 +26,6 @@ interface RefRepositoryInterface
     /**
      * @throws RuntimeException
      */
-    public function head(): ?Reference;
-
-    /**
-     * @throws RuntimeException
-     */
     public function resolve(Reference $ref): ObjectHash;
 
     /**
