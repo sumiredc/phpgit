@@ -46,10 +46,12 @@ expect()->extend('toBeOne', function () {
  *  $mock = Mockery::mock(Someting::class);
  *  $mock->shouldReceive('someting')->withArgs(expectEqualArg($expected));
  */
-function expectEqualArg(mixed $expected): callable
+function expectEqualArg(mixed ...$expected): callable
 {
-    return function (mixed $actual) use ($expected): bool {
-        expect($actual)->toEqual($expected);
+    return function (mixed ...$actual) use ($expected): bool {
+        foreach ($expected as $i => $expectedValue) {
+            expect($actual[$i])->toEqual($expectedValue);
+        }
 
         return true;
     };

@@ -12,6 +12,7 @@ use Phpgit\Command\GitInitCommand;
 use Phpgit\Command\GitLsFilesCommand;
 use Phpgit\Command\GitRevParseCommand;
 use Phpgit\Command\GitUpdateIndexCommand;
+use Phpgit\Command\GitUpdateRefCommand;
 use Phpgit\Command\GitWriteTreeCommand;
 use Symfony\Component\Console\Application;
 
@@ -25,5 +26,6 @@ $app->add(new GitLsFilesCommand());
 $app->add(new GitWriteTreeCommand());
 $app->add(new GitCommitTreeCommand());
 $app->add(new GitRevParseCommand());
+$app->add(new GitUpdateRefCommand());
 
 $app->run();
