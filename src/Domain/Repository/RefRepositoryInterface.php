@@ -26,10 +26,27 @@ interface RefRepositoryInterface
     /**
      * @throws RuntimeException
      */
+    public function createOrUpdate(Reference $ref, ObjectHash $hash): void;
+
+    /**
+     * @throws RuntimeException
+     */
+    public function delete(Reference $ref): void;
+
+    /**
+     * @throws RuntimeException
+     */
     public function resolve(Reference $ref): ObjectHash;
 
     /**
      * @throws RuntimeException
      */
+    public function head(): ?Reference;
+
+    /**
+     * @throws RuntimeException
+     */
     public function resolveHead(): ?ObjectHash;
+
+    public function dereference(string $value): ?Reference;
 }
