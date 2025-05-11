@@ -13,7 +13,7 @@ use Phpgit\Domain\SegmentTree;
 use Phpgit\Domain\TreeObject;
 use UnexpectedValueException;
 
-final class SaveTreeObjectService
+readonly final class SaveTreeObjectService
 {
     public function __construct(
         private readonly ObjectRepositoryInterface $objectRepository,

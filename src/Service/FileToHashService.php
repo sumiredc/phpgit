@@ -10,7 +10,7 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\TrackingFile;
 use RuntimeException;
 
-final class FileToHashService
+readonly final class FileToHashService
 {
     public function __construct(
         private readonly FileRepositoryInterface $fileRepository
