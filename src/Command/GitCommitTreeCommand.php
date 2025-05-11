@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/** @see https://git-scm.com/docs/git-write-tree */
+/** @see https://git-scm.com/docs/git-commit-tree */
 #[AsCommand(
     name: 'git:commit-tree',
     description: 'Create a new commit object',

@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/** @see https://git-scm.com/docs/git-init */
+/** @see https://git-scm.com/docs/rev-parse */
 #[AsCommand(
     name: 'git:rev-parse',
     description: 'Pick out and massage parameters',
