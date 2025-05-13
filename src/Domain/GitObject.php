@@ -16,8 +16,11 @@ abstract class GitObject
         get => $this->header->objectType;
     }
 
-    public int $size {
+    public protected(set) int $size {
         get => $this->header->size;
+        set(int $v) {
+            $this->header->size = strlen($this->body);
+        }
     }
 
     public string $data {
@@ -26,7 +29,7 @@ abstract class GitObject
 
     protected function __construct(
         public readonly GitObjectHeader $header,
-        public string $body,
+        public protected(set) string $body,
     ) {}
 
     /** @throws RuntimeException */
@@ -90,4 +93,6 @@ abstract class GitObject
             $body
         ];
     }
+
+    abstract public function prettyPrint(): string;
 }

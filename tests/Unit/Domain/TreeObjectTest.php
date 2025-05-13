@@ -45,8 +45,8 @@ describe('appendEntry', function () {
         'should match body',
         function (array $entry1, array $entry2, string $expected) {
             $tree = TreeObject::new();
-            foreach ([$entry1, $entry2] as [$mode, $type, $hash, $name]) {
-                $tree->appendEntry($mode, $type, $hash, $name);
+            foreach ([$entry1, $entry2] as [$mode, $hash, $name]) {
+                $tree->appendEntry($mode, $hash, $name);
             }
 
             expect($tree->body)->toBe($expected);
@@ -56,19 +56,16 @@ describe('appendEntry', function () {
             [
                 [
                     GitFileMode::DefaultFile,
-                    ObjectType::Blob,
                     ObjectHash::parse('34a2d4555e37ca2ad68563f0ce17d327b8bc0301'),
                     'README.md'
                 ],
                 [
                     GitFileMode::Tree,
-                    ObjectType::Tree,
                     ObjectHash::parse('5dee59773f75e23b248965ccb9c5dbeebe875093'),
                     'src'
                 ],
-                '100644 blob 34a2d4555e37ca2ad68563f0ce17d327b8bc0301	README.md
-040000 tree 5dee59773f75e23b248965ccb9c5dbeebe875093	src
-'
+                "100644 README.md\0" . hex2bin('34a2d4555e37ca2ad68563f0ce17d327b8bc0301')
+                    . "040000 src\0" . hex2bin('5dee59773f75e23b248965ccb9c5dbeebe875093')
             ]
         ]);
 });

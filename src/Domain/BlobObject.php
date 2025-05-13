@@ -28,4 +28,9 @@ final class BlobObject extends GitObject
 
         return new self($header, $content);
     }
+
+    public function prettyPrint(): string
+    {
+        return $this->body;
+    }
 }

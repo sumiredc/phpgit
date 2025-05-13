@@ -44,17 +44,18 @@ readonly final class SaveTreeObjectService
 
             /** 
              * @var GitFileMode $mode
-             * @var ObjectType $type
              * @var ObjectHash $hash
              */
-            [$mode, $type, $hash] = match (true) {
+            [$mode, $hash] = match (true) {
                 is_a($segmentValue, SegmentTree::class) => [
                     GitFileMode::Tree,
-                    ObjectType::Tree,
                     $this->saveTreeObject(TreeObject::new(), $segmentValue, $path) // Recursive
                 ],
 
-                is_a($segmentValue, IndexEntry::class) => $this->getObjectMeta($segmentValue),
+                is_a($segmentValue, IndexEntry::class) => [
+                    $segmentValue->gitFileMode,
+                    $segmentValue->objectHash
+                ],
 
                 // NOTE: This branch is not reached, because it manages by SegmentTree class.
                 // @codeCoverageIgnoreStart
@@ -64,23 +65,9 @@ readonly final class SaveTreeObjectService
                 // @codeCoverageIgnoreEnd
             };
 
-            $treeObject->appendEntry($mode, $type, $hash, $segment);
+            $treeObject->appendEntry($mode, $hash, $segment);
         }
 
         return $this->objectRepository->save($treeObject);
-    }
-
-    /**
-     * @return array{0:GitFileMode,1:ObjectType,2:ObjectHash}
-     */
-    private function getObjectMeta(IndexEntry $indexEntry): array
-    {
-        $object = $this->objectRepository->get($indexEntry->objectHash);
-
-        return [
-            $indexEntry->gitFileMode,
-            $object->objectType,
-            $indexEntry->objectHash
-        ];
     }
 }

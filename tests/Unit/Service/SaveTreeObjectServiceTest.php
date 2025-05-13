@@ -8,7 +8,6 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\SegmentTree;
 use Phpgit\Domain\TrackingFile;
 use Phpgit\Service\SaveTreeObjectService;
-use Tests\Factory\BlobObjectFactory;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\SegmentTreeFactory;
 
@@ -26,7 +25,6 @@ describe('__invoke', function () {
             int $saveTimes,
             string $expected
         ) {
-            $this->objectRepository->shouldReceive('get')->andReturn(BlobObjectFactory::new())->times($getTimes);
             $this->objectRepository->shouldReceive('save')->andReturn(...$treeHashs)->times($saveTimes);
 
             $service = new SaveTreeObjectService($this->objectRepository);

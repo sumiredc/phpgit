@@ -99,7 +99,7 @@ final class GitCatFileUseCase
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->write($gitObject->body);
+        $this->io->write($gitObject->prettyPrint());
 
         return Result::Success;
     }
