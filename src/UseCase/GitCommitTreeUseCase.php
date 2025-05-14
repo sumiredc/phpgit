@@ -12,9 +12,7 @@ use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Timestamp;
-use Phpgit\Exception\InvalidObjectException;
-use Phpgit\Exception\InvalidObjectNameException;
-use Phpgit\Exception\InvalidObjectTypeException;
+use Phpgit\Exception\UseCaseException;
 use Phpgit\Lib\IOInterface;
 use Phpgit\Request\GitCommitTreeRequest;
 use Throwable;
@@ -30,36 +28,35 @@ final class GitCommitTreeUseCase
     public function __invoke(GitCommitTreeRequest $request): Result
     {
         try {
-            $objectHash = ObjectHash::tryParse($request->tree);
-            if (is_null($objectHash)) {
-                throw new InvalidObjectNameException(
-                    sprintf('fatal: not a valid object name %s', $request->tree)
-                );
+            $treeHash = ObjectHash::tryParse($request->tree);
+            if (is_null($treeHash)) {
+                throw new UseCaseException('fatal: not a valid object name %s', $request->tree);
             }
 
-            if (!$this->objectRepository->exists($objectHash)) {
-                throw new InvalidObjectException(
-                    sprintf('fatal: %s is not a valid object', $request->tree)
-                );
+            $parentHash = ObjectHash::tryParse($request->parent);
+            if ($request->parent !== '' && is_null($parentHash)) {
+                throw new UseCaseException('fatal: not a valid object name %s', $request->parent);
             }
 
-            $gitObject = $this->objectRepository->get($objectHash);
+            if (!$this->objectRepository->exists($treeHash)) {
+                throw new UseCaseException('fatal: %s is not a valid object', $request->tree);
+            }
+
+            if (!is_null($parentHash) && !$this->objectRepository->exists($parentHash)) {
+                throw new UseCaseException('fatal: %s is not a valid object', $request->parent);
+            }
+
+            $gitObject = $this->objectRepository->get($treeHash);
             if ($gitObject->objectType !== ObjectType::Tree) {
-                throw new InvalidObjectTypeException(
-                    sprintf('fatal: %s is not a valid \'tree\' object', $request->tree)
-                );
+                throw new UseCaseException('fatal: %s is not a valid \'tree\' object', $request->tree);
             }
 
-            $commitHash = $this->createCommitTree($objectHash, $request->message);
+            $commitHash = $this->createCommitTree($treeHash, $request->message, $parentHash);
 
             $this->io->writeln($commitHash->value);
 
             return Result::Success;
-        } catch (
-            InvalidObjectNameException
-            | InvalidObjectException
-            | InvalidObjectTypeException $ex
-        ) {
+        } catch (UseCaseException $ex) {
             $this->io->writeln($ex->getMessage());
 
             return Result::GitError;
@@ -70,14 +67,18 @@ final class GitCommitTreeUseCase
         }
     }
 
-    private function createCommitTree(ObjectHash $objectHash, string $message): ObjectHash
-    {
+    private function createCommitTree(
+        ObjectHash $treetHash,
+        string $message,
+        ?ObjectHash $parentHash,
+    ): ObjectHash {
         $gitConfig = $this->gitConfigRepository->get();
 
         $timestamp = Timestamp::new();
         $author = GitSignature::new($gitConfig->userName, $gitConfig->userEmail, $timestamp);
         $committer = GitSignature::new($gitConfig->userName, $gitConfig->userEmail, $timestamp);
-        $commit = CommitObject::new($objectHash, $author, $committer, $message);
+
+        $commit = CommitObject::new($treetHash, $author, $committer, $message, $parentHash);
 
         return $this->objectRepository->save($commit);
     }

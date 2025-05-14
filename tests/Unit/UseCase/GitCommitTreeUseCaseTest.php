@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\GitObject;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
@@ -21,16 +22,28 @@ beforeEach(function () {
     $this->io = Mockery::mock(IOInterface::class);
     $this->gitConfigRepository = Mockery::mock(GitConfigRepositoryInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
+
+    $command = Mockery::mock(CommandInterface::class);
+    $command->shouldReceive(['addOption' => $command, 'addArgument' => $command]);
+    GitCommitTreeRequest::setUp($command);
 });
 
 describe('__invoke', function () {
     it(
         'outputs commit hash and returns to success',
-        function (string $tree, string $message, ObjectHash $commitHash, string $expected) {
-            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree);
-            $this->input->shouldReceive('getOption')->with('message')->andReturn($message);
+        function (
+            string $tree,
+            string $message,
+            ?string $parent,
+            int $objectExistsCallCount,
+            ObjectHash $commitHash,
+            string $expected
+        ) {
+            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree)
+                ->shouldReceive('getOption')->with('message')->andReturn($message)
+                ->shouldReceive('getOption')->with('parent')->andReturn($parent);
 
-            $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
+            $this->objectRepository->shouldReceive('exists')->andReturn(true)->times($objectExistsCallCount);
             $this->objectRepository->shouldReceive('get')->andReturn(TreeObjectFactory::new())->once();
             $this->gitConfigRepository->shouldReceive('get')->andReturn(GitConfigFactory::new())->once();
             $this->objectRepository->shouldReceive('save')->andReturn($commitHash)->once();
@@ -51,6 +64,16 @@ describe('__invoke', function () {
             [
                 'tree' => '04ba9ed331f1eaa7618aefb1db4da5988463404d',
                 'message' => 'dummy message',
+                'parent' => null,
+                'objectExistsCallCount' => 1,
+                'commitHash' => ObjectHash::parse('ff9c936e7aafc01f64e60ae2fe5c79b229953d07'),
+                'expected' => 'ff9c936e7aafc01f64e60ae2fe5c79b229953d07'
+            ],
+            [
+                'tree' => '04ba9ed331f1eaa7618aefb1db4da5988463404d',
+                'message' => 'dummy message',
+                'parent' => '0dbfdcf3970a6ea0761850575dcf5458451c7cde',
+                'objectExistsCallCount' => 2,
                 'commitHash' => ObjectHash::parse('ff9c936e7aafc01f64e60ae2fe5c79b229953d07'),
                 'expected' => 'ff9c936e7aafc01f64e60ae2fe5c79b229953d07'
             ]
@@ -58,9 +81,10 @@ describe('__invoke', function () {
 
     it(
         'throws an exception and outputs fatal message and returns error, when given to anything other string than a hash string',
-        function (string $tree, string $expected) {
-            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree);
-            $this->input->shouldReceive('getOption')->with('message')->andReturn('dummy message');
+        function (string $tree, ?string $parent, string $expected) {
+            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree)
+                ->shouldReceive('getOption')->with('message')->andReturn('dummy message')
+                ->shouldReceive('getOption')->with('parent')->andReturn($parent);
 
             $this->io->shouldReceive('writeln')->with($expected)->once();
 
@@ -76,19 +100,32 @@ describe('__invoke', function () {
         }
     )
         ->with([
-            [
+            'invalid tree object' => [
                 'not-hash',
+                null,
                 'fatal: not a valid object name not-hash'
+            ],
+            'invalid parent object' => [
+                'ff9c936e7aafc01f64e60ae2fe5c79b229953d07',
+                'fail-hash',
+                'fatal: not a valid object name fail-hash'
             ]
         ]);
 
     it(
-        'throws an exception and outputs fatal message and returns error, when does not get object',
-        function (string $tree, string $expected) {
-            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree);
-            $this->input->shouldReceive('getOption')->with('message')->andReturn('dummy message');
+        'throws an exception and outputs fatal message and returns error, when does not exists object',
+        function (
+            string $tree,
+            ?string $parent,
+            array $objectExistsReturns,
+            int $objectExistsCallCount,
+            string $expected
+        ) {
+            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree)
+                ->shouldReceive('getOption')->with('message')->andReturn('dummy message')
+                ->shouldReceive('getOption')->with('parent')->andReturn($parent);
 
-            $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
+            $this->objectRepository->shouldReceive('exists')->andReturn(...$objectExistsReturns)->times($objectExistsCallCount);
             $this->io->shouldReceive('writeln')->with($expected)->once();
 
             $request = GitCommitTreeRequest::new($this->input);
@@ -103,17 +140,28 @@ describe('__invoke', function () {
         }
     )
         ->with([
-            [
-                '7325eb186677325ce158c51f203f3d026e48803b',
-                'fatal: 7325eb186677325ce158c51f203f3d026e48803b is not a valid object'
-            ]
+            'does not exists tree object' => [
+                'tree' => '7325eb186677325ce158c51f203f3d026e48803b',
+                'parent' => null,
+                'objectExistsReturns' => [false],
+                'objectExistsCallCount' => 1,
+                'expected' => 'fatal: 7325eb186677325ce158c51f203f3d026e48803b is not a valid object'
+            ],
+            'does not exists parent object' => [
+                'tree' => '7325eb186677325ce158c51f203f3d026e48803b',
+                'parent' => 'ff9c936e7aafc01f64e60ae2fe5c79b229953d07',
+                'objectExistsReturns' => [true, false],
+                'objectExistsCallCount' => 2,
+                'expected' => 'fatal: ff9c936e7aafc01f64e60ae2fe5c79b229953d07 is not a valid object'
+            ],
         ]);
 
     it(
         'throws an exception and outputs fatal message and returns error, when does not match to tree object',
         function (string $tree, GitObject $gitObject, string $expected) {
-            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree);
-            $this->input->shouldReceive('getOption')->with('message')->andReturn('dummy message');
+            $this->input->shouldReceive('getArgument')->with('tree')->andReturn($tree)
+                ->shouldReceive('getOption')->with('message')->andReturn('dummy message')
+                ->shouldReceive('getOption')->with('parent')->andReturnNull();
 
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->objectRepository->shouldReceive('get')->andReturn($gitObject)->once();
@@ -149,9 +197,9 @@ describe('__invoke', function () {
     it(
         'throws an exception and outputs stack trace and returns error, when happened unexpected error',
         function (Throwable $th, Throwable $expected) {
-            $this->input->shouldReceive('getArgument')->with('tree')
-                ->andReturn('04ba9ed331f1eaa7618aefb1db4da5988463404d');
-            $this->input->shouldReceive('getOption')->with('message')->andReturn('dummy message');
+            $this->input->shouldReceive('getArgument')->with('tree')->andReturn('04ba9ed331f1eaa7618aefb1db4da5988463404d')
+                ->shouldReceive('getOption')->with('message')->andReturn('dummy message')
+                ->shouldReceive('getOption')->with('parent')->andReturnNull();
 
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->objectRepository->shouldReceive('get')->andThrow($th)->once();

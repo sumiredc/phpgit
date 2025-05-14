@@ -15,6 +15,7 @@ final class CommitObjectFactory
             GitSignatureFactory::new(),
             GitSignatureFactory::new(),
             'dummy message',
+            null,
         );
     }
 }

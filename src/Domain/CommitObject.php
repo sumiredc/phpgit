@@ -25,20 +25,27 @@ final class CommitObject extends GitObject
         ObjectHash $treeHash,
         GitSignature $author,
         GitSignature $committer,
-        string $message
+        string $message,
+        ?ObjectHash $parentHash,
     ): self {
         $type = ObjectType::Commit;
-        $content = sprintf("%s %s\n", ObjectType::Tree->value, $treeHash->value)
-            . sprintf("author %s\n", $author->toRawString())
+
+        $body = sprintf("%s %s\n", ObjectType::Tree->value, $treeHash->value);
+
+        if (!is_null($parentHash)) {
+            $body .= sprintf("parent %s\n", $parentHash->value);
+        }
+
+        $body .= sprintf("author %s\n", $author->toRawString())
             . sprintf("committer %s\n", $committer->toRawString())
             . "\n"
             . $message
             . "\n";
 
-        $size = strlen($content);
+        $size = strlen($body);
         $header = GitObjectHeader::new($type, $size);
 
-        return new self($header, $content);
+        return new self($header, $body);
     }
 
     public function prettyPrint(): string
