@@ -7,14 +7,13 @@ namespace Phpgit\Request;
 use LogicException;
 use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\CommandInput\GitUpdateRefOptionAction;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 
-final class GitUpdateRefRequest
+final class GitUpdateRefRequest extends Request
 {
-    private static bool $isLocked = true;
-
     private function __construct(
         public readonly GitUpdateRefOptionAction $action,
         public readonly string $ref,
@@ -30,14 +29,15 @@ final class GitUpdateRefRequest
             ->addArgument('arg1', InputArgument::OPTIONAL, 'update: <newvalue:REQUIRED>, delete: <oldvalue:OPTIONAL>')
             ->addArgument('arg2', InputArgument::OPTIONAL, 'update: <oldvalue:OPTIONAL>');
 
-        self::$isLocked = false;
+        static::unlock();
     }
 
+    /** 
+     * @throws InvalidArgumentException 
+     */
     public static function new(InputInterface $input): self
     {
-        if (self::$isLocked) {
-            throw new LogicException('Call setUp() before instantiating');
-        }
+        static::assertNew();
 
         $action = match (true) {
             boolval($input->getOption('delete')) => GitUpdateRefOptionAction::Delete,

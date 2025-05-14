@@ -10,11 +10,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 
 beforeEach(function () {
-    $refClass = new ReflectionClass(GitUpdateRefRequest::class);
-    $refProp = $refClass->getProperty('isLocked');
-    $refProp->setAccessible(true);
-    $refProp->setValue($refClass, true);
-
     $this->command = Mockery::mock(CommandInterface::class);
     $this->input = Mockery::mock(InputInterface::class);
 });
@@ -23,17 +18,30 @@ describe('setUp', function () {
     it(
         'calls setup args function',
         function () {
-            $this->command->shouldReceive('addOption')->with('delete', 'd', InputOption::VALUE_NONE)->once();
-            $this->command->shouldReceive('addArgument')->with('ref', InputArgument::REQUIRED)->once();
-            $this->command->shouldReceive('addArgument')->with('arg1', InputArgument::OPTIONAL, 'update: <newvalue:REQUIRED>, delete: <oldvalue:OPTIONAL>')->once();
-            $this->command->shouldReceive('addArgument')->with('arg2', InputArgument::OPTIONAL, 'update: <oldvalue:OPTIONAL>')->once();
+            $this->command
+                ->shouldReceive('addOption')->with('delete', 'd', InputOption::VALUE_NONE)->once()
+                ->shouldReceive('addArgument')->with('ref', InputArgument::REQUIRED)->once()
+                ->shouldReceive('addArgument')->with('arg1', InputArgument::OPTIONAL, 'update: <newvalue:REQUIRED>, delete: <oldvalue:OPTIONAL>')->once()
+                ->shouldReceive('addArgument')->with('arg2', InputArgument::OPTIONAL, 'update: <oldvalue:OPTIONAL>')->once();
 
             GitUpdateRefRequest::setUp($this->command);
+
+            $refClass = new ReflectionClass(GitUpdateRefRequest::class);
+            $assertNew = $refClass->getMethod('assertNew');
+            $assertNew->invoke($refClass);
+
+            expect(true)->toBeTrue();
         }
     );
 });
 
 describe('new', function () {
+    beforeEach(function () {
+        $refClass = new ReflectionClass(GitUpdateRefRequest::class);
+        $unlock = $refClass->getMethod('unlock');
+        $unlock->invoke($refClass);
+    });
+
     it(
         'match to args to properties on execute udpate command',
         function (
@@ -48,10 +56,11 @@ describe('new', function () {
                 'addOption' => $this->command,
                 'addArgument' => $this->command,
             ]);
-            $this->input->shouldReceive('getOption')->with('delete')->andReturn(false)->once();
-            $this->input->shouldReceive('getArgument')->with('ref')->andReturn($ref)->once();
-            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($arg1)->once();
-            $this->input->shouldReceive('getArgument')->with('arg2')->andReturn($arg2)->once();
+            $this->input
+                ->shouldReceive('getOption')->with('delete')->andReturn(false)->once()
+                ->shouldReceive('getArgument')->with('ref')->andReturn($ref)->once()
+                ->shouldReceive('getArgument')->with('arg1')->andReturn($arg1)->once()
+                ->shouldReceive('getArgument')->with('arg2')->andReturn($arg2)->once();
 
             GitUpdateRefRequest::setUp($this->command);
             $actual = GitUpdateRefRequest::new($this->input);
@@ -93,10 +102,11 @@ describe('new', function () {
                 'addOption' => $this->command,
                 'addArgument' => $this->command,
             ]);
-            $this->input->shouldReceive('getOption')->with('delete')->andReturn(true)->once();
-            $this->input->shouldReceive('getArgument')->with('ref')->andReturn($ref)->once();
-            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($arg1)->once();
-            $this->input->shouldReceive('getArgument')->with('arg2')->never();
+            $this->input
+                ->shouldReceive('getOption')->with('delete')->andReturn(true)->once()
+                ->shouldReceive('getArgument')->with('ref')->andReturn($ref)->once()
+                ->shouldReceive('getArgument')->with('arg1')->andReturn($arg1)->once()
+                ->shouldReceive('getArgument')->with('arg2')->never();
 
             GitUpdateRefRequest::setUp($this->command);
             $actual = GitUpdateRefRequest::new($this->input);
@@ -121,6 +131,14 @@ describe('new', function () {
                 'expectedOldValue' => '1ba22fe903f70cf262ecae71abdf5fe4f51a7b86',
             ]
         ]);
+});
+
+describe('new: fails case', function () {
+    beforeEach(function () {
+        $refClass = new ReflectionClass(GitUpdateRefRequest::class);
+        $lock = $refClass->getMethod('lock');
+        $lock->invoke($refClass);
+    });
 
     it(
         'throws an exception on did call setUp method',
@@ -129,6 +147,6 @@ describe('new', function () {
         }
     )
         ->with([
-            [new LogicException('Call setUp() before instantiating')]
+            [new LogicException('Cannot instantiate request. Call setUp() first')]
         ]);
 });
