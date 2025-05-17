@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/git-hash-object */
 #[AsCommand(
-    name: 'git:hash-object',
+    name: 'hash-object',
     description: 'Compute object ID and optionally create an object from a file',
 )]
 final class HashObjectCommand extends Command

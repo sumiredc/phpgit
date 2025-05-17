@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/git-commit-tree */
 #[AsCommand(
-    name: 'git:commit-tree',
+    name: 'commit-tree',
     description: 'Create a new commit object',
 )]
 final class CommitTreeCommand extends Command implements CommandInterface
