@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\ObjectRepository;
-use Phpgit\Repository\RefRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\ObjectRepository;
+use Phpgit\Infra\Repository\RefRepository;
 use Phpgit\Request\GitUpdateRefRequest;
 use Phpgit\UseCase\GitUpdateRefUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -29,10 +29,10 @@ final class GitUpdateRefCommand extends Command implements CommandInterface
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $request = GitUpdateRefRequest::new($input);
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository;
         $refRepository = new RefRepository;
-        $useCase = new GitUpdateRefUseCase($io, $objectRepository, $refRepository);
+        $useCase = new GitUpdateRefUseCase($printer, $objectRepository, $refRepository);
 
         $result = $useCase($request);
 

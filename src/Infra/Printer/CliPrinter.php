@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phpgit\Lib;
+namespace Phpgit\Infra\Printer;
 
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\StyleInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 
-final class IO extends SymfonyStyle implements IOInterface, StyleInterface, OutputInterface
+final class CliPrinter extends SymfonyStyle implements PrinterInterface
 {
     public function stackTrace(Throwable $th): void
     {

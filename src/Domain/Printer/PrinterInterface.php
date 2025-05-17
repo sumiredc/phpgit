@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phpgit\Lib;
+namespace Phpgit\Domain\Printer;
 
 use Throwable;
 
-interface IOInterface
+interface PrinterInterface
 {
     public function stackTrace(Throwable $th): void;
 

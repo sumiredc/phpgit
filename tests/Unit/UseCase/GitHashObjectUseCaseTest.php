@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitHashObjectRequest;
 use Phpgit\UseCase\GitHashObjectUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
-    $this->io = Mockery::mock(IOInterface::class);
+    $this->printer = Mockery::mock(PrinterInterface::class);
     $this->fileRepository = Mockery::mock(FileRepositoryInterface::class);
 });
 
@@ -23,10 +23,10 @@ describe('__invoke', function () {
 
             $this->fileRepository->shouldReceive('exists')->andReturn(true);
             $this->fileRepository->shouldReceive('getContents')->andReturn($content);
-            $this->io->shouldReceive('writeln')->with($hash)->once();
+            $this->printer->shouldReceive('writeln')->with($hash)->once();
 
             $request = GitHashObjectRequest::new($this->input);
-            $useCase = new GitHashObjectUseCase($this->io, $this->fileRepository);
+            $useCase = new GitHashObjectUseCase($this->printer, $this->fileRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -43,14 +43,14 @@ describe('__invoke', function () {
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 
             $this->fileRepository->shouldReceive('exists')->andReturn(false);
-            $this->io->shouldReceive('writeln')
+            $this->printer->shouldReceive('writeln')
                 ->with(
                     sprintf('fatal: could not open \'$s\' for reading: No such file or directory', $file)
                 )
                 ->once();
 
             $request = GitHashObjectRequest::new($this->input);
-            $useCase = new GitHashObjectUseCase($this->io, $this->fileRepository);
+            $useCase = new GitHashObjectUseCase($this->printer, $this->fileRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -68,10 +68,10 @@ describe('__invoke', function () {
 
             $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->fileRepository->shouldReceive('getContents')->andThrow(new RuntimeException('failed to get contents: /full/path'))->once();
-            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitHashObjectRequest::new($this->input);
-            $useCase = new GitHashObjectUseCase($this->io, $this->fileRepository);
+            $useCase = new GitHashObjectUseCase($this->printer, $this->fileRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::InternalError);

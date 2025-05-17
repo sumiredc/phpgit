@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\GitResourceRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\UseCase\GitInitUseCase;
 
 beforeEach(function () {
-    $this->io = Mockery::mock(IOInterface::class);
+    $this->printer = Mockery::mock(PrinterInterface::class);
     $this->gitResourceRepository = Mockery::mock(GitResourceRepositoryInterface::class);
     $this->gitConfigRepository = Mockery::mock(GitConfigRepositoryInterface::class);
 });
@@ -24,9 +24,9 @@ describe('__invoke', function () {
             $this->gitResourceRepository->shouldReceive('createGitHead')->once();
             $this->gitResourceRepository->shouldReceive('saveGitHead')->once();
             $this->gitConfigRepository->shouldReceive('create')->once();
-            $this->io->shouldReceive('writeln')->once();
+            $this->printer->shouldReceive('writeln')->once();
 
-            $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
+            $useCase = new GitInitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::Success);
@@ -38,9 +38,9 @@ describe('__invoke', function () {
         function () {
             $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(true)->once();
             $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->never();
-            $this->io->shouldReceive('writeln')->once();
+            $this->printer->shouldReceive('writeln')->once();
 
-            $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
+            $useCase = new GitInitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::Success);
@@ -52,9 +52,9 @@ describe('__invoke', function () {
         function () {
             $this->gitResourceRepository->shouldReceive('existsGitDir')->andReturn(false)->once();
             $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->andThrows(RuntimeException::class);
-            $this->io->shouldReceive('stackTrace')->once();
+            $this->printer->shouldReceive('stackTrace')->once();
 
-            $useCase = new GitInitUseCase($this->io, $this->gitResourceRepository, $this->gitConfigRepository);
+            $useCase = new GitInitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::InternalError);

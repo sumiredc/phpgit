@@ -7,13 +7,13 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\UseCase\GitWriteTreeUseCase;
 use Tests\Factory\GitIndexFactory;
 use Tests\Factory\IndexEntryFactory;
 
 beforeEach(function () {
-    $this->io = Mockery::mock(IOInterface::class);
+    $this->printer = Mockery::mock(PrinterInterface::class);
     $this->indexRepository = Mockery::mock(IndexRepositoryInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
 });
@@ -24,9 +24,9 @@ describe('__invoke', function () {
         function (ObjectHash $objectHash, string $expected) {
             $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndexFactory::new())->once();
             $this->objectRepository->shouldReceive('save')->andReturn($objectHash); // in service
-            $this->io->shouldReceive('writeln')->with($expected)->once();
+            $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $useCase = new GitWriteTreeUseCase($this->io, $this->indexRepository, $this->objectRepository);
+            $useCase = new GitWriteTreeUseCase($this->printer, $this->indexRepository, $this->objectRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::Success);
@@ -44,9 +44,9 @@ describe('__invoke', function () {
         function (GitIndex $index, array $expected) {
             $this->indexRepository->shouldReceive('getOrCreate')->andReturn($index)->once();
             $this->objectRepository->shouldReceive('exists')->andReturn(false);
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
-            $useCase = new GitWriteTreeUseCase($this->io, $this->indexRepository, $this->objectRepository);
+            $useCase = new GitWriteTreeUseCase($this->printer, $this->indexRepository, $this->objectRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::GitError);
@@ -77,9 +77,9 @@ describe('__invoke', function () {
         function (Throwable $expected) {
             $this->indexRepository->shouldReceive('getOrCreate')->andThrow($expected)->once();
             $this->objectRepository->shouldReceive('exists')->andReturn(false);
-            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $useCase = new GitWriteTreeUseCase($this->io, $this->indexRepository, $this->objectRepository);
+            $useCase = new GitWriteTreeUseCase($this->printer, $this->indexRepository, $this->objectRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::InternalError);

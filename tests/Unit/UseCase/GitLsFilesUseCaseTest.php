@@ -9,7 +9,7 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitLsFilesRequest;
 use Phpgit\UseCase\GitLsFilesUseCase;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,7 +18,7 @@ use Tests\Factory\ObjectHashFactory;
 
 beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
-    $this->io = Mockery::mock(IOInterface::class);
+    $this->printer = Mockery::mock(PrinterInterface::class);
     $this->indexRepository = Mockery::mock(IndexRepositoryInterface::class);
 });
 
@@ -29,10 +29,10 @@ describe('__invoke', function () {
             $this->input->shouldReceive('getOption')->andReturn(false)->times(4);
 
             $this->indexRepository->shouldReceive('exists')->andReturn(false)->once();
-            $this->io->shouldReceive('writeln')->never();
+            $this->printer->shouldReceive('writeln')->never();
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -46,10 +46,10 @@ describe('__invoke', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andThrow($expected)->once();
-            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::InternalError);
@@ -79,10 +79,10 @@ describe('__invoke -> actionDefault', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -156,10 +156,10 @@ describe('__invoke -> actionTag', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -233,10 +233,10 @@ describe('__invoke -> actionZero', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('echo')->with($expected)->once();
+            $this->printer->shouldReceive('echo')->with($expected)->once();
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -295,10 +295,10 @@ describe('__invoke -> actionStage', function () {
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -378,11 +378,11 @@ describe('__invoke -> actionDebug', function () {
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
 
             foreach ($expectedValues as $expected) {
-                $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+                $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
             }
 
             $request = GitLsFilesRequest::new($this->input);
-            $useCase = new GitLsFilesUseCase($this->io, $this->indexRepository);
+            $useCase = new GitLsFilesUseCase($this->printer, $this->indexRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);

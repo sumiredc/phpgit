@@ -7,13 +7,13 @@ namespace Phpgit\UseCase;
 use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\GitResourceRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Throwable;
 
 final class GitInitUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly GitResourceRepositoryInterface $gitResourceRepository,
         private readonly GitConfigRepositoryInterface $gitConfigRepository,
     ) {}
@@ -22,7 +22,7 @@ final class GitInitUseCase
     {
         if ($this->gitResourceRepository->existsGitDir()) {
             // TODO: reinitialzed は未実装
-            $this->io->writeln(sprintf('Reinitialized existing Git repository in %s/', F_GIT_DIR));
+            $this->printer->writeln(sprintf('Reinitialized existing Git repository in %s/', F_GIT_DIR));
             return Result::Success;
         }
 
@@ -33,11 +33,11 @@ final class GitInitUseCase
             $this->gitResourceRepository->saveGitHead(GIT_BASE_BRANCH);
             $this->gitConfigRepository->create();
 
-            $this->io->writeln(sprintf('Initialized empty Git repository in %s', F_GIT_DIR));
+            $this->printer->writeln(sprintf('Initialized empty Git repository in %s', F_GIT_DIR));
 
             return Result::Success;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }

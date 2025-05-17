@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\FileRepository;
-use Phpgit\Repository\ObjectRepository;
-use Phpgit\Repository\RefRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\FileRepository;
+use Phpgit\Infra\Repository\ObjectRepository;
+use Phpgit\Infra\Repository\RefRepository;
 use Phpgit\Request\GitRevParseRequest;
 use Phpgit\UseCase\GitRevParseUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -32,11 +32,11 @@ final class GitRevParseCommand extends Command
     {
         $request = GitRevParseRequest::new($input);
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $fileRepository = new FileRepository();
         $objectRepository = new ObjectRepository();
         $refRepository = new RefRepository();
-        $useCase = new GitRevParseUseCase($io, $fileRepository, $objectRepository, $refRepository);
+        $useCase = new GitRevParseUseCase($printer, $fileRepository, $objectRepository, $refRepository);
 
         $result = $useCase($request);
 

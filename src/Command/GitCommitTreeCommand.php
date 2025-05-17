@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\GitConfigRepository;
-use Phpgit\Repository\ObjectRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\GitConfigRepository;
+use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Request\GitCommitTreeRequest;
 use Phpgit\UseCase\GitCommitTreeUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -30,11 +30,11 @@ final class GitCommitTreeCommand extends Command implements CommandInterface
     {
         $request = GitCommitTreeRequest::new($input);
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $gitConfigRepository = new GitConfigRepository;
         $objectRepository = new ObjectRepository;
         $useCase = new GitCommitTreeUseCase(
-            $io,
+            $printer,
             $gitConfigRepository,
             $objectRepository,
         );

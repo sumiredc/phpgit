@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phpgit\Repository;
+namespace Phpgit\Infra\Repository;
 
 
 use Phpgit\Domain\GitIndex;

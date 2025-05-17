@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\FileRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\FileRepository;
 use Phpgit\Request\GitHashObjectRequest;
 use Phpgit\UseCase\GitHashObjectUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -30,9 +30,9 @@ final class GitHashObjectCommand extends Command
     {
         $request = GitHashObjectRequest::new($input);
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $fileRepository = new FileRepository();
-        $useCase = new GitHashObjectUseCase($io, $fileRepository);
+        $useCase = new GitHashObjectUseCase($printer, $fileRepository);
 
         $result = $useCase($request);
 

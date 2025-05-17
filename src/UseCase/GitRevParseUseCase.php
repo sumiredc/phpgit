@@ -11,14 +11,14 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\RevisionNotFoundException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitRevParseRequest;
 use Throwable;
 
 final class GitRevParseUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly FileRepositoryInterface $fileRepository,
         private readonly ObjectRepositoryInterface $objectRepository,
         private readonly RefRepositoryInterface $refRepository,
@@ -39,16 +39,16 @@ final class GitRevParseUseCase
                 $results[] = $result;
             }
 
-            $this->io->writeln($results);
+            $this->printer->writeln($results);
 
             return Result::Success;
         } catch (RevisionNotFoundException $revEx) {
-            $this->io->writeln($results);
-            $this->io->writeln($revEx->getMessage());
+            $this->printer->writeln($results);
+            $this->printer->writeln($revEx->getMessage());
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }

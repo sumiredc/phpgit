@@ -8,14 +8,14 @@ use Phpgit\Domain\CommandInput\GitLsFilesOptionAction;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitLsFilesRequest;
 use Throwable;
 
 final class GitLsFilesUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly IndexRepositoryInterface $indexRepository,
     ) {}
 
@@ -34,7 +34,7 @@ final class GitLsFilesUseCase
                 GitLsFilesOptionAction::Debug => $this->actionDebug(),
             };
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }
@@ -48,7 +48,7 @@ final class GitLsFilesUseCase
             $gitIndex->entries
         );
 
-        $this->io->writeln($list);
+        $this->printer->writeln($list);
 
         return Result::Success;
     }
@@ -65,7 +65,7 @@ final class GitLsFilesUseCase
             $gitIndex->entries
         );
 
-        $this->io->writeln($list);
+        $this->printer->writeln($list);
 
         return Result::Success;
     }
@@ -79,7 +79,7 @@ final class GitLsFilesUseCase
             '',
         );
 
-        $this->io->echo($line);
+        $this->printer->echo($line);
 
         return Result::Success;
     }
@@ -98,7 +98,7 @@ final class GitLsFilesUseCase
             $gitIndex->entries
         );
 
-        $this->io->writeln($list);
+        $this->printer->writeln($list);
 
         return Result::Success;
     }
@@ -116,7 +116,7 @@ final class GitLsFilesUseCase
                 sprintf("  size: %d\tflags: %d", $indexEntry->size, $indexEntry->flags())
             ];
 
-            $this->io->writeln($entry);
+            $this->printer->writeln($entry);
         }
 
         return Result::Success;

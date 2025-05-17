@@ -2,20 +2,18 @@
 
 declare(strict_types=1);
 
-use Phpgit\Lib\IO;
+use Phpgit\Infra\Printer\CliPrinter;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\Console\Output\OutputInterface;
 
 describe('stackTrace', function () {
     it('should match to output console stack trace', function (Throwable $th) {
         $input = new ArrayInput([]);
         $output = new BufferedOutput(BufferedOutput::VERBOSITY_NORMAL, false);
 
-        $io = new IO($input, $output);
-        $io->stackTrace($th);
+        $printer = new CliPrinter($input, $output);
+        $printer->stackTrace($th);
         $actual = $output->fetch();
 
         expect($actual)->toContain('[ERROR]');
@@ -34,10 +32,10 @@ describe('echo', function () {
         $input = new ArrayInput([]);
         $output = new NullOutput();
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
 
         ob_start();
-        $io->echo($message);
+        $printer->echo($message);
         $actual = ob_get_clean();
 
         expect($actual)->toBe($message);

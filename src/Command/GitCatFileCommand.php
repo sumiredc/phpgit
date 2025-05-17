@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\ObjectRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Request\GitCatFileRequest;
 use Phpgit\UseCase\GitCatFileUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -60,9 +60,9 @@ final class GitCatFileCommand extends Command
     {
         $request = GitCatFileRequest::new($input);
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository();
-        $useCase = new GitCatFileUseCase($io, $objectRepository);
+        $useCase = new GitCatFileUseCase($printer, $objectRepository);
 
         $result = $useCase($request);
 

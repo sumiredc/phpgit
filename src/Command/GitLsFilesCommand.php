@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\IndexRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\IndexRepository;
 use Phpgit\Request\GitLsFilesRequest;
 use Phpgit\UseCase\GitLsFilesUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -54,9 +54,9 @@ final class GitLsFilesCommand extends Command
     {
         $request = GitLsFilesRequest::new($input);
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $indexRepository = new IndexRepository();
-        $useCase = new GitLsFilesUseCase($io, $indexRepository);
+        $useCase = new GitLsFilesUseCase($printer, $indexRepository);
 
         $result = $useCase($request);
 

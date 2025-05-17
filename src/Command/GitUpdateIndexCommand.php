@@ -7,10 +7,10 @@ namespace Phpgit\Command;
 use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Lib\IO;
-use Phpgit\Repository\FileRepository;
-use Phpgit\Repository\IndexRepository;
-use Phpgit\Repository\ObjectRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\FileRepository;
+use Phpgit\Infra\Repository\IndexRepository;
+use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Request\GitUpdateIndexRequest;
 use Phpgit\UseCase\GitUpdateIndexUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -78,12 +78,12 @@ final class GitUpdateIndexCommand extends Command
     {
         $request = GitUpdateIndexRequest::new($input);
 
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository;
         $fileRepository = new FileRepository;
         $indexRepository = new IndexRepository;
         $useCase = new GitUpdateIndexUseCase(
-            $io,
+            $printer,
             $objectRepository,
             $fileRepository,
             $indexRepository

@@ -10,14 +10,14 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\CannotGetObjectInfoException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitCatFileRequest;
 use Throwable;
 
 final class GitCatFileUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
@@ -33,15 +33,15 @@ final class GitCatFileUseCase
                 GitCatFileOptionType::PrettyPrint => $this->actionPrettyPrint($objectHash),
             };
         } catch (InvalidArgumentException) {
-            $this->io->writeln(sprintf("fatal: Not a valid object name %s", $request->object));
+            $this->printer->writeln(sprintf("fatal: Not a valid object name %s", $request->object));
 
             return Result::GitError;
         } catch (CannotGetObjectInfoException) {
-            $this->io->writeln('fatal: git cat-file: could not get object info');
+            $this->printer->writeln('fatal: git cat-file: could not get object info');
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }
@@ -57,7 +57,7 @@ final class GitCatFileUseCase
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->writeln($gitObject->objectType->value);
+        $this->printer->writeln($gitObject->objectType->value);
 
         return Result::Success;
     }
@@ -72,7 +72,7 @@ final class GitCatFileUseCase
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->writeln(strval($gitObject->size));
+        $this->printer->writeln(strval($gitObject->size));
 
         return Result::Success;
     }
@@ -99,7 +99,7 @@ final class GitCatFileUseCase
         }
 
         $gitObject = $this->objectRepository->get($objectHash);
-        $this->io->write($gitObject->prettyPrint());
+        $this->printer->write($gitObject->prettyPrint());
 
         return Result::Success;
     }

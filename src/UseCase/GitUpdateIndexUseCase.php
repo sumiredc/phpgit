@@ -17,7 +17,7 @@ use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
 use Phpgit\Exception\CannotAddIndexException;
 use Phpgit\Exception\FileNotFoundException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitUpdateIndexRequest;
 use Phpgit\Service\FileToHashService;
 use Throwable;
@@ -25,7 +25,7 @@ use Throwable;
 final class GitUpdateIndexUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly ObjectRepositoryInterface $objectRepository,
         private readonly FileRepositoryInterface $fileRepository,
         private readonly IndexRepositoryInterface $indexRepository,
@@ -45,14 +45,14 @@ final class GitUpdateIndexUseCase
                 ),
             };
         } catch (FileNotFoundException) {
-            $this->io->writeln([
+            $this->printer->writeln([
                 sprintf('error: %s: does not exist and --remove not passed', $request->file),
                 sprintf('fatal: Unable to process path %s', $request->file)
             ]);
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }
@@ -122,7 +122,7 @@ final class GitUpdateIndexUseCase
 
             return Result::Success;
         } catch (CannotAddIndexException) {
-            $this->io->writeln([
+            $this->printer->writeln([
                 sprintf('error: %s: cannot add to the index - missing --add option?', $file),
                 sprintf('fatal: Unable to process path %s', $file)
             ]);
@@ -181,11 +181,11 @@ final class GitUpdateIndexUseCase
 
             return Result::Success;
         } catch (InvalidArgumentException $ex) {
-            $this->io->writeln($ex->getMessage());
+            $this->printer->writeln($ex->getMessage());
 
             return Result::GitError;
         } catch (FileNotFoundException) {
-            $this->io->writeln([
+            $this->printer->writeln([
                 sprintf('error: %s: cannot add to the index - missing --add option?', $file),
                 sprintf('fatal: git update-index: --cacheinfo cannot add %s', $file)
             ]);

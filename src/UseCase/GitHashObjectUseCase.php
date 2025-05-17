@@ -7,7 +7,7 @@ namespace Phpgit\UseCase;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\FileNotFoundException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitHashObjectRequest;
 use Phpgit\Service\FileToHashService;
 use Throwable;
@@ -15,7 +15,7 @@ use Throwable;
 final class GitHashObjectUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly FileRepositoryInterface $fileRepository,
     ) {}
 
@@ -25,11 +25,11 @@ final class GitHashObjectUseCase
 
         try {
             [$trakingFile, $gitObject, $objectHash] = $fileToHashService($request->file);
-            $this->io->writeln($objectHash->value);
+            $this->printer->writeln($objectHash->value);
 
             return Result::Success;
         } catch (FileNotFoundException) {
-            $this->io->writeln(
+            $this->printer->writeln(
                 sprintf(
                     'fatal: could not open \'$s\' for reading: No such file or directory',
                     $request->file
@@ -38,7 +38,7 @@ final class GitHashObjectUseCase
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }

@@ -8,14 +8,14 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitRevParseRequest;
 use Phpgit\UseCase\GitRevParseUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
-    $this->io = Mockery::mock(IOInterface::class);
+    $this->printer = Mockery::mock(PrinterInterface::class);
     $this->fileRepository = Mockery::mock(FileRepositoryInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
     $this->refRepository = Mockery::mock(RefRepositoryInterface::class);
@@ -27,11 +27,11 @@ describe('__invoke', function () {
         function (array $args, ObjectHash $hash, array $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository->shouldReceive('resolveHead')->andReturn($hash)->once();
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -60,11 +60,11 @@ describe('__invoke', function () {
                     ->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(true)->once()
                     ->shouldReceive('resolve')->withArgs(expectEqualArg($ref))->andReturn($objects[$i])->once();
             }
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -127,11 +127,11 @@ describe('__invoke', function () {
                 ->shouldReceive('resolveHead')->never()
                 ->shouldReceive('exists')->never();
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->times($times);
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -176,10 +176,10 @@ describe('__invoke', function () {
             foreach ($args as $arg) {
                 $this->fileRepository->shouldReceive('existsByFilename')->with($arg)->andReturn(true)->once();
             }
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -218,12 +218,12 @@ describe('__invoke', function () {
         function (array $args, array $expectedResults, string $expectedMessage) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
-            $this->io->shouldReceive('writeln')->with($expectedMessage)->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
+            $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -248,12 +248,12 @@ describe('__invoke', function () {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false)->once();
             $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
-            $this->io->shouldReceive('writeln')->with($expectedMessage)->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
+            $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -285,12 +285,12 @@ describe('__invoke', function () {
             foreach ($filenameExists as $filename => $exists) {
                 $this->fileRepository->shouldReceive('existsByFilename')->with($filename)->andReturn($exists);
             }
-            $this->io->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
-            $this->io->shouldReceive('writeln')->with($expectedMessage)->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
+            $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository
@@ -330,11 +330,11 @@ describe('__invoke', function () {
         function (array $args, Throwable $exception, Throwable $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository->shouldReceive('resolveHead')->andThrow($exception)->once();
-            $this->io->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = GitRevParseRequest::new($this->input);
             $useCase = new GitRevParseUseCase(
-                $this->io,
+                $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
                 $this->refRepository

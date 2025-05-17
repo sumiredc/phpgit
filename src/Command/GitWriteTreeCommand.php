@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Lib\IO;
-use Phpgit\Repository\IndexRepository;
-use Phpgit\Repository\ObjectRepository;
+use Phpgit\Infra\Printer\CliPrinter;
+use Phpgit\Infra\Repository\IndexRepository;
+use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\UseCase\GitWriteTreeUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -24,10 +24,10 @@ final class GitWriteTreeCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new IO($input, $output);
+        $printer = new CliPrinter($input, $output);
         $indexRepository = new IndexRepository;
         $objectRepository = new ObjectRepository;
-        $useCase = new GitWriteTreeUseCase($io, $indexRepository, $objectRepository);
+        $useCase = new GitWriteTreeUseCase($printer, $indexRepository, $objectRepository);
 
         $result = $useCase();
 

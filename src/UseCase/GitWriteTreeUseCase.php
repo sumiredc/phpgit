@@ -9,7 +9,7 @@ use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\InvalidObjectException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Service\CreateSegmentTreeService;
 use Phpgit\Service\SaveTreeObjectService;
 use Throwable;
@@ -17,7 +17,7 @@ use Throwable;
 final class GitWriteTreeUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly IndexRepositoryInterface $indexRepository,
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
@@ -26,18 +26,18 @@ final class GitWriteTreeUseCase
     {
         try {
             $objectHash = $this->createTree();
-            $this->io->writeln($objectHash->value);
+            $this->printer->writeln($objectHash->value);
 
             return Result::Success;
         } catch (InvalidObjectException $ex) {
-            $this->io->writeln([
+            $this->printer->writeln([
                 $ex->getMessage(),
                 'fatal: git-write-tree: error building trees'
             ]);
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }

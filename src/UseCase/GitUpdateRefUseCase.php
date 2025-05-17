@@ -9,7 +9,7 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\UseCaseException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitUpdateRefRequest;
 use Phpgit\Service\ResolveRevisionService;
 use Throwable;
@@ -17,7 +17,7 @@ use Throwable;
 final class GitUpdateRefUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly ObjectRepositoryInterface $objectRepository,
         private readonly RefRepositoryInterface $refRepository,
     ) {}
@@ -37,11 +37,11 @@ final class GitUpdateRefUseCase
                 ),
             };
         } catch (UseCaseException $ex) {
-            $this->io->writeln($ex->getMessage());
+            $this->printer->writeln($ex->getMessage());
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }

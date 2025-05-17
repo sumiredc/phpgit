@@ -13,14 +13,14 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Timestamp;
 use Phpgit\Exception\UseCaseException;
-use Phpgit\Lib\IOInterface;
+use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\GitCommitTreeRequest;
 use Throwable;
 
 final class GitCommitTreeUseCase
 {
     public function __construct(
-        private readonly IOInterface $io,
+        private readonly PrinterInterface $printer,
         private readonly GitConfigRepositoryInterface $gitConfigRepository,
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
@@ -53,15 +53,15 @@ final class GitCommitTreeUseCase
 
             $commitHash = $this->createCommitTree($treeHash, $request->message, $parentHash);
 
-            $this->io->writeln($commitHash->value);
+            $this->printer->writeln($commitHash->value);
 
             return Result::Success;
         } catch (UseCaseException $ex) {
-            $this->io->writeln($ex->getMessage());
+            $this->printer->writeln($ex->getMessage());
 
             return Result::GitError;
         } catch (Throwable $th) {
-            $this->io->stackTrace($th);
+            $this->printer->stackTrace($th);
 
             return Result::InternalError;
         }
