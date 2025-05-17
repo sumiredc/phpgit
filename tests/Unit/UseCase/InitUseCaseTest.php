@@ -6,7 +6,7 @@ use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\GitResourceRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\UseCase\GitInitUseCase;
+use Phpgit\UseCase\InitUseCase;
 
 beforeEach(function () {
     $this->printer = Mockery::mock(PrinterInterface::class);
@@ -26,7 +26,7 @@ describe('__invoke', function () {
             $this->gitConfigRepository->shouldReceive('create')->once();
             $this->printer->shouldReceive('writeln')->once();
 
-            $useCase = new GitInitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
+            $useCase = new InitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::Success);
@@ -40,7 +40,7 @@ describe('__invoke', function () {
             $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->never();
             $this->printer->shouldReceive('writeln')->once();
 
-            $useCase = new GitInitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
+            $useCase = new InitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::Success);
@@ -54,7 +54,7 @@ describe('__invoke', function () {
             $this->gitResourceRepository->shouldReceive('makeGitObjectDir')->andThrows(RuntimeException::class);
             $this->printer->shouldReceive('stackTrace')->once();
 
-            $useCase = new GitInitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
+            $useCase = new InitUseCase($this->printer, $this->gitResourceRepository, $this->gitConfigRepository);
             $actual = $useCase();
 
             expect($actual)->toBe(Result::InternalError);

@@ -10,7 +10,7 @@ use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
 use Throwable;
 
-final class GitInitUseCase
+final class InitUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
