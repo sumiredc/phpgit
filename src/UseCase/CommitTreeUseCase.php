@@ -14,10 +14,10 @@ use Phpgit\Domain\Result;
 use Phpgit\Domain\Timestamp;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitCommitTreeRequest;
+use Phpgit\Request\CommitTreeRequest;
 use Throwable;
 
-final class GitCommitTreeUseCase
+final class CommitTreeUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
@@ -25,7 +25,7 @@ final class GitCommitTreeUseCase
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
-    public function __invoke(GitCommitTreeRequest $request): Result
+    public function __invoke(CommitTreeRequest $request): Result
     {
         try {
             $treeHash = ObjectHash::tryParse($request->tree);

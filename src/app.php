@@ -6,7 +6,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/const.php';
 
 use Phpgit\Command\CatFileCommand;
-use Phpgit\Command\GitCommitTreeCommand;
+use Phpgit\Command\CommitTreeCommand;
 use Phpgit\Command\GitHashObjectCommand;
 use Phpgit\Command\GitInitCommand;
 use Phpgit\Command\GitLsFilesCommand;
@@ -24,7 +24,7 @@ $app->add(new CatFileCommand());
 $app->add(new GitUpdateIndexCommand());
 $app->add(new GitLsFilesCommand());
 $app->add(new GitWriteTreeCommand());
-$app->add(new GitCommitTreeCommand());
+$app->add(new CommitTreeCommand());
 $app->add(new GitRevParseCommand());
 $app->add(new GitUpdateRefCommand());
 

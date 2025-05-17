@@ -7,8 +7,8 @@ namespace Phpgit\Command;
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\GitConfigRepository;
 use Phpgit\Infra\Repository\ObjectRepository;
-use Phpgit\Request\GitCommitTreeRequest;
-use Phpgit\UseCase\GitCommitTreeUseCase;
+use Phpgit\Request\CommitTreeRequest;
+use Phpgit\UseCase\CommitTreeUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,21 +19,21 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'git:commit-tree',
     description: 'Create a new commit object',
 )]
-final class GitCommitTreeCommand extends Command implements CommandInterface
+final class CommitTreeCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {
-        GitCommitTreeRequest::setUp($this);
+        CommitTreeRequest::setUp($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitCommitTreeRequest::new($input);
+        $request = CommitTreeRequest::new($input);
 
         $printer = new CliPrinter($input, $output);
         $gitConfigRepository = new GitConfigRepository;
         $objectRepository = new ObjectRepository;
-        $useCase = new GitCommitTreeUseCase(
+        $useCase = new CommitTreeUseCase(
             $printer,
             $gitConfigRepository,
             $objectRepository,

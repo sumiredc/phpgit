@@ -9,8 +9,8 @@ use Phpgit\Domain\Repository\GitConfigRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitCommitTreeRequest;
-use Phpgit\UseCase\GitCommitTreeUseCase;
+use Phpgit\Request\CommitTreeRequest;
+use Phpgit\UseCase\CommitTreeUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Tests\Factory\BlobObjectFactory;
 use Tests\Factory\CommitObjectFactory;
@@ -25,7 +25,7 @@ beforeEach(function () {
 
     $command = Mockery::mock(CommandInterface::class);
     $command->shouldReceive(['addOption' => $command, 'addArgument' => $command]);
-    GitCommitTreeRequest::setUp($command);
+    CommitTreeRequest::setUp($command);
 });
 
 describe('__invoke', function () {
@@ -49,8 +49,8 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('save')->andReturn($commitHash)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCommitTreeRequest::new($this->input);
-            $useCase = new GitCommitTreeUseCase(
+            $request = CommitTreeRequest::new($this->input);
+            $useCase = new CommitTreeUseCase(
                 $this->printer,
                 $this->gitConfigRepository,
                 $this->objectRepository,
@@ -88,8 +88,8 @@ describe('__invoke', function () {
 
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCommitTreeRequest::new($this->input);
-            $useCase = new GitCommitTreeUseCase(
+            $request = CommitTreeRequest::new($this->input);
+            $useCase = new CommitTreeUseCase(
                 $this->printer,
                 $this->gitConfigRepository,
                 $this->objectRepository,
@@ -128,8 +128,8 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('exists')->andReturn(...$objectExistsReturns)->times($objectExistsCallCount);
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCommitTreeRequest::new($this->input);
-            $useCase = new GitCommitTreeUseCase(
+            $request = CommitTreeRequest::new($this->input);
+            $useCase = new CommitTreeUseCase(
                 $this->printer,
                 $this->gitConfigRepository,
                 $this->objectRepository,
@@ -167,8 +167,8 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('get')->andReturn($gitObject)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCommitTreeRequest::new($this->input);
-            $useCase = new GitCommitTreeUseCase(
+            $request = CommitTreeRequest::new($this->input);
+            $useCase = new CommitTreeUseCase(
                 $this->printer,
                 $this->gitConfigRepository,
                 $this->objectRepository,
@@ -205,8 +205,8 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('get')->andThrow($th)->once();
             $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitCommitTreeRequest::new($this->input);
-            $useCase = new GitCommitTreeUseCase(
+            $request = CommitTreeRequest::new($this->input);
+            $useCase = new CommitTreeUseCase(
                 $this->printer,
                 $this->gitConfigRepository,
                 $this->objectRepository,

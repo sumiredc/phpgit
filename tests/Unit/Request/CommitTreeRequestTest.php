@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Phpgit\Command\CommandInterface;
-use Phpgit\Request\GitCommitTreeRequest;
+use Phpgit\Request\CommitTreeRequest;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -39,9 +39,9 @@ describe('setUp', function () {
             )
                 ->once();
 
-            GitCommitTreeRequest::setUp($this->command);
+            CommitTreeRequest::setUp($this->command);
 
-            $refClass = new ReflectionClass(GitCommitTreeRequest::class);
+            $refClass = new ReflectionClass(CommitTreeRequest::class);
             $assertNew = $refClass->getMethod('assertNew');
             $assertNew->invoke($refClass);
 
@@ -52,7 +52,7 @@ describe('setUp', function () {
 
 describe('new', function () {
     beforeEach(function () {
-        $refClass = new ReflectionClass(GitCommitTreeRequest::class);
+        $refClass = new ReflectionClass(CommitTreeRequest::class);
         $unlock = $refClass->getMethod('unlock');
         $unlock->invoke($refClass);
     });
@@ -72,7 +72,7 @@ describe('new', function () {
                 ->shouldReceive('getOption')->with('message')->andReturn($message)->once()
                 ->shouldReceive('getOption')->with('parent')->andReturn($parent)->once();
 
-            $actual = GitCommitTreeRequest::new($this->input);
+            $actual = CommitTreeRequest::new($this->input);
 
             expect($actual->tree)->toBe($expectedTree);
             expect($actual->message)->toBe($expectedMessage);
@@ -109,7 +109,7 @@ describe('new', function () {
                 ->shouldReceive('getOption')->with('message')->andReturn($message)->once()
                 ->shouldReceive('getOption')->with('parent')->never();
 
-            expect(fn() => GitCommitTreeRequest::new($this->input))->toThrow($expected);
+            expect(fn() => CommitTreeRequest::new($this->input))->toThrow($expected);
         }
     )
         ->with([
@@ -126,7 +126,7 @@ describe('new', function () {
 
 describe('new: fails case', function () {
     beforeEach(function () {
-        $refClass = new ReflectionClass(GitCommitTreeRequest::class);
+        $refClass = new ReflectionClass(CommitTreeRequest::class);
         $lock = $refClass->getMethod('lock');
         $lock->invoke($refClass);
     });
@@ -134,7 +134,7 @@ describe('new: fails case', function () {
     it(
         'throws an exception on did call setUp method',
         function (Throwable $expected) {
-            expect(fn() => GitCommitTreeRequest::new($this->input))->toThrow($expected);
+            expect(fn() => CommitTreeRequest::new($this->input))->toThrow($expected);
         }
     )
         ->with([

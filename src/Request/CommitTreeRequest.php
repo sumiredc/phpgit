@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 
-final class GitCommitTreeRequest extends Request
+final class CommitTreeRequest extends Request
 {
     private function __construct(
         public readonly string $tree,
