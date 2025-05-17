@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phpgit\Request;
 
 use InvalidArgumentException;
-use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
+use Phpgit\Domain\CommandInput\UpdateIndexOptionAction;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputInterface;
 
-readonly final class GitUpdateIndexRequest
+readonly final class UpdateIndexRequest
 {
     private function __construct(
-        public readonly GitUpdateIndexOptionAction $action,
+        public readonly UpdateIndexOptionAction $action,
         public readonly string $file,
         public readonly ?string $mode = null,
         public readonly ?string $object = null
@@ -30,15 +30,15 @@ readonly final class GitUpdateIndexRequest
         $cacheinfo = boolval($input->getOption('cacheinfo'));
 
         $action = match (true) {
-            $add => GitUpdateIndexOptionAction::Add,
-            $remove => GitUpdateIndexOptionAction::Remove,
-            $forceRemove => GitUpdateIndexOptionAction::ForceRemove,
-            $cacheinfo => GitUpdateIndexOptionAction::Cacheinfo,
-            default => GitUpdateIndexOptionAction::Add,
+            $add => UpdateIndexOptionAction::Add,
+            $remove => UpdateIndexOptionAction::Remove,
+            $forceRemove => UpdateIndexOptionAction::ForceRemove,
+            $cacheinfo => UpdateIndexOptionAction::Cacheinfo,
+            default => UpdateIndexOptionAction::Add,
         };
 
         switch ($action) {
-            case GitUpdateIndexOptionAction::Cacheinfo:
+            case UpdateIndexOptionAction::Cacheinfo:
                 $mode = $input->getArgument('mode');
                 $object = $input->getArgument('object');
                 $file = $input->getArgument('file');

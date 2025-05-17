@@ -9,8 +9,8 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitUpdateRefRequest;
-use Phpgit\UseCase\GitUpdateRefUseCase;
+use Phpgit\Request\UpdateRefRequest;
+use Phpgit\UseCase\UpdateRefUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -21,7 +21,7 @@ beforeEach(function () {
 
     $command = Mockery::mock(CommandInterface::class);
     $command->shouldReceive(['addOption' => $command, 'addArgument' => $command]);
-    GitUpdateRefRequest::setUp($command);
+    UpdateRefRequest::setUp($command);
 });
 
 describe('__invoke::actionUpdate', function () {
@@ -35,8 +35,8 @@ describe('__invoke::actionUpdate', function () {
                 ->shouldReceive('getArgument')->with('arg2')->andReturnNull();
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturnNull()->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -61,8 +61,8 @@ describe('__invoke::actionUpdate', function () {
             $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once();
             $this->refRepository->shouldReceive('createOrUpdate')->withArgs(expectEqualArg($reference, $newObject))->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -93,8 +93,8 @@ describe('__invoke::actionUpdate', function () {
                 ->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn($currentObject)->once()
                 ->shouldReceive('update')->withArgs(expectEqualArg($reference, $newObject))->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -120,8 +120,8 @@ describe('__invoke::actionUpdate', function () {
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -147,8 +147,8 @@ describe('__invoke::actionUpdate', function () {
             $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($newValue)))->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -174,8 +174,8 @@ describe('__invoke::actionUpdate', function () {
             $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($newValue)))->andReturn(true)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -204,8 +204,8 @@ describe('__invoke::actionUpdate', function () {
                 ->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($oldValue)))->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -237,8 +237,8 @@ describe('__invoke::actionUpdate', function () {
             $this->refRepository->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn(ObjectHash::parse($currentValue))->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -270,8 +270,8 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('exists')->withArgs(expectEqualArg($reference))->andReturn(true)->once()
                 ->shouldReceive('delete')->withArgs(expectEqualArg($reference))->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -297,8 +297,8 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn($currentObject)->once()
                 ->shouldReceive('delete')->withArgs(expectEqualArg($reference))->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -322,8 +322,8 @@ describe('__invoke::actionDelete', function () {
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturnNull()->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -343,8 +343,8 @@ describe('__invoke::actionDelete', function () {
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -372,8 +372,8 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('exists')->withArgs(expectEqualArg($reference))->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -403,8 +403,8 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn($currentObject)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -437,8 +437,8 @@ describe('__invoke', function () {
             $this->refRepository->shouldReceive('createOrUpdate')->andThrow($exception)->once();
             $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitUpdateRefRequest::new($this->input);
-            $useCase = new GitUpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $request = UpdateRefRequest::new($this->input);
+            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::InternalError);

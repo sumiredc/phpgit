@@ -15,11 +15,11 @@ docker compose run --rm php {command-name}
 2. `cat-file [ -t | -s | -e | -p ] <object>`
 3. `hash-object <file>`
 4. `ls-files [ --stage | --debug | -t | -z ]`
-5. `git:update-index [ --add <file> | --remove <file> | --force-remove <file> | --cacheinfo <mode> <object> <file> ]`
-6. `git:write-tree`
+5. `update-index [ --add <file> | --remove <file> | --force-remove <file> | --cacheinfo <mode> <object> <file> ]`
+6. `write-tree`
 7. `commit-tree <tree> -m <message> -p <parent>`
-8. `git:rev-parse <args>...`
-9. `git:update-ref <ref> <newvalue>`
+8. `rev-parse <args>...`
+9. `update-ref <ref> <newvalue>`
 
 ## 📚️ Libraries & Resources
 

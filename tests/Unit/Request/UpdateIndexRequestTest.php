@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
-use Phpgit\Request\GitUpdateIndexRequest;
+use Phpgit\Domain\CommandInput\UpdateIndexOptionAction;
+use Phpgit\Request\UpdateIndexRequest;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -15,7 +15,7 @@ describe('new', function () {
         'is set "add" for action when unspecifies to option',
         function (
             ?string $file,
-            GitUpdateIndexOptionAction $expectedAction,
+            UpdateIndexOptionAction $expectedAction,
             string $expectedFile
         ) {
             $this->input->shouldReceive('getOption')->andReturn(false)->times(4);
@@ -24,7 +24,7 @@ describe('new', function () {
             $this->input->shouldReceive('getArgument')->with('object')->never();
             $this->input->shouldReceive('getArgument')->with('file')->never();
 
-            $actual = GitUpdateIndexRequest::new($this->input);
+            $actual = UpdateIndexRequest::new($this->input);
 
             expect($actual->action)->toBe($expectedAction);
             expect($actual->file)->toBe($expectedFile);
@@ -33,12 +33,12 @@ describe('new', function () {
         ->with([
             'specifies to file' => [
                 'file' => 'README.md',
-                'expectedAction' => GitUpdateIndexOptionAction::Add,
+                'expectedAction' => UpdateIndexOptionAction::Add,
                 'expectedFile' => 'README.md'
             ],
             'unspecifies to file' => [
                 'file' => null,
-                'expectedAction' => GitUpdateIndexOptionAction::Add,
+                'expectedAction' => UpdateIndexOptionAction::Add,
                 'expectedFile' => ''
             ]
         ]);
@@ -47,7 +47,7 @@ describe('new', function () {
         'is set "add" for action when specifies to "add" for option',
         function (
             ?string $file,
-            GitUpdateIndexOptionAction $expectedAction,
+            UpdateIndexOptionAction $expectedAction,
             string $expectedFile
         ) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(true)->once();
@@ -59,7 +59,7 @@ describe('new', function () {
             $this->input->shouldReceive('getArgument')->with('object')->never();
             $this->input->shouldReceive('getArgument')->with('file')->never();
 
-            $actual = GitUpdateIndexRequest::new($this->input);
+            $actual = UpdateIndexRequest::new($this->input);
 
             expect($actual->action)->toBe($expectedAction);
             expect($actual->file)->toBe($expectedFile);
@@ -68,12 +68,12 @@ describe('new', function () {
         ->with([
             'specifies to file' => [
                 'file' => 'README.md',
-                'expectedAction' => GitUpdateIndexOptionAction::Add,
+                'expectedAction' => UpdateIndexOptionAction::Add,
                 'expectedFile' => 'README.md'
             ],
             'unspecifies to file' => [
                 'file' => null,
-                'expectedAction' => GitUpdateIndexOptionAction::Add,
+                'expectedAction' => UpdateIndexOptionAction::Add,
                 'expectedFile' => ''
             ]
         ]);
@@ -82,7 +82,7 @@ describe('new', function () {
         'is set "remove" for action when specifies to "remove" for option',
         function (
             ?string $file,
-            GitUpdateIndexOptionAction $expectedAction,
+            UpdateIndexOptionAction $expectedAction,
             string $expectedFile
         ) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(false)->once();
@@ -94,7 +94,7 @@ describe('new', function () {
             $this->input->shouldReceive('getArgument')->with('object')->never();
             $this->input->shouldReceive('getArgument')->with('file')->never();
 
-            $actual = GitUpdateIndexRequest::new($this->input);
+            $actual = UpdateIndexRequest::new($this->input);
 
             expect($actual->action)->toBe($expectedAction);
             expect($actual->file)->toBe($expectedFile);
@@ -103,12 +103,12 @@ describe('new', function () {
         ->with([
             'specifies to file' => [
                 'file' => 'README.md',
-                'expectedAction' => GitUpdateIndexOptionAction::Remove,
+                'expectedAction' => UpdateIndexOptionAction::Remove,
                 'expectedFile' => 'README.md'
             ],
             'unspecifies to file' => [
                 'file' => null,
-                'expectedAction' => GitUpdateIndexOptionAction::Remove,
+                'expectedAction' => UpdateIndexOptionAction::Remove,
                 'expectedFile' => ''
             ]
         ]);
@@ -117,7 +117,7 @@ describe('new', function () {
         'is set "force-remove" for action when specifies to "force-remove" for option',
         function (
             ?string $file,
-            GitUpdateIndexOptionAction $expectedAction,
+            UpdateIndexOptionAction $expectedAction,
             string $expectedFile
         ) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(false)->once();
@@ -129,7 +129,7 @@ describe('new', function () {
             $this->input->shouldReceive('getArgument')->with('object')->never();
             $this->input->shouldReceive('getArgument')->with('file')->never();
 
-            $actual = GitUpdateIndexRequest::new($this->input);
+            $actual = UpdateIndexRequest::new($this->input);
 
             expect($actual->action)->toBe($expectedAction);
             expect($actual->file)->toBe($expectedFile);
@@ -138,12 +138,12 @@ describe('new', function () {
         ->with([
             'specifies to file' => [
                 'file' => 'README.md',
-                'expectedAction' => GitUpdateIndexOptionAction::ForceRemove,
+                'expectedAction' => UpdateIndexOptionAction::ForceRemove,
                 'expectedFile' => 'README.md'
             ],
             'unspecifies to file' => [
                 'file' => null,
-                'expectedAction' => GitUpdateIndexOptionAction::ForceRemove,
+                'expectedAction' => UpdateIndexOptionAction::ForceRemove,
                 'expectedFile' => ''
             ]
         ]);
@@ -154,7 +154,7 @@ describe('new', function () {
             int $mode,
             string $object,
             string $file,
-            GitUpdateIndexOptionAction $expectedAction,
+            UpdateIndexOptionAction $expectedAction,
             string $expectedFile
         ) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(false)->once();
@@ -166,7 +166,7 @@ describe('new', function () {
             $this->input->shouldReceive('getArgument')->with('object')->andReturn($object)->once();
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file)->once();
 
-            $actual = GitUpdateIndexRequest::new($this->input);
+            $actual = UpdateIndexRequest::new($this->input);
 
             expect($actual->action)->toBe($expectedAction);
             expect($actual->file)->toBe($expectedFile);
@@ -177,14 +177,14 @@ describe('new', function () {
                 'mode' => 100755,
                 'object' => 'c9a291475b1bcaa4aa0c4cf459c29c2c52078949',
                 'file' => 'README.md',
-                'expectedAction' => GitUpdateIndexOptionAction::Cacheinfo,
+                'expectedAction' => UpdateIndexOptionAction::Cacheinfo,
                 'expectedFile' => 'README.md'
             ],
             [
                 'mode' => 100644,
                 'object' => '403c716ea737afeb54f40549cdf5727f10ba6f18',
                 'file' => 'src/app.php',
-                'expectedAction' => GitUpdateIndexOptionAction::Cacheinfo,
+                'expectedAction' => UpdateIndexOptionAction::Cacheinfo,
                 'expectedFile' => 'src/app.php'
             ],
         ]);
@@ -201,7 +201,7 @@ describe('new', function () {
             $this->input->shouldReceive('getArgument')->with('object')->andReturn($object)->once();
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file)->once();
 
-            expect(fn() => GitUpdateIndexRequest::new($this->input))->toThrow($expected);
+            expect(fn() => UpdateIndexRequest::new($this->input))->toThrow($expected);
         }
     )
         ->with([

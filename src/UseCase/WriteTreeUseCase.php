@@ -14,7 +14,7 @@ use Phpgit\Service\CreateSegmentTreeService;
 use Phpgit\Service\SaveTreeObjectService;
 use Throwable;
 
-final class GitWriteTreeUseCase
+final class WriteTreeUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,

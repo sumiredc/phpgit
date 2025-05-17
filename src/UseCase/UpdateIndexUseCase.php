@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\UseCase;
 
 use InvalidArgumentException;
-use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
+use Phpgit\Domain\CommandInput\UpdateIndexOptionAction;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\IndexEntry;
@@ -18,11 +18,11 @@ use Phpgit\Domain\TrackingFile;
 use Phpgit\Exception\CannotAddIndexException;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitUpdateIndexRequest;
+use Phpgit\Request\UpdateIndexRequest;
 use Phpgit\Service\FileToHashService;
 use Throwable;
 
-final class GitUpdateIndexUseCase
+final class UpdateIndexUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
@@ -31,14 +31,14 @@ final class GitUpdateIndexUseCase
         private readonly IndexRepositoryInterface $indexRepository,
     ) {}
 
-    public function __invoke(GitUpdateIndexRequest $request): Result
+    public function __invoke(UpdateIndexRequest $request): Result
     {
         try {
             return match ($request->action) {
-                GitUpdateIndexOptionAction::Add => $this->actionAdd($request->file),
-                GitUpdateIndexOptionAction::Remove => $this->actionRemove($request->file),
-                GitUpdateIndexOptionAction::ForceRemove => $this->actionForceRemove($request->file),
-                GitUpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo(
+                UpdateIndexOptionAction::Add => $this->actionAdd($request->file),
+                UpdateIndexOptionAction::Remove => $this->actionRemove($request->file),
+                UpdateIndexOptionAction::ForceRemove => $this->actionForceRemove($request->file),
+                UpdateIndexOptionAction::Cacheinfo => $this->actionCacheinfo(
                     $request->mode, // never null
                     $request->object, // never null
                     $request->file

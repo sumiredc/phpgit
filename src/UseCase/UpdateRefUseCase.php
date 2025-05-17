@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Phpgit\UseCase;
 
-use Phpgit\Domain\CommandInput\GitUpdateRefOptionAction;
+use Phpgit\Domain\CommandInput\UpdateRefOptionAction;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitUpdateRefRequest;
+use Phpgit\Request\UpdateRefRequest;
 use Phpgit\Service\ResolveRevisionService;
 use Throwable;
 
-final class GitUpdateRefUseCase
+final class UpdateRefUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
@@ -22,16 +22,16 @@ final class GitUpdateRefUseCase
         private readonly RefRepositoryInterface $refRepository,
     ) {}
 
-    public function __invoke(GitUpdateRefRequest $request): Result
+    public function __invoke(UpdateRefRequest $request): Result
     {
         try {
             return match ($request->action) {
-                GitUpdateRefOptionAction::Update => $this->actionUpdate(
+                UpdateRefOptionAction::Update => $this->actionUpdate(
                     $request->ref,
                     $request->newValue,
                     $request->oldValue,
                 ),
-                GitUpdateRefOptionAction::Delete => $this->actionDelete(
+                UpdateRefOptionAction::Delete => $this->actionDelete(
                     $request->ref,
                     $request->oldValue,
                 ),

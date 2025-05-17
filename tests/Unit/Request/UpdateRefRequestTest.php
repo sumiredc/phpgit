@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Phpgit\Command\CommandInterface;
-use Phpgit\Domain\CommandInput\GitUpdateRefOptionAction;
-use Phpgit\Request\GitUpdateRefRequest;
+use Phpgit\Domain\CommandInput\UpdateRefOptionAction;
+use Phpgit\Request\UpdateRefRequest;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -24,9 +24,9 @@ describe('setUp', function () {
                 ->shouldReceive('addArgument')->with('arg1', InputArgument::OPTIONAL, 'update: <newvalue:REQUIRED>, delete: <oldvalue:OPTIONAL>')->once()
                 ->shouldReceive('addArgument')->with('arg2', InputArgument::OPTIONAL, 'update: <oldvalue:OPTIONAL>')->once();
 
-            GitUpdateRefRequest::setUp($this->command);
+            UpdateRefRequest::setUp($this->command);
 
-            $refClass = new ReflectionClass(GitUpdateRefRequest::class);
+            $refClass = new ReflectionClass(UpdateRefRequest::class);
             $assertNew = $refClass->getMethod('assertNew');
             $assertNew->invoke($refClass);
 
@@ -37,7 +37,7 @@ describe('setUp', function () {
 
 describe('new', function () {
     beforeEach(function () {
-        $refClass = new ReflectionClass(GitUpdateRefRequest::class);
+        $refClass = new ReflectionClass(UpdateRefRequest::class);
         $unlock = $refClass->getMethod('unlock');
         $unlock->invoke($refClass);
     });
@@ -62,10 +62,10 @@ describe('new', function () {
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($arg1)->once()
                 ->shouldReceive('getArgument')->with('arg2')->andReturn($arg2)->once();
 
-            GitUpdateRefRequest::setUp($this->command);
-            $actual = GitUpdateRefRequest::new($this->input);
+            UpdateRefRequest::setUp($this->command);
+            $actual = UpdateRefRequest::new($this->input);
 
-            expect($actual->action)->toBe(GitUpdateRefOptionAction::Update);
+            expect($actual->action)->toBe(UpdateRefOptionAction::Update);
             expect($actual->ref)->toBe($expectedRef);
             expect($actual->newValue)->toBe($expectedNewValue);
             expect($actual->oldValue)->toBe($expectedOldValue);
@@ -108,10 +108,10 @@ describe('new', function () {
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($arg1)->once()
                 ->shouldReceive('getArgument')->with('arg2')->never();
 
-            GitUpdateRefRequest::setUp($this->command);
-            $actual = GitUpdateRefRequest::new($this->input);
+            UpdateRefRequest::setUp($this->command);
+            $actual = UpdateRefRequest::new($this->input);
 
-            expect($actual->action)->toBe(GitUpdateRefOptionAction::Delete);
+            expect($actual->action)->toBe(UpdateRefOptionAction::Delete);
             expect($actual->ref)->toBe($expectedRef);
             expect($actual->newValue)->toBeNull();
             expect($actual->oldValue)->toBe($expectedOldValue);
@@ -135,7 +135,7 @@ describe('new', function () {
 
 describe('new: fails case', function () {
     beforeEach(function () {
-        $refClass = new ReflectionClass(GitUpdateRefRequest::class);
+        $refClass = new ReflectionClass(UpdateRefRequest::class);
         $lock = $refClass->getMethod('lock');
         $lock->invoke($refClass);
     });
@@ -143,7 +143,7 @@ describe('new: fails case', function () {
     it(
         'throws an exception on did call setUp method',
         function (Throwable $expected) {
-            expect(fn() => GitUpdateRefRequest::new($this->input))->toThrow($expected);
+            expect(fn() => UpdateRefRequest::new($this->input))->toThrow($expected);
         }
     )
         ->with([

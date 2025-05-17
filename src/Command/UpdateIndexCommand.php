@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phpgit\Command;
 
-use Phpgit\Domain\CommandInput\GitUpdateIndexOptionAction;
+use Phpgit\Domain\CommandInput\UpdateIndexOptionAction;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\FileRepository;
 use Phpgit\Infra\Repository\IndexRepository;
 use Phpgit\Infra\Repository\ObjectRepository;
-use Phpgit\Request\GitUpdateIndexRequest;
-use Phpgit\UseCase\GitUpdateIndexUseCase;
+use Phpgit\Request\UpdateIndexRequest;
+use Phpgit\UseCase\UpdateIndexUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
@@ -25,10 +25,10 @@ use ValueError;
 
 /** @see https://git-scm.com/docs/git-update-index */
 #[AsCommand(
-    name: 'git:update-index',
+    name: 'update-index',
     description: 'Register file contents in the working tree to the index',
 )]
-final class GitUpdateIndexCommand extends Command
+final class UpdateIndexCommand extends Command
 {
     protected function configure(): void
     {
@@ -76,13 +76,13 @@ final class GitUpdateIndexCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitUpdateIndexRequest::new($input);
+        $request = UpdateIndexRequest::new($input);
 
         $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository;
         $fileRepository = new FileRepository;
         $indexRepository = new IndexRepository;
-        $useCase = new GitUpdateIndexUseCase(
+        $useCase = new UpdateIndexUseCase(
             $printer,
             $objectRepository,
             $fileRepository,
@@ -94,7 +94,7 @@ final class GitUpdateIndexCommand extends Command
         return $result->value;
     }
 
-    private function validateOptionAction(InputInterface $input): ?GitUpdateIndexOptionAction
+    private function validateOptionAction(InputInterface $input): ?UpdateIndexOptionAction
     {
         $add = boolval($input->getOption('add'));
         $remove = boolval($input->getOption('remove'));
@@ -102,10 +102,10 @@ final class GitUpdateIndexCommand extends Command
         $cacheinfo = boolval($input->getOption('cacheinfo'));
 
         return match (true) {
-            $add => GitUpdateIndexOptionAction::Add,
-            $remove => GitUpdateIndexOptionAction::Remove,
-            $forceRemove => GitUpdateIndexOptionAction::ForceRemove,
-            $cacheinfo => GitUpdateIndexOptionAction::Cacheinfo,
+            $add => UpdateIndexOptionAction::Add,
+            $remove => UpdateIndexOptionAction::Remove,
+            $forceRemove => UpdateIndexOptionAction::ForceRemove,
+            $cacheinfo => UpdateIndexOptionAction::Cacheinfo,
             default => throw new InvalidOptionException('Not enough options'),
         };
     }
@@ -121,10 +121,10 @@ final class GitUpdateIndexCommand extends Command
      */
     private function validateArguments(
         InputInterface $input,
-        GitUpdateIndexOptionAction $action
+        UpdateIndexOptionAction $action
     ): array {
         switch ($action) {
-            case GitUpdateIndexOptionAction::Cacheinfo:
+            case UpdateIndexOptionAction::Cacheinfo:
                 $mode = $this->requiredValidateArgument($input, 'mode', 'mode');
                 $object = $this->requiredValidateArgument($input, 'object', 'object');
                 $file = $this->requiredValidateArgument($input, 'file', 'file');

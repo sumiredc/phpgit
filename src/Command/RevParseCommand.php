@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/rev-parse */
 #[AsCommand(
-    name: 'git:rev-parse',
+    name: 'rev-parse',
     description: 'Pick out and massage parameters',
 )]
 final class RevParseCommand extends Command

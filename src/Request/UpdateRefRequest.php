@@ -6,16 +6,16 @@ namespace Phpgit\Request;
 
 use LogicException;
 use Phpgit\Command\CommandInterface;
-use Phpgit\Domain\CommandInput\GitUpdateRefOptionAction;
+use Phpgit\Domain\CommandInput\UpdateRefOptionAction;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 
-final class GitUpdateRefRequest extends Request
+final class UpdateRefRequest extends Request
 {
     private function __construct(
-        public readonly GitUpdateRefOptionAction $action,
+        public readonly UpdateRefOptionAction $action,
         public readonly string $ref,
         public readonly ?string $newValue,
         public readonly ?string $oldValue,
@@ -40,19 +40,19 @@ final class GitUpdateRefRequest extends Request
         static::assertNew();
 
         $action = match (true) {
-            boolval($input->getOption('delete')) => GitUpdateRefOptionAction::Delete,
-            default => GitUpdateRefOptionAction::Update,
+            boolval($input->getOption('delete')) => UpdateRefOptionAction::Delete,
+            default => UpdateRefOptionAction::Update,
         };
         $ref = strval($input->getArgument('ref'));
 
         switch ($action) {
-            case GitUpdateRefOptionAction::Update:
+            case UpdateRefOptionAction::Update:
                 $newValue = strval($input->getArgument('arg1'));
                 $oldValue = strval($input->getArgument('arg2'));
 
                 return new self($action, $ref, $newValue, $oldValue);
 
-            case GitUpdateRefOptionAction::Delete:
+            case UpdateRefOptionAction::Delete:
                 $oldValue = strval($input->getArgument('arg1'));
 
                 return new self($action, $ref, null, $oldValue);

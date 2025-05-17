@@ -7,8 +7,8 @@ namespace Phpgit\Command;
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Infra\Repository\RefRepository;
-use Phpgit\Request\GitUpdateRefRequest;
-use Phpgit\UseCase\GitUpdateRefUseCase;
+use Phpgit\Request\UpdateRefRequest;
+use Phpgit\UseCase\UpdateRefUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,23 +16,23 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/git-update-ref */
 #[AsCommand(
-    name: 'git:update-ref',
+    name: 'update-ref',
     description: 'Update the object name stored in a ref safely',
 )]
-final class GitUpdateRefCommand extends Command implements CommandInterface
+final class UpdateRefCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {
-        GitUpdateRefRequest::setUp($this);
+        UpdateRefRequest::setUp($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitUpdateRefRequest::new($input);
+        $request = UpdateRefRequest::new($input);
         $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository;
         $refRepository = new RefRepository;
-        $useCase = new GitUpdateRefUseCase($printer, $objectRepository, $refRepository);
+        $useCase = new UpdateRefUseCase($printer, $objectRepository, $refRepository);
 
         $result = $useCase($request);
 
