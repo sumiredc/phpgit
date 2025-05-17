@@ -5,32 +5,32 @@ declare(strict_types=1);
 namespace Phpgit\UseCase;
 
 use InvalidArgumentException;
-use Phpgit\Domain\CommandInput\GitCatFileOptionType;
+use Phpgit\Domain\CommandInput\CatFileOptionType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\CannotGetObjectInfoException;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitCatFileRequest;
+use Phpgit\Request\CatFileRequest;
 use Throwable;
 
-final class GitCatFileUseCase
+final class CatFileUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
-    public function __invoke(GitCatFileRequest $request): Result
+    public function __invoke(CatFileRequest $request): Result
     {
         try {
             $objectHash = ObjectHash::parse($request->object);
 
             return match ($request->type) {
-                GitCatFileOptionType::Type => $this->actionType($objectHash),
-                GitCatFileOptionType::Size => $this->actionSize($objectHash),
-                GitCatFileOptionType::Exists => $this->actionExists($objectHash),
-                GitCatFileOptionType::PrettyPrint => $this->actionPrettyPrint($objectHash),
+                CatFileOptionType::Type => $this->actionType($objectHash),
+                CatFileOptionType::Size => $this->actionSize($objectHash),
+                CatFileOptionType::Exists => $this->actionExists($objectHash),
+                CatFileOptionType::PrettyPrint => $this->actionPrettyPrint($objectHash),
             };
         } catch (InvalidArgumentException) {
             $this->printer->writeln(sprintf("fatal: Not a valid object name %s", $request->object));

@@ -6,8 +6,8 @@ use Phpgit\Domain\GitObject;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitCatFileRequest;
-use Phpgit\UseCase\GitCatFileUseCase;
+use Phpgit\Request\CatFileRequest;
+use Phpgit\UseCase\CatFileUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -29,8 +29,8 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('exists')->never();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -62,8 +62,8 @@ describe('__invoke -> actionType', function () {
             $this->objectRepository->shouldReceive('get')->andReturn(GitObject::parse($blob))->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -95,8 +95,8 @@ describe('__invoke -> actionType', function () {
             $this->objectRepository->shouldReceive('get')->never();
             $this->printer->shouldReceive('writeln')->with('fatal: git cat-file: could not get object info')->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -121,8 +121,8 @@ describe('__invoke -> actionSize', function () {
             $this->objectRepository->shouldReceive('get')->andReturn(GitObject::parse($blob))->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -154,8 +154,8 @@ describe('__invoke -> actionSize', function () {
             $this->objectRepository->shouldReceive('get')->never();
             $this->printer->shouldReceive('writeln')->with('fatal: git cat-file: could not get object info')->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -179,8 +179,8 @@ describe('__invoke -> actionExists', function () {
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->printer->shouldReceive('writeln')->never();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -202,8 +202,8 @@ describe('__invoke -> actionExists', function () {
             $this->objectRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->never();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Failure);
@@ -228,8 +228,8 @@ describe('__invoke -> actionPrettyPrint', function () {
             $this->objectRepository->shouldReceive('get')->andReturn(GitObject::parse($blob))->once();
             $this->printer->shouldReceive('write')->with($expected)->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -261,8 +261,8 @@ describe('__invoke -> actionPrettyPrint', function () {
             $this->objectRepository->shouldReceive('get')->never();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -292,8 +292,8 @@ describe('__invoke -> actionPrettyPrint', function () {
             $this->objectRepository->shouldReceive('get')->andThrow(RuntimeException::class);
             $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitCatFileRequest::new($this->input);
-            $useCase = new GitCatFileUseCase($this->printer, $this->objectRepository);
+            $request = CatFileRequest::new($this->input);
+            $useCase = new CatFileUseCase($this->printer, $this->objectRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::InternalError);

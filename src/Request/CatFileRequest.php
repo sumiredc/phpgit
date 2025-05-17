@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phpgit\Request;
 
-use Phpgit\Domain\CommandInput\GitCatFileOptionType;
+use Phpgit\Domain\CommandInput\CatFileOptionType;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputInterface;
 
-readonly final class GitCatFileRequest
+readonly final class CatFileRequest
 {
     private function __construct(
-        public readonly GitCatFileOptionType $type,
+        public readonly CatFileOptionType $type,
         public readonly string $object,
     ) {}
 
@@ -24,10 +24,10 @@ readonly final class GitCatFileRequest
         $prettyPrint = boolval($input->getOption('pretty-print'));
 
         $optionType = match (true) {
-            $type => GitCatFileOptionType::Type,
-            $size => GitCatFileOptionType::Size,
-            $exists => GitCatFileOptionType::Exists,
-            $prettyPrint => GitCatFileOptionType::PrettyPrint,
+            $type => CatFileOptionType::Type,
+            $size => CatFileOptionType::Size,
+            $exists => CatFileOptionType::Exists,
+            $prettyPrint => CatFileOptionType::PrettyPrint,
             default => throw new InvalidOptionException('Not enough options'),
         };
 

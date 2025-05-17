@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain\CommandInput;
 
-enum GitCatFileOptionType
+enum CatFileOptionType
 {
     case Type;
     case Size;

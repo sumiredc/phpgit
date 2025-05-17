@@ -3,16 +3,16 @@
 ## 🚀 How to use
 
 ```sh
-php ./src/app.php git:{command-name}
+php ./src/app.php {command-name}
 
 # use docker container
-docker compose run --rm php git:{command-name}
+docker compose run --rm php {command-name}
 ```
 
 ## 💻️ Features
 
 1. `git:init`
-2. `git:cat-file [ -t | -s | -e | -p ] <object>`
+2. `cat-file [ -t | -s | -e | -p ] <object>`
 3. `git:hash-object <file>`
 4. `git:ls-files [ --stage | --debug | -t | -z ]`
 5. `git:update-index [ --add <file> | --remove <file> | --force-remove <file> | --cacheinfo <mode> <object> <file> ]`

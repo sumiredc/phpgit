@@ -6,8 +6,8 @@ namespace Phpgit\Command;
 
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\ObjectRepository;
-use Phpgit\Request\GitCatFileRequest;
-use Phpgit\UseCase\GitCatFileUseCase;
+use Phpgit\Request\CatFileRequest;
+use Phpgit\UseCase\CatFileUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,10 +17,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/git-cat-file */
 #[AsCommand(
-    name: 'git:cat-file',
+    name: 'cat-file',
     description: 'Provide contents or details of repository objects',
 )]
-final class GitCatFileCommand extends Command
+final class CatFileCommand extends Command
 {
     protected function configure(): void
     {
@@ -58,11 +58,11 @@ final class GitCatFileCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitCatFileRequest::new($input);
+        $request = CatFileRequest::new($input);
 
         $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository();
-        $useCase = new GitCatFileUseCase($printer, $objectRepository);
+        $useCase = new CatFileUseCase($printer, $objectRepository);
 
         $result = $useCase($request);
 
