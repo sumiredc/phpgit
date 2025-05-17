@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Phpgit\Request\GitRevParseRequest;
+use Phpgit\Request\RevParseRequest;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -15,7 +15,7 @@ describe('new', function () {
         function (array $args) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
 
-            $actual = GitRevParseRequest::new($this->input);
+            $actual = RevParseRequest::new($this->input);
 
             expect($actual->args)->toBe($args);
         }
@@ -30,7 +30,7 @@ describe('new', function () {
         function (mixed $args, Throwable $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
 
-            expect(fn() => GitRevParseRequest::new($this->input))->toThrow($expected);
+            expect(fn() => RevParseRequest::new($this->input))->toThrow($expected);
         }
     )
         ->with([

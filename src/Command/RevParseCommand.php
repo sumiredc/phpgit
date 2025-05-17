@@ -8,8 +8,8 @@ use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\FileRepository;
 use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Infra\Repository\RefRepository;
-use Phpgit\Request\GitRevParseRequest;
-use Phpgit\UseCase\GitRevParseUseCase;
+use Phpgit\Request\RevParseRequest;
+use Phpgit\UseCase\RevParseUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'git:rev-parse',
     description: 'Pick out and massage parameters',
 )]
-final class GitRevParseCommand extends Command
+final class RevParseCommand extends Command
 {
     protected function configure(): void
     {
@@ -30,13 +30,13 @@ final class GitRevParseCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitRevParseRequest::new($input);
+        $request = RevParseRequest::new($input);
 
         $printer = new CliPrinter($input, $output);
         $fileRepository = new FileRepository();
         $objectRepository = new ObjectRepository();
         $refRepository = new RefRepository();
-        $useCase = new GitRevParseUseCase($printer, $fileRepository, $objectRepository, $refRepository);
+        $useCase = new RevParseUseCase($printer, $fileRepository, $objectRepository, $refRepository);
 
         $result = $useCase($request);
 

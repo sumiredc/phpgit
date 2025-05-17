@@ -12,10 +12,10 @@ use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\RevisionNotFoundException;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitRevParseRequest;
+use Phpgit\Request\RevParseRequest;
 use Throwable;
 
-final class GitRevParseUseCase
+final class RevParseUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
@@ -24,7 +24,7 @@ final class GitRevParseUseCase
         private readonly RefRepositoryInterface $refRepository,
     ) {}
 
-    public function __invoke(GitRevParseRequest $request): Result
+    public function __invoke(RevParseRequest $request): Result
     {
         $results = [];
 

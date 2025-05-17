@@ -7,7 +7,7 @@ namespace Phpgit\Request;
 use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 
-readonly final class GitRevParseRequest
+readonly final class RevParseRequest
 {
     /**
      * @param array<string> $refs

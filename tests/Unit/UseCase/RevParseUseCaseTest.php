@@ -9,8 +9,8 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitRevParseRequest;
-use Phpgit\UseCase\GitRevParseUseCase;
+use Phpgit\Request\RevParseRequest;
+use Phpgit\UseCase\RevParseUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -29,8 +29,8 @@ describe('__invoke', function () {
             $this->refRepository->shouldReceive('resolveHead')->andReturn($hash)->once();
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -62,8 +62,8 @@ describe('__invoke', function () {
             }
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -129,8 +129,8 @@ describe('__invoke', function () {
             $this->objectRepository->shouldReceive('exists')->andReturn(true)->times($times);
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -177,8 +177,8 @@ describe('__invoke', function () {
                 $this->fileRepository->shouldReceive('existsByFilename')->with($arg)->andReturn(true)->once();
             }
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -221,8 +221,8 @@ describe('__invoke', function () {
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
             $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -251,8 +251,8 @@ describe('__invoke', function () {
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
             $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -288,8 +288,8 @@ describe('__invoke', function () {
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
             $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,
@@ -332,8 +332,8 @@ describe('__invoke', function () {
             $this->refRepository->shouldReceive('resolveHead')->andThrow($exception)->once();
             $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitRevParseRequest::new($this->input);
-            $useCase = new GitRevParseUseCase(
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
                 $this->printer,
                 $this->fileRepository,
                 $this->objectRepository,

@@ -10,7 +10,7 @@ use Phpgit\Command\CommitTreeCommand;
 use Phpgit\Command\HashObjectCommand;
 use Phpgit\Command\InitCommand;
 use Phpgit\Command\LsFilesCommand;
-use Phpgit\Command\GitRevParseCommand;
+use Phpgit\Command\RevParseCommand;
 use Phpgit\Command\GitUpdateIndexCommand;
 use Phpgit\Command\GitUpdateRefCommand;
 use Phpgit\Command\GitWriteTreeCommand;
@@ -25,7 +25,7 @@ $app->add(new GitUpdateIndexCommand());
 $app->add(new LsFilesCommand());
 $app->add(new GitWriteTreeCommand());
 $app->add(new CommitTreeCommand());
-$app->add(new GitRevParseCommand());
+$app->add(new RevParseCommand());
 $app->add(new GitUpdateRefCommand());
 
 $app->run();
