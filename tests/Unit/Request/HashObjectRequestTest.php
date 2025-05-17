@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Phpgit\Request\GitHashObjectRequest;
+use Phpgit\Request\HashObjectRequest;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -15,7 +15,7 @@ describe('new', function () {
         function (string $file) {
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file)->once();
 
-            $actual = GitHashObjectRequest::new($this->input);
+            $actual = HashObjectRequest::new($this->input);
 
             expect($actual->file)->toBe($file);
         }

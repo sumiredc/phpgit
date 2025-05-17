@@ -6,8 +6,8 @@ namespace Phpgit\Command;
 
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\FileRepository;
-use Phpgit\Request\GitHashObjectRequest;
-use Phpgit\UseCase\GitHashObjectUseCase;
+use Phpgit\Request\HashObjectRequest;
+use Phpgit\UseCase\HashObjectUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'git:hash-object',
     description: 'Compute object ID and optionally create an object from a file',
 )]
-final class GitHashObjectCommand extends Command
+final class HashObjectCommand extends Command
 {
     protected function configure(): void
     {
@@ -28,11 +28,11 @@ final class GitHashObjectCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitHashObjectRequest::new($input);
+        $request = HashObjectRequest::new($input);
 
         $printer = new CliPrinter($input, $output);
         $fileRepository = new FileRepository();
-        $useCase = new GitHashObjectUseCase($printer, $fileRepository);
+        $useCase = new HashObjectUseCase($printer, $fileRepository);
 
         $result = $useCase($request);
 

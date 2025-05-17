@@ -8,18 +8,18 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitHashObjectRequest;
+use Phpgit\Request\HashObjectRequest;
 use Phpgit\Service\FileToHashService;
 use Throwable;
 
-final class GitHashObjectUseCase
+final class HashObjectUseCase
 {
     public function __construct(
         private readonly PrinterInterface $printer,
         private readonly FileRepositoryInterface $fileRepository,
     ) {}
 
-    public function __invoke(GitHashObjectRequest $request): Result
+    public function __invoke(HashObjectRequest $request): Result
     {
         $fileToHashService = new FileToHashService($this->fileRepository);
 

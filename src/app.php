@@ -7,7 +7,7 @@ require __DIR__ . '/const.php';
 
 use Phpgit\Command\CatFileCommand;
 use Phpgit\Command\CommitTreeCommand;
-use Phpgit\Command\GitHashObjectCommand;
+use Phpgit\Command\HashObjectCommand;
 use Phpgit\Command\GitInitCommand;
 use Phpgit\Command\GitLsFilesCommand;
 use Phpgit\Command\GitRevParseCommand;
@@ -19,7 +19,7 @@ use Symfony\Component\Console\Application;
 $app = new Application('phpgit', '0.1.0');
 
 $app->add(new GitInitCommand());
-$app->add(new GitHashObjectCommand());
+$app->add(new HashObjectCommand());
 $app->add(new CatFileCommand());
 $app->add(new GitUpdateIndexCommand());
 $app->add(new GitLsFilesCommand());

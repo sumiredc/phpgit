@@ -6,7 +6,7 @@ namespace Phpgit\Request;
 
 use Symfony\Component\Console\Input\InputInterface;
 
-readonly final class GitHashObjectRequest
+readonly final class HashObjectRequest
 {
     private function __construct(
         public readonly string $file,

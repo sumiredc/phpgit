@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Request\GitHashObjectRequest;
-use Phpgit\UseCase\GitHashObjectUseCase;
+use Phpgit\Request\HashObjectRequest;
+use Phpgit\UseCase\HashObjectUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
@@ -25,8 +25,8 @@ describe('__invoke', function () {
             $this->fileRepository->shouldReceive('getContents')->andReturn($content);
             $this->printer->shouldReceive('writeln')->with($hash)->once();
 
-            $request = GitHashObjectRequest::new($this->input);
-            $useCase = new GitHashObjectUseCase($this->printer, $this->fileRepository);
+            $request = HashObjectRequest::new($this->input);
+            $useCase = new HashObjectUseCase($this->printer, $this->fileRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -49,8 +49,8 @@ describe('__invoke', function () {
                 )
                 ->once();
 
-            $request = GitHashObjectRequest::new($this->input);
-            $useCase = new GitHashObjectUseCase($this->printer, $this->fileRepository);
+            $request = HashObjectRequest::new($this->input);
+            $useCase = new HashObjectUseCase($this->printer, $this->fileRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -70,8 +70,8 @@ describe('__invoke', function () {
             $this->fileRepository->shouldReceive('getContents')->andThrow(new RuntimeException('failed to get contents: /full/path'))->once();
             $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $request = GitHashObjectRequest::new($this->input);
-            $useCase = new GitHashObjectUseCase($this->printer, $this->fileRepository);
+            $request = HashObjectRequest::new($this->input);
+            $useCase = new HashObjectUseCase($this->printer, $this->fileRepository);
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::InternalError);
