@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phpgit\Request;
 
-use Phpgit\Domain\CommandInput\GitLsFilesOptionAction;
+use Phpgit\Domain\CommandInput\LsFilesOptionAction;
 use Symfony\Component\Console\Input\InputInterface;
 
-readonly final class GitLsFilesRequest
+readonly final class LsFilesRequest
 {
     private function __construct(
-        public readonly GitLsFilesOptionAction $action,
+        public readonly LsFilesOptionAction $action,
     ) {}
 
     public static function new(InputInterface $input): self
@@ -21,11 +21,11 @@ readonly final class GitLsFilesRequest
         $debug = boolval($input->getOption('debug'));
 
         $action = match (true) {
-            $tag => GitLsFilesOptionAction::Tag,
-            $zero => GitLsFilesOptionAction::Zero,
-            $stage => GitLsFilesOptionAction::Stage,
-            $debug => GitLsFilesOptionAction::Debug,
-            default => GitLsFilesOptionAction::Default,
+            $tag => LsFilesOptionAction::Tag,
+            $zero => LsFilesOptionAction::Zero,
+            $stage => LsFilesOptionAction::Stage,
+            $debug => LsFilesOptionAction::Debug,
+            default => LsFilesOptionAction::Default,
         };
 
         return new self($action);

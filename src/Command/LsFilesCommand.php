@@ -6,8 +6,8 @@ namespace Phpgit\Command;
 
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\IndexRepository;
-use Phpgit\Request\GitLsFilesRequest;
-use Phpgit\UseCase\GitLsFilesUseCase;
+use Phpgit\Request\LsFilesRequest;
+use Phpgit\UseCase\LsFilesUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,10 +16,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/git-ls-files */
 #[AsCommand(
-    name: 'git:ls-files',
+    name: 'ls-files',
     description: 'Show information about files in the index and the working tree',
 )]
-final class GitLsFilesCommand extends Command
+final class LsFilesCommand extends Command
 {
     protected function configure(): void
     {
@@ -52,11 +52,11 @@ final class GitLsFilesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $request = GitLsFilesRequest::new($input);
+        $request = LsFilesRequest::new($input);
 
         $printer = new CliPrinter($input, $output);
         $indexRepository = new IndexRepository();
-        $useCase = new GitLsFilesUseCase($printer, $indexRepository);
+        $useCase = new LsFilesUseCase($printer, $indexRepository);
 
         $result = $useCase($request);
 
