@@ -9,6 +9,9 @@ use UnexpectedValueException;
 
 final class TreeObject extends GitObject
 {
+    private const MODE_LENGTH = 6;
+    private const SHA1_BLOB_LENGTH = 20;
+
     protected function __construct(GitObjectHeader $header, string $body)
     {
         if ($header->objectType !== ObjectType::Tree) {
@@ -63,9 +66,8 @@ final class TreeObject extends GitObject
 
     private function parseModeAndAdvanceOffset(int &$offset): GitFileMode
     {
-        $end = $offset + 6;
-        $mode = substr($this->body, $offset, $end);
-        $offset = $end; // overwrite
+        $mode = substr($this->body, $offset, self::MODE_LENGTH);
+        $offset += self::MODE_LENGTH + 1; // overwrite, 1 = space
 
         return GitFileMode::from($mode);
     }
@@ -80,16 +82,15 @@ final class TreeObject extends GitObject
             $index++;
         }
 
-        $offset = $index + 1; // overwrite, next Null-terminated string
+        $offset = $index + 1; // overwrite, 1 = Null-terminated string
 
         return $objectName;
     }
 
     private function parseObjectHashAndAdvanceOffset(int &$offset): ObjectHash
     {
-        $end = $offset + 20;
-        $hash = bin2hex(substr($this->body, $offset, $end));
-        $offset = $end;
+        $hash = bin2hex(substr($this->body, $offset, self::SHA1_BLOB_LENGTH));
+        $offset += self::SHA1_BLOB_LENGTH;
 
         return ObjectHash::parse($hash);
     }

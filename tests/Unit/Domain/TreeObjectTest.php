@@ -43,9 +43,9 @@ func main() {
 describe('appendEntry', function () {
     it(
         'should match body',
-        function (array $entry1, array $entry2, string $expected) {
+        function (array $entries, string $expected) {
             $tree = TreeObject::new();
-            foreach ([$entry1, $entry2] as [$mode, $hash, $name]) {
+            foreach ($entries as [$mode, $hash, $name]) {
                 $tree->appendEntry($mode, $hash, $name);
             }
 
@@ -55,17 +55,51 @@ describe('appendEntry', function () {
         ->with([
             [
                 [
-                    GitFileMode::DefaultFile,
-                    ObjectHash::parse('34a2d4555e37ca2ad68563f0ce17d327b8bc0301'),
-                    'README.md'
-                ],
-                [
-                    GitFileMode::Tree,
-                    ObjectHash::parse('5dee59773f75e23b248965ccb9c5dbeebe875093'),
-                    'src'
+                    [
+                        GitFileMode::DefaultFile,
+                        ObjectHash::parse('34a2d4555e37ca2ad68563f0ce17d327b8bc0301'),
+                        'README.md'
+                    ],
+                    [
+                        GitFileMode::Tree,
+                        ObjectHash::parse('5dee59773f75e23b248965ccb9c5dbeebe875093'),
+                        'src'
+                    ]
                 ],
                 "100644 README.md\0" . hex2bin('34a2d4555e37ca2ad68563f0ce17d327b8bc0301')
                     . "040000 src\0" . hex2bin('5dee59773f75e23b248965ccb9c5dbeebe875093')
+            ]
+        ]);
+});
+
+describe('prettyPrint', function () {
+    it(
+        'returns data pretty print',
+        function (array $entries, string $expected) {
+            $tree = TreeObject::new();
+            foreach ($entries as [$mode, $hash, $name]) {
+                $tree->appendEntry($mode, $hash, $name);
+            }
+
+            expect($tree->prettyPrint())->toBe($expected);
+        }
+    )
+        ->with([
+            [
+                [
+                    [
+                        GitFileMode::DefaultFile,
+                        ObjectHash::parse('34a2d4555e37ca2ad68563f0ce17d327b8bc0301'),
+                        'README.md'
+                    ],
+                    [
+                        GitFileMode::Tree,
+                        ObjectHash::parse('5dee59773f75e23b248965ccb9c5dbeebe875093'),
+                        'src'
+                    ]
+                ],
+                "100644 blob 34a2d4555e37ca2ad68563f0ce17d327b8bc0301\tREADME.md\n"
+                    . "040000 tree 5dee59773f75e23b248965ccb9c5dbeebe875093\tsrc\n"
             ]
         ]);
 });

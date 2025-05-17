@@ -41,7 +41,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
             $indexHeader = GitIndexHeader::parse($header);
             $gitIndex = GitIndex::parse($indexHeader);
 
-            for ($i = 0; $i < $gitIndex->count; $i++) {
+            while (!$gitIndex->isLoadedEntries()) {
                 $entryHeaderBlob = fread($fp, GIT_INDEX_ENTRY_HEADER_LENGTH);
                 if ($entryHeaderBlob === false) {
                     throw new RuntimeException('failed to fread Entry header');
@@ -57,12 +57,12 @@ readonly final class IndexRepository implements IndexRepositoryInterface
 
                 $path = substr($pathWithNull, 0, -1); // remove to null-terminated string
 
-                // skipp padding()
+                // skipp padding
                 $entrySize = IndexEntrySize::new($pathSize);
                 $paddingSize = IndexPaddingSize::new($entrySize);
 
                 $indexEntry = IndexEntry::parse($entryHeader, $path);
-                $gitIndex->addEntry($indexEntry);
+                $gitIndex->loadEntry($indexEntry);
 
                 if ($paddingSize->isEmpty()) {
                     continue;

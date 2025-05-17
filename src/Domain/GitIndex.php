@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
+use AssertionError;
+use OverflowException;
+
 final class GitIndex
 {
     /**
@@ -38,6 +41,55 @@ final class GitIndex
         return new self($header);
     }
 
+    /**
+     * Loads an index entry from the index file.
+     * 
+     * This method is used during index restoration to set existing entries
+     * without modifying the header's entry count. It assumes the count has
+     * already been read from the index file and enforces that no more than
+     * that number of entries are loaded.
+     * 
+     * @throws OverflowException
+     */
+    public function loadEntry(IndexEntry $indexEntry): int
+    {
+        if ($this->isLoadedEntries()) {
+            throw new OverflowException('Too many entries loaded from index file');
+        }
+
+        $this->entries[$indexEntry->trackingFile->path] = $indexEntry;
+
+        return count($this->entries);
+    }
+
+    public function isLoadedEntries(): bool
+    {
+        return count($this->entries) >= $this->count;
+    }
+
+    /**
+     * @throws AssertionError
+     */
+    public function assert(): void
+    {
+        if ($this->isLoadedEntries()) {
+            return;
+        }
+
+        throw new AssertionError(sprintf(
+            'Expected %d index entries, but only %d were loaded',
+            $this->count,
+            count($this->entries)
+        ));
+    }
+
+    /**
+     * Adds a new entry to the index.
+     * 
+     * This method is used to track new files by adding them to the index,
+     * and updates the header's entry count accordingly. It does not check
+     * against any existing maximum count since it is not part of file restoration.
+     */
     public function addEntry(IndexEntry $indexEntry): int
     {
         $this->entries[$indexEntry->trackingFile->path] = $indexEntry;
