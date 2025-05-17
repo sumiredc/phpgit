@@ -1,4 +1,4 @@
-FROM php:8.4.7-cli-alpine
+FROM php:8.4.7-cli-bookworm
 
 WORKDIR /app
 
