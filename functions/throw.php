@@ -7,33 +7,32 @@ declare(strict_types=1);
  * @template T of Throwable
  * 
  * @param callable(): R $callback
- * @param T|class-string<T>|null $replaceException
+ * @param class-string<T> $replaceException
  * @return R
  * @throws T
  * @throws InvalidArgumentException
  */
 
-function try_or_throw(callable $callback, Throwable|string|null $replaceException = null)
-{
-    if (
-        !is_null($replaceException)
-        && !is_subclass_of($replaceException, Throwable::class)
-    ) {
-        throw new InvalidArgumentException(sprintf('Not allows specifies exceptions: $s', $replaceException));
+function try_or_throw(
+    callable $callback,
+    string $replaceException,
+    ?string $message = null,
+    ?int $code = null
+) {
+    if (!is_subclass_of($replaceException, Throwable::class)) {
+        throw new InvalidArgumentException(sprintf(
+            'Not allows specifies exceptions: %s',
+            $replaceException
+        ));
     }
 
     try {
         return $callback();
     } catch (Throwable $th) {
-        if (is_null($replaceException)) {
-            throw $th;
-        }
+        $message ??= $th->getMessage();
+        $code ??= $th->getCode();
 
-        if (is_object($replaceException)) {
-            throw $replaceException;
-        }
-
-        throw new $replaceException($th->getMessage(), $th->getCode(), $th->getPrevious());
+        throw new $replaceException($message, $code, $th->getPrevious());
     }
 }
 

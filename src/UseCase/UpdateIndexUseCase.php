@@ -173,12 +173,14 @@ final class UpdateIndexUseCase
     {
         $gitFileMode = try_or_throw(
             fn() => GitFileMode::from($mode),
-            new UseCaseException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $mode))
+            UseCaseException::class,
+            sprintf('fatal: git update-index: --cacheinfo cannot add %s', $mode)
         );
 
         $objectHash = try_or_throw(
             fn() => ObjectHash::parse($object),
-            new UseCaseException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $object))
+            UseCaseException::class,
+            sprintf('fatal: git update-index: --cacheinfo cannot add %s', $object)
         );
 
         throw_unless(
