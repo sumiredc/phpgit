@@ -40,7 +40,7 @@ final class CommitTreeRequest extends Request
                 'Each -p indicates the id of a parent commit object.'
             );
 
-        static::unlock();
+        self::unlock();
     }
 
     /**
@@ -49,7 +49,7 @@ final class CommitTreeRequest extends Request
      */
     public static function new(InputInterface $input): self
     {
-        static::assertNew();
+        self::assertNew();
 
         $tree = strval($input->getArgument('tree'));
 

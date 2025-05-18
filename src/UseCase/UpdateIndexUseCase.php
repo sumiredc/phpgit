@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\UseCase;
 
 use InvalidArgumentException;
+use Phpgit\Domain\BlobObject;
 use Phpgit\Domain\CommandInput\UpdateIndexOptionAction;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitFileMode;
@@ -15,11 +16,9 @@ use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\TrackingFile;
-use Phpgit\Exception\CannotAddIndexException;
-use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Domain\Printer\PrinterInterface;
+use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\UpdateIndexRequest;
-use Phpgit\Service\FileToHashService;
 use Throwable;
 
 final class UpdateIndexUseCase
@@ -44,11 +43,8 @@ final class UpdateIndexUseCase
                     $request->file
                 ),
             };
-        } catch (FileNotFoundException) {
-            $this->printer->writeln([
-                sprintf('error: %s: does not exist and --remove not passed', $request->file),
-                sprintf('fatal: Unable to process path %s', $request->file)
-            ]);
+        } catch (UseCaseException $ex) {
+            $this->printer->writeln($ex->getMessage());
 
             return Result::GitError;
         } catch (Throwable $th) {
@@ -64,11 +60,22 @@ final class UpdateIndexUseCase
      */
     private function actionAdd(string $file): Result
     {
-        $fileToHashService = new FileToHashService($this->fileRepository);
-        [$trackingFile, $gitObject, $objectHash] = $fileToHashService($file);
+        $trackingFile = TrackingFile::new($file);
+        throw_unless(
+            $this->fileRepository->exists($trackingFile),
+            new UseCaseException(sprintf(
+                "error: %s: does not exist and --remove not passed\nfatal: Unable to process path %s",
+                $file,
+                $file
+            ))
+        );
+
+        $content = $this->fileRepository->getContents($trackingFile);
+        $blobObject = BlobObject::new($content);
+        $objectHash = ObjectHash::new($blobObject->data);
 
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->objectRepository->save($gitObject);
+            $this->objectRepository->save($blobObject);
         }
 
         $fileStat = $this->fileRepository->getStat($trackingFile);
@@ -94,41 +101,51 @@ final class UpdateIndexUseCase
             return $this->actionForceRemove($file);
         }
 
-        try {
-            // NOTE: case of exists file
-            if (!$this->indexRepository->exists()) {
-                throw new CannotAddIndexException();
-            }
+        // NOTE: case of exists file
+        throw_unless(
+            $this->indexRepository->exists(),
+            new UseCaseException(sprintf(
+                "error: %s: cannot add to the index - missing --add option?\nfatal: Unable to process path %s",
+                $file,
+                $file
+            ))
+        );
 
-            $gitIndex = $this->indexRepository->get();
+        $gitIndex = $this->indexRepository->get();
+        throw_unless(
+            $gitIndex->existsEntryByFilename($file),
+            new UseCaseException(sprintf(
+                "error: %s: cannot add to the index - missing --add option?\nfatal: Unable to process path %s",
+                $file,
+                $file
+            ))
+        );
 
-            if (!$gitIndex->existsEntryByFilename($file)) {
-                throw new CannotAddIndexException();
-            }
+        $trackingFile = TrackingFile::new($file);
+        throw_unless(
+            $this->fileRepository->exists($trackingFile),
+            new UseCaseException(sprintf(
+                "error: %s: does not exist and --remove not passed\nfatal: Unable to process path %s",
+                $file,
+                $file
+            ))
+        );
 
-            $fileToHashService = new FileToHashService($this->fileRepository);
-            [$trackingFile, $gitObject, $objectHash] = $fileToHashService($file);
+        $content = $this->fileRepository->getContents($trackingFile);
+        $blobObject = BlobObject::new($content);
+        $objectHash = ObjectHash::new($blobObject->data);
 
-            if (!$this->objectRepository->exists($objectHash)) {
-                $this->objectRepository->save($gitObject);
-            }
-
-            $fileStat = $this->fileRepository->getStat($trackingFile);
-
-            $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
-            $gitIndex->addEntry($indexEntry);
-
-            $this->indexRepository->save($gitIndex);
-
-            return Result::Success;
-        } catch (CannotAddIndexException) {
-            $this->printer->writeln([
-                sprintf('error: %s: cannot add to the index - missing --add option?', $file),
-                sprintf('fatal: Unable to process path %s', $file)
-            ]);
-
-            return Result::GitError;
+        if (!$this->objectRepository->exists($objectHash)) {
+            $this->objectRepository->save($blobObject);
         }
+
+        $fileStat = $this->fileRepository->getStat($trackingFile);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $gitIndex->addEntry($indexEntry);
+
+        $this->indexRepository->save($gitIndex);
+
+        return Result::Success;
     }
 
     /**
@@ -154,43 +171,35 @@ final class UpdateIndexUseCase
      */
     private function actionCacheinfo(string $mode, string $object, string $file): Result
     {
-        try {
-            $gitFileMode = GitFileMode::tryFrom($mode);
-            if (is_null($gitFileMode)) {
-                throw new InvalidArgumentException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $mode));
-            }
+        $gitFileMode = try_or_throw(
+            fn() => GitFileMode::from($mode),
+            new UseCaseException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $mode))
+        );
 
-            $objectHash = ObjectHash::tryParse($object);
-            if (is_null($objectHash)) {
-                throw new InvalidArgumentException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $object));
-            }
+        $objectHash = try_or_throw(
+            fn() => ObjectHash::parse($object),
+            new UseCaseException(sprintf('fatal: git update-index: --cacheinfo cannot add %s', $object))
+        );
 
-            if (!$this->fileRepository->existsByFilename($file)) {
-                throw new FileNotFoundException();
-            }
+        throw_unless(
+            $this->fileRepository->existsByFilename($file),
+            new UseCaseException(sprintf(
+                "error: %s: cannot add to the index - missing --add option?\nfatal: git update-index: --cacheinfo cannot add %s",
+                $file,
+                $file
+            ))
+        );
 
-            $gitIndex = $this->indexRepository->getOrCreate();
+        $gitIndex = $this->indexRepository->getOrCreate();
 
-            $trackingFile = TrackingFile::new($file);
-            $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
+        $trackingFile = TrackingFile::new($file);
+        $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
 
-            $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
-            $gitIndex->addEntry($indexEntry);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $gitIndex->addEntry($indexEntry);
 
-            $this->indexRepository->save($gitIndex);
+        $this->indexRepository->save($gitIndex);
 
-            return Result::Success;
-        } catch (InvalidArgumentException $ex) {
-            $this->printer->writeln($ex->getMessage());
-
-            return Result::GitError;
-        } catch (FileNotFoundException) {
-            $this->printer->writeln([
-                sprintf('error: %s: cannot add to the index - missing --add option?', $file),
-                sprintf('fatal: git update-index: --cacheinfo cannot add %s', $file)
-            ]);
-
-            return Result::GitError;
-        }
+        return Result::Success;
     }
 }

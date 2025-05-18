@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Phpgit\UseCase;
 
+use Phpgit\Domain\BlobObject;
+use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Exception\FileNotFoundException;
 use Phpgit\Domain\Printer\PrinterInterface;
+use Phpgit\Domain\TrackingFile;
+use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\HashObjectRequest;
-use Phpgit\Service\FileToHashService;
 use Throwable;
 
 final class HashObjectUseCase
@@ -21,20 +23,26 @@ final class HashObjectUseCase
 
     public function __invoke(HashObjectRequest $request): Result
     {
-        $fileToHashService = new FileToHashService($this->fileRepository);
+        $trackingFile = TrackingFile::new($request->file);
 
         try {
-            [$trakingFile, $gitObject, $objectHash] = $fileToHashService($request->file);
+            throw_unless(
+                $this->fileRepository->exists($trackingFile),
+                new UseCaseException(sprintf(
+                    'fatal: could not open \'$s\' for reading: No such file or directory',
+                    $request->file
+                ))
+            );
+
+            $content = $this->fileRepository->getContents($trackingFile);
+            $blobObject = BlobObject::new($content);
+            $objectHash = ObjectHash::new($blobObject->data);
+
             $this->printer->writeln($objectHash->value);
 
             return Result::Success;
-        } catch (FileNotFoundException) {
-            $this->printer->writeln(
-                sprintf(
-                    'fatal: could not open \'$s\' for reading: No such file or directory',
-                    $request->file
-                )
-            );
+        } catch (UseCaseException $ex) {
+            $this->printer->writeln($ex->getMessage());
 
             return Result::GitError;
         } catch (Throwable $th) {

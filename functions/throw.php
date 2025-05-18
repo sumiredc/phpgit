@@ -7,13 +7,13 @@ declare(strict_types=1);
  * @template T of Throwable
  * 
  * @param callable(): R $callback
- * @param ?class-string<T> $replaceException
+ * @param T|class-string<T>|null $replaceException
  * @return R
  * @throws T
  * @throws InvalidArgumentException
  */
 
-function try_or_throw(callable $callback, ?string $replaceException = null)
+function try_or_throw(callable $callback, Throwable|string|null $replaceException = null)
 {
     if (
         !is_null($replaceException)
@@ -25,9 +25,15 @@ function try_or_throw(callable $callback, ?string $replaceException = null)
     try {
         return $callback();
     } catch (Throwable $th) {
-        throw is_null($replaceException)
-            ? $th
-            : new $replaceException($th->getMessage(), $th->getCode(), $th->getPrevious());
+        if (is_null($replaceException)) {
+            throw $th;
+        }
+
+        if (is_object($replaceException)) {
+            throw $replaceException;
+        }
+
+        throw new $replaceException($th->getMessage(), $th->getCode(), $th->getPrevious());
     }
 }
 

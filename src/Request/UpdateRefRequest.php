@@ -29,7 +29,7 @@ final class UpdateRefRequest extends Request
             ->addArgument('arg1', InputArgument::OPTIONAL, 'update: <newvalue:REQUIRED>, delete: <oldvalue:OPTIONAL>')
             ->addArgument('arg2', InputArgument::OPTIONAL, 'update: <oldvalue:OPTIONAL>');
 
-        static::unlock();
+        self::unlock();
     }
 
     /** 
@@ -37,7 +37,7 @@ final class UpdateRefRequest extends Request
      */
     public static function new(InputInterface $input): self
     {
-        static::assertNew();
+        self::assertNew();
 
         $action = match (true) {
             boolval($input->getOption('delete')) => UpdateRefOptionAction::Delete,

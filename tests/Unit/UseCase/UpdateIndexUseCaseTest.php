@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
@@ -24,25 +25,33 @@ beforeEach(function () {
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
     $this->fileRepository = Mockery::mock(FileRepositoryInterface::class);
     $this->indexRepository = Mockery::mock(IndexRepositoryInterface::class);
+
+    $command = Mockery::mock(CommandInterface::class);
+    $command->shouldReceive(['addArgument' => $command, 'addOption' => $command]);
+    UpdateIndexRequest::setUp($command);
 });
 
 describe('__invoke -> actionAdd', function () {
     it(
-        'should returns success when exists object',
+        'returns success when exists object',
         function (string $file, string $content, FileStat $fileStat) {
-            $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
-            $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
-            $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
-            $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input
+                ->shouldReceive('getOption')->with('add')->andReturn(true)
+                ->shouldReceive('getOption')->with('remove')->andReturn(false)
+                ->shouldReceive('getOption')->with('force-remove')->andReturn(false)
+                ->shouldReceive('getOption')->with('cacheinfo')->andReturn(false)
+                ->shouldReceive('getArgument')->with('arg1')->andReturn($file);
 
-            $this->fileRepository->shouldReceive('exists')->andReturn(true);
-            $this->fileRepository->shouldReceive('getContents')->andReturn($content);
-            $this->objectRepository->shouldReceive('exists')->andReturn(true)->once();
-            $this->objectRepository->shouldReceive('save')->never();
+            $this->fileRepository
+                ->shouldReceive('exists')->andReturn(true)->once()
+                ->shouldReceive('getContents')->andReturn($content)->once();
+            $this->objectRepository
+                ->shouldReceive('exists')->andReturn(true)->once()
+                ->shouldReceive('save')->never();
             $this->fileRepository->shouldReceive('getStat')->andReturn($fileStat)->once();
-            $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
-            $this->indexRepository->shouldReceive('save')->once();
+            $this->indexRepository
+                ->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once()
+                ->shouldReceive('save')->once();
 
             $request = UpdateIndexRequest::new($this->input);
             $useCase = new UpdateIndexUseCase(
@@ -67,7 +76,7 @@ describe('__invoke -> actionAdd', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
             $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
@@ -100,15 +109,15 @@ describe('__invoke -> actionAdd', function () {
 
     it(
         'should returns error and outputs does not exists message when throws FileNotFoundException',
-        function (string $file, array $expected) {
+        function (string $file, string $expected) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('exists')->andReturn(false); # in service
-            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateIndexRequest::new($this->input);
             $useCase = new UpdateIndexUseCase(
@@ -125,10 +134,7 @@ describe('__invoke -> actionAdd', function () {
         ->with([
             [
                 'file' => 'README.md',
-                'expected' => [
-                    'error: README.md: does not exist and --remove not passed',
-                    'fatal: Unable to process path README.md'
-                ]
+                'expected' => "error: README.md: does not exist and --remove not passed\nfatal: Unable to process path README.md"
             ]
         ]);
 
@@ -139,7 +145,7 @@ describe('__invoke -> actionAdd', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
             $this->fileRepository->shouldReceive('getContents')->andReturn($content); # in service
@@ -177,7 +183,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $entry = IndexEntry::new(
                 FileStatFactory::new(),
@@ -220,7 +226,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $entry = IndexEntry::new(
                 FileStatFactory::new(),
@@ -263,7 +269,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(false)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true);
@@ -288,12 +294,12 @@ describe('__invoke -> actionRemove', function () {
 
     it(
         'should returns error and outputs cannot add message, when don\'t exists index',
-        function (string $file, array $expected) {
+        function (string $file, string $expected) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(false)->once();
@@ -314,26 +320,23 @@ describe('__invoke -> actionRemove', function () {
         ->with([
             [
                 'file' => 'src/main.rs',
-                'expected' => [
-                    'error: src/main.rs: cannot add to the index - missing --add option?',
-                    'fatal: Unable to process path src/main.rs',
-                ]
+                'expected' => "error: src/main.rs: cannot add to the index - missing --add option?\nfatal: Unable to process path src/main.rs"
             ]
         ]);
 
     it(
         'should returns error and outputs cannot add message, when don\'t exists entry in index',
-        function (string $file, array $expected) {
+        function (string $file, string $expected) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
-            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateIndexRequest::new($this->input);
             $useCase = new UpdateIndexUseCase(
@@ -350,10 +353,7 @@ describe('__invoke -> actionRemove', function () {
         ->with([
             [
                 'file' => 'app/Controller/Controller.php',
-                'expected' => [
-                    'error: app/Controller/Controller.php: cannot add to the index - missing --add option?',
-                    'fatal: Unable to process path app/Controller/Controller.php',
-                ]
+                'expected' => "error: app/Controller/Controller.php: cannot add to the index - missing --add option?\nfatal: Unable to process path app/Controller/Controller.php"
             ]
         ]);
 
@@ -364,7 +364,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $entry = IndexEntry::new(
                 FileStat::newForCacheinfo(33180), # dummy
@@ -408,7 +408,7 @@ describe('__invoke -> actionForceRemove', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->indexRepository->shouldReceive('exists')->andReturn(true);
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
@@ -437,7 +437,7 @@ describe('__invoke -> actionForceRemove', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($file); // file
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
             $this->indexRepository->shouldReceive('exists')->andReturn(false);
             $this->indexRepository->shouldReceive('get')->never();
@@ -467,9 +467,9 @@ describe('__invoke -> actionCacheinfo', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(true);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($mode);
-            $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
-            $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($mode);
+            $this->input->shouldReceive('getArgument')->with('arg2')->andReturn($object);
+            $this->input->shouldReceive('getArgument')->with('arg3')->andReturn($file);
 
             $this->fileRepository->shouldReceive('existsByFilename')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
@@ -517,9 +517,9 @@ describe('__invoke -> actionCacheinfo', function () {
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(true);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn($mode);
-            $this->input->shouldReceive('getArgument')->with('object')->andReturn($object);
-            $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($mode);
+            $this->input->shouldReceive('getArgument')->with('arg2')->andReturn($object);
+            $this->input->shouldReceive('getArgument')->with('arg3')->andReturn($file);
 
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
@@ -552,17 +552,17 @@ describe('__invoke -> actionCacheinfo', function () {
 
     it(
         'should returns error and output fatal message, when don\'t exists file',
-        function (string $file, array $expected) {
+        function (string $file, string $expected) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('force-remove')->andReturn(false);
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(true);
-            $this->input->shouldReceive('getArgument')->with('mode')->andReturn('100644');
-            $this->input->shouldReceive('getArgument')->with('object')->andReturn('91d4a6610e67a14af17e800c2049b6b0a01162ef');
-            $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
+            $this->input->shouldReceive('getArgument')->with('arg1')->andReturn('100644');
+            $this->input->shouldReceive('getArgument')->with('arg2')->andReturn('91d4a6610e67a14af17e800c2049b6b0a01162ef');
+            $this->input->shouldReceive('getArgument')->with('arg3')->andReturn($file);
 
             $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
-            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+            $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateIndexRequest::new($this->input);
             $useCase = new UpdateIndexUseCase(
@@ -579,10 +579,7 @@ describe('__invoke -> actionCacheinfo', function () {
         ->with([
             [
                 'file' => 'README.md',
-                'expected' => [
-                    'error: README.md: cannot add to the index - missing --add option?',
-                    'fatal: git update-index: --cacheinfo cannot add README.md',
-                ]
+                'expected' => "error: README.md: cannot add to the index - missing --add option?\nfatal: git update-index: --cacheinfo cannot add README.md"
             ]
         ]);
 });

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
@@ -13,11 +14,15 @@ beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
     $this->printer = Mockery::mock(PrinterInterface::class);
     $this->fileRepository = Mockery::mock(FileRepositoryInterface::class);
+
+    $command = Mockery::mock(CommandInterface::class);
+    $command->shouldReceive('addArgument');
+    HashObjectRequest::setUp($command);
 });
 
 describe('__invoke', function () {
     it(
-        'should returns to success',
+        'returns to success',
         function (string $file, string $content, string $hash) {
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 
@@ -38,7 +43,7 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'should returns to error, when throws FileNotFoundException',
+        'returns to error on throws exceptions',
         function (string $file) {
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 
@@ -62,7 +67,7 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'should returns to error, when throws Exception ignore FileNotFoundException',
+        'returns to error on throws Exception ignore UseCaseException',
         function (string $file, Throwable $expected) {
             $this->input->shouldReceive('getArgument')->with('file')->andReturn($file);
 

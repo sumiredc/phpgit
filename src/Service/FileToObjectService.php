@@ -11,6 +11,7 @@ use Phpgit\Domain\TrackingFile;
 use Phpgit\Exception\FileNotFoundException;
 use RuntimeException;
 
+/** @deprecated */
 readonly final class FileToObjectService
 {
     public function __construct(
