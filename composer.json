@@ -4,7 +4,10 @@
         "psr-4": {
             "Phpgit\\": "src/",
             "Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "functions/throw.php"
+        ]
     },
     "scripts": {
         "test": "docker compose run --rm test -p",
