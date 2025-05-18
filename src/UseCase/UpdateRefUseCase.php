@@ -57,17 +57,17 @@ final class UpdateRefUseCase
         $service = new ResolveRevisionService($this->refRepository);
         $newObject = $service($newValue);
         if (is_null($newObject)) {
-            throw new UseCaseException('fatal: %s: not a valid SHA1', $newValue);
+            throw new UseCaseException(sprintf('fatal: %s: not a valid SHA1', $newValue));
         }
 
         if (!$this->objectRepository->exists($newObject)) {
-            throw new UseCaseException(
+            throw new UseCaseException(sprintf(
                 'fatal: update_ref failed for ref \'%s\': cannot update ref \'%s\': trying to write ref \'%s\' with nonexistent object %s',
                 $refValue,
                 $ref->path,
                 $ref->path,
                 $newObject->value,
-            );
+            ));
         }
 
         if ($oldValue === '') {
@@ -80,28 +80,28 @@ final class UpdateRefUseCase
 
         $oldObject = $service($oldValue);
         if (is_null($oldObject)) {
-            throw new UseCaseException('fatal: %s: not a valid SHA1', $oldValue);
+            throw new UseCaseException(sprintf('fatal: %s: not a valid SHA1', $oldValue));
         }
 
         if (!$this->objectRepository->exists($oldObject)) {
-            throw new UseCaseException(
+            throw new UseCaseException(sprintf(
                 'fatal: update_ref failed for ref \'%s\': cannot update ref \'%s\': trying to write ref \'%s\' with nonexistent object %s',
                 $refValue,
                 $ref->path,
                 $ref->path,
                 $oldObject->value,
-            );
+            ));
         }
 
         $currentObject = $this->refRepository->resolve($ref);
         if ($currentObject->value !== $oldObject->value) {
-            throw new UseCaseException(
+            throw new UseCaseException(sprintf(
                 'fatal: update_ref failed for ref \'%s\': cannot lock ref \'%s\': is at %s but expected %s',
                 $refValue,
                 $refValue,
                 $currentObject->value,
                 $oldValue,
-            );
+            ));
         }
 
         $this->refRepository->update($ref, $newObject);
@@ -113,7 +113,7 @@ final class UpdateRefUseCase
     {
         $ref = $this->refRepository->dereference($refValue);
         if (is_null($ref)) {
-            throw new UseCaseException('error: refusing to update ref with bad name \'%s\'', $refValue);
+            throw new UseCaseException(sprintf('error: refusing to update ref with bad name \'%s\'', $refValue));
         }
 
         if ($oldValue === '') {
@@ -129,25 +129,25 @@ final class UpdateRefUseCase
         $service = new ResolveRevisionService($this->refRepository);
         $oldObject = $service($oldValue);
         if (is_null($oldObject)) {
-            throw new UseCaseException('fatal: %s: not a valid SHA1', $oldValue);
+            throw new UseCaseException(sprintf('fatal: %s: not a valid SHA1', $oldValue));
         }
 
         if (!$this->refRepository->exists($ref)) {
-            throw new UseCaseException(
+            throw new UseCaseException(sprintf(
                 'error: cannot lock ref \'%s\': unable to resolve reference \'%s\'',
                 $refValue,
                 $refValue
-            );
+            ));
         }
 
         $currentObject = $this->refRepository->resolve($ref);
         if ($currentObject->value !== $oldObject->value) {
-            throw new UseCaseException(
+            throw new UseCaseException(sprintf(
                 'error: cannot lock ref \'%s\': is at %s but expected %s',
                 $refValue,
                 $currentObject->value,
                 $oldObject->value,
-            );
+            ));
         }
 
         $this->refRepository->delete($ref);

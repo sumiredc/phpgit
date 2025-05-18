@@ -30,25 +30,25 @@ final class CommitTreeUseCase
         try {
             $treeHash = ObjectHash::tryParse($request->tree);
             if (is_null($treeHash)) {
-                throw new UseCaseException('fatal: not a valid object name %s', $request->tree);
+                throw new UseCaseException(sprintf('fatal: not a valid object name %s', $request->tree));
             }
 
             $parentHash = ObjectHash::tryParse($request->parent);
             if ($request->parent !== '' && is_null($parentHash)) {
-                throw new UseCaseException('fatal: not a valid object name %s', $request->parent);
+                throw new UseCaseException(sprintf('fatal: not a valid object name %s', $request->parent));
             }
 
             if (!$this->objectRepository->exists($treeHash)) {
-                throw new UseCaseException('fatal: %s is not a valid object', $request->tree);
+                throw new UseCaseException(sprintf('fatal: %s is not a valid object', $request->tree));
             }
 
             if (!is_null($parentHash) && !$this->objectRepository->exists($parentHash)) {
-                throw new UseCaseException('fatal: %s is not a valid object', $request->parent);
+                throw new UseCaseException(sprintf('fatal: %s is not a valid object', $request->parent));
             }
 
             $gitObject = $this->objectRepository->get($treeHash);
             if ($gitObject->objectType !== ObjectType::Tree) {
-                throw new UseCaseException('fatal: %s is not a valid \'tree\' object', $request->tree);
+                throw new UseCaseException(sprintf('fatal: %s is not a valid \'tree\' object', $request->tree));
             }
 
             $commitHash = $this->createCommitTree($treeHash, $request->message, $parentHash);
