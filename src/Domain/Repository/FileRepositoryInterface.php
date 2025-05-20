@@ -11,8 +11,6 @@ interface FileRepositoryInterface
 {
     public function exists(TrackedPath $trackedPath): bool;
 
-    public function existsByFilename(string $file): bool;
-
     public function existsDir(TrackedPath $trackedPath): bool;
 
     public function existsDirByDirname(string $dir): bool;

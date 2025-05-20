@@ -9,6 +9,7 @@ use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
+use Phpgit\Domain\TrackedPath;
 use Phpgit\Request\RevParseRequest;
 use Phpgit\UseCase\RevParseUseCase;
 use Symfony\Component\Console\Input\InputInterface;
@@ -167,16 +168,20 @@ describe('__invoke', function () {
 
     it(
         'returns an success and outputs result of rev parse of file',
-        function (array $args, int $times, array $expected) {
+        function (array $args, array $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository
                 ->shouldReceive('resolveHead')->never()
                 ->shouldReceive('exists')->never();
             $this->objectRepository->shouldReceive('exists')->never();
             foreach ($args as $arg) {
-                $this->fileRepository->shouldReceive('existsByFilename')->with($arg)->andReturn(true)->once();
+                $this->fileRepository->shouldReceive('exists')
+                    ->withArgs(expectEqualArg(TrackedPath::parse($arg)))
+                    ->andReturn(true)
+                    ->once();
             }
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+
             $request = RevParseRequest::new($this->input);
             $useCase = new RevParseUseCase(
                 $this->printer,
@@ -193,7 +198,6 @@ describe('__invoke', function () {
         ->with([
             'args is one' => [
                 'args' => ['README.md'],
-                'times' => 1,
                 'expected' => ['README.md'],
             ],
             'args is multi' => [
@@ -203,7 +207,6 @@ describe('__invoke', function () {
                     'rust/main.rs',
                     'php/index.php',
                 ],
-                'times' => 4,
                 'expected' => [
                     'README.md',
                     'go/main.go',
@@ -217,7 +220,7 @@ describe('__invoke', function () {
         'returns an error and outputs fatal message unknown revesion or path on throws the RevisionNotFoundException',
         function (array $args, array $expectedResults, string $expectedMessage) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
-            $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
             $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
@@ -247,7 +250,7 @@ describe('__invoke', function () {
         function (array $args, Reference $ref, array $expectedResults, string $expectedMessage) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false)->once();
-            $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
             $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
@@ -275,18 +278,23 @@ describe('__invoke', function () {
 
     it(
         'outputs success results until throws an error',
-        function (
-            array $args,
-            array $filenameExists,
-            array $expectedResults,
-            string $expectedMessage
-        ) {
+        function () {
+            $args = [
+                'README.md',
+                'go/main.go',
+                'DONT_EXISTS.md',
+                'rust/main.rs',
+                'php/index.php',
+            ];
+
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
-            foreach ($filenameExists as $filename => $exists) {
-                $this->fileRepository->shouldReceive('existsByFilename')->with($filename)->andReturn($exists);
-            }
-            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
-            $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
+            $this->fileRepository
+                ->shouldReceive('exists')->withArgs(expectEqualArg(TrackedPath::parse('README.md')))->andReturn(true)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg(TrackedPath::parse('go/main.go')))->andReturn(true)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg(TrackedPath::parse('DONT_EXISTS.md')))->andReturn(false)->once();
+            $this->printer
+                ->shouldReceive('writeln')->withArgs(expectEqualArg(['README.md', 'go/main.go',]))->once()
+                ->shouldReceive('writeln')->with('fatal: ambiguous argument \'DONT_EXISTS.md\': unknown revision or path not in the working tree.')->once();
 
             $request = RevParseRequest::new($this->input);
             $useCase = new RevParseUseCase(
@@ -300,30 +308,7 @@ describe('__invoke', function () {
 
             expect($actual)->toBe(Result::GitError);
         }
-    )
-        ->with([
-            [
-                'args' => [
-                    'README.md',
-                    'go/main.go',
-                    'DONT_EXISTS.md',
-                    'rust/main.rs',
-                    'php/index.php',
-                ],
-                'filenameExists' => [
-                    'README.md' => true,
-                    'go/main.go' => true,
-                    'DONT_EXISTS.md' => false,
-                    'rust/main.rs' => true,
-                    'php/index.php' => true,
-                ],
-                'expectedResults' => [
-                    'README.md',
-                    'go/main.go',
-                ],
-                'expectedMessage' => 'fatal: ambiguous argument \'DONT_EXISTS.md\': unknown revision or path not in the working tree.'
-            ]
-        ]);;
+    );
 
     it(
         'returns an internal error and outputs stack trace on throws an exceptions',

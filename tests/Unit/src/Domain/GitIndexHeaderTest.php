@@ -93,7 +93,7 @@ describe('updateCount', function () {
                         'mtime' => 1744383756,
                         'ctime' => 1745070011,
                         'blksize' => 4096,
-                        'blocks' => 8,
+                        'blocks' => 8
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
                     TrackedPath::parse('README.md')

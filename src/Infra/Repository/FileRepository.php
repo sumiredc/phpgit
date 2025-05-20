@@ -18,13 +18,6 @@ readonly final class FileRepository implements FileRepositoryInterface
         return is_file($filename) && is_readable($filename);
     }
 
-    public function existsByFilename(string $file): bool
-    {
-        $filename = sprintf('%s/%s', F_GIT_TRACKING_ROOT, $file);
-
-        return is_file($filename) && is_readable($filename);
-    }
-
     public function existsDir(TrackedPath $trackedPath): bool
     {
         $dirname = $trackedPath->full();

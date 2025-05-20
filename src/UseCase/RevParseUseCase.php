@@ -10,8 +10,9 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Exception\RevisionNotFoundException;
 use Phpgit\Domain\Printer\PrinterInterface;
+use Phpgit\Domain\TrackedPath;
+use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\RevParseRequest;
 use Throwable;
 
@@ -42,7 +43,7 @@ final class RevParseUseCase
             $this->printer->writeln($results);
 
             return Result::Success;
-        } catch (RevisionNotFoundException $revEx) {
+        } catch (UseCaseException $revEx) {
             $this->printer->writeln($results);
             $this->printer->writeln($revEx->getMessage());
 
@@ -79,7 +80,7 @@ final class RevParseUseCase
 
         return [
             $arg,
-            new RevisionNotFoundException(
+            new UseCaseException(
                 sprintf('fatal: ambiguous argument \'%s\': unknown revision or path not in the working tree.', $arg)
             )
         ];
@@ -120,6 +121,12 @@ final class RevParseUseCase
 
     private function parseFile(string $arg): bool
     {
-        return $this->fileRepository->existsByFilename($arg);
+        $trackedPath = try_or_throw(
+            fn() => TrackedPath::parse($arg),
+            UseCaseException::class,
+            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $arg, $arg, F_GIT_TRACKING_ROOT)
+        );
+
+        return $this->fileRepository->exists($trackedPath);
     }
 }

@@ -15,7 +15,7 @@ readonly final class TrackedPath
     public static function parse(string $path): self
     {
         $fullPath = self::resolve($path);
-        if (strpos($fullPath, sprintf('%s/', F_GIT_TRACKING_ROOT)) !== 0) {
+        if (!str_starts_with($fullPath, sprintf('%s/', F_GIT_TRACKING_ROOT))) {
             throw new InvalidArgumentException(
                 sprintf('The specified path "%s" is outside of the repository', $path)
             );
@@ -28,17 +28,19 @@ readonly final class TrackedPath
 
     private static function resolve(string $value): string
     {
-        if (strpos($value, '~') === 0) {
-            $value = preg_replace('/^~/', ROOT_DIR, $value);
+        $path = $value;
+        if (str_starts_with($path, '~')) {
+            $path = preg_replace('/^~/', ROOT_DIR, $path);
         }
 
-        if (strpos($value, '/') !== 0) {
-            $value = sprintf('%s/%s', F_GIT_TRACKING_ROOT, $value);
+        if (!str_starts_with($path, '/')) {
+            $path = sprintf('%s/%s', F_GIT_TRACKING_ROOT, $path);
         }
 
         $segments = [];
+        $end = str_ends_with($path, '/') ? '/' : '';
 
-        foreach (explode('/', $value) as $segment) {
+        foreach (explode('/', $path) as $segment) {
             if (in_array($segment, ['', '.'], true)) {
                 continue;
             }
@@ -59,7 +61,7 @@ readonly final class TrackedPath
             $segments[] = $segment;
         }
 
-        return sprintf('/%s', implode('/', $segments)); // fullpath
+        return sprintf('/%s%s', implode('/', $segments), $end); // fullpath
     }
 
     public function full(): string

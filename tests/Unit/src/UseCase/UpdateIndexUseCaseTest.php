@@ -193,7 +193,7 @@ describe('__invoke -> actionRemove', function () {
             $index = GitIndex::new();
             $index->addEntry($entry);
 
-            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
             $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
@@ -236,7 +236,7 @@ describe('__invoke -> actionRemove', function () {
             $index = GitIndex::new();
             $index->addEntry($entry);
 
-            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
             $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
@@ -271,7 +271,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
             $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
-            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(false)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true);
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
             $this->indexRepository->shouldReceive('save')->once();
@@ -301,7 +301,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
             $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
-            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
@@ -333,7 +333,7 @@ describe('__invoke -> actionRemove', function () {
             $this->input->shouldReceive('getOption')->with('cacheinfo')->andReturn(false);
             $this->input->shouldReceive('getArgument')->with('arg1')->andReturn($file); // file
 
-            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn(GitIndex::new())->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
@@ -374,7 +374,7 @@ describe('__invoke -> actionRemove', function () {
             $index = GitIndex::new();
             $index->addEntry($entry);
 
-            $this->fileRepository->shouldReceive('existsbyFilename')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('get')->andReturn($index)->once();
             $this->fileRepository->shouldReceive('exists')->andReturn(true); # in service
@@ -471,7 +471,7 @@ describe('__invoke -> actionCacheinfo', function () {
             $this->input->shouldReceive('getArgument')->with('arg2')->andReturn($object);
             $this->input->shouldReceive('getArgument')->with('arg3')->andReturn($file);
 
-            $this->fileRepository->shouldReceive('existsByFilename')->andReturn(true)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(true)->once();
             $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndex::new())->once();
             $this->indexRepository->shouldReceive('save')
                 ->withArgs(function (GitIndex $actual) use ($file, $mode, $object) {
@@ -561,7 +561,7 @@ describe('__invoke -> actionCacheinfo', function () {
             $this->input->shouldReceive('getArgument')->with('arg2')->andReturn('91d4a6610e67a14af17e800c2049b6b0a01162ef');
             $this->input->shouldReceive('getArgument')->with('arg3')->andReturn($file);
 
-            $this->fileRepository->shouldReceive('existsByFilename')->andReturn(false)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateIndexRequest::new($this->input);

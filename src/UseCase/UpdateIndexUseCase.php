@@ -101,7 +101,13 @@ final class UpdateIndexUseCase
      */
     private function actionRemove(string $file): Result
     {
-        if (!$this->fileRepository->existsByFilename($file)) {
+        $trackedPath = try_or_throw(
+            fn() => TrackedPath::parse($file),
+            UseCaseException::class,
+            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
+        );
+
+        if (!$this->fileRepository->exists($trackedPath)) {
             // NOTE: case of don't exists file -> force-remove
             return $this->actionForceRemove($file);
         }
@@ -126,11 +132,6 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $trackedPath = try_or_throw(
-            fn() => TrackedPath::parse($file),
-            UseCaseException::class,
-            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
-        );
         throw_unless(
             $this->fileRepository->exists($trackedPath),
             new UseCaseException(sprintf(
@@ -192,8 +193,14 @@ final class UpdateIndexUseCase
             sprintf('fatal: git update-index: --cacheinfo cannot add %s', $object)
         );
 
+        $trackedPath = try_or_throw(
+            fn() => TrackedPath::parse($file),
+            UseCaseException::class,
+            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
+        );
+
         throw_unless(
-            $this->fileRepository->existsByFilename($file),
+            $this->fileRepository->exists($trackedPath),
             new UseCaseException(sprintf(
                 "error: %s: cannot add to the index - missing --add option?\nfatal: git update-index: --cacheinfo cannot add %s",
                 $file,
@@ -201,16 +208,10 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $gitIndex = $this->indexRepository->getOrCreate();
-
-        $trackedPath = try_or_throw(
-            fn() => TrackedPath::parse($file),
-            UseCaseException::class,
-            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
-        );
         $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
-
         $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackedPath);
+
+        $gitIndex = $this->indexRepository->getOrCreate();
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
