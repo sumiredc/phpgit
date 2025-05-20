@@ -32,12 +32,12 @@ readonly final class CreateSegmentTreeService
                         'error: invalid object %s %s for \'%s\'',
                         $entry->gitFileMode->value,
                         $entry->objectHash->value,
-                        $entry->trackingPath->value
+                        $entry->trackedPath->value
                     )
                 );
             }
 
-            $segments = explode('/', $entry->trackingPath->value);
+            $segments = explode('/', $entry->trackedPath->value);
             $this->setSegument($segmentTree, $segments, 0, $entry);
         }
 

@@ -6,7 +6,7 @@ use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitIndexHeader;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 
 describe('new', function () {
     it('should match to properties', function (string $signature, int $version, int $count) {
@@ -96,7 +96,7 @@ describe('updateCount', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new('README.md')
+                    TrackedPath::parse('README.md')
                 )),
                 'expected' => 10
             ],
@@ -118,7 +118,7 @@ describe('updateCount', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new('README.md')
+                    TrackedPath::parse('README.md')
                 )),
                 'expected' => 20
             ]

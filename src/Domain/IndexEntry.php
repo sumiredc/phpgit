@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\IndexObjectType;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 use Phpgit\Domain\UnixPermission;
 use RuntimeException;
 
@@ -41,7 +41,7 @@ final class IndexEntry
         public readonly int $gid,
         public readonly int $size,
         public readonly ObjectHash $objectHash,
-        public readonly TrackingPath $trackingPath,
+        public readonly TrackedPath $trackedPath,
         public readonly int $assumeValidFlag,
         public readonly int $extendedFlag,
         public readonly int $stage,
@@ -50,7 +50,7 @@ final class IndexEntry
     public static function new(
         FileStat $fileStat,
         ObjectHash $objectHash,
-        TrackingPath $trackingPath
+        TrackedPath $trackedPath
     ) {
         return new self(
             ctime: $fileStat->ctime,
@@ -66,7 +66,7 @@ final class IndexEntry
             gid: $fileStat->gid,
             size: $fileStat->size,
             objectHash: $objectHash,
-            trackingPath: $trackingPath,
+            trackedPath: $trackedPath,
             assumeValidFlag: 0,
             extendedFlag: 0,
             stage: 0,
@@ -79,7 +79,7 @@ final class IndexEntry
         $unixPermission = UnixPermission::parseFlags($header->mode);
 
         $objectHash = ObjectHash::parse($header->objectName);
-        $trackingPath = TrackingPath::new($path);
+        $trackedPath = TrackedPath::parse($path);
 
         $assumeValidFlag = ($header->flags >> 15) & 0b1; // the upper 1bit 
         $extendedFlag = ($header->flags >> 14) & 0b1; // 1bit from the two upper
@@ -99,7 +99,7 @@ final class IndexEntry
             gid: $header->gid,
             size: $header->size,
             objectHash: $objectHash,
-            trackingPath: $trackingPath,
+            trackedPath: $trackedPath,
             assumeValidFlag: $assumeValidFlag,
             extendedFlag: $extendedFlag,
             stage: $stage
@@ -128,7 +128,7 @@ final class IndexEntry
         }
         // @codeCoverageIgnoreEnd
 
-        $pathSize = IndexEntryPathSize::new($this->trackingPath->value);
+        $pathSize = IndexEntryPathSize::new($this->trackedPath->value);
         if ($pathSize->isOverFlagsSpace()) {
             // TODO: パスの上限値を釣果した場合は、1文字ずつnull終端まで取得する処理を導入して解消させる
             throw new InvalidArgumentException(sprintf('the path length exceed of limit: %d', $pathSize->value));
@@ -138,7 +138,7 @@ final class IndexEntry
         $extendedFlag = $this->extendedFlag << 14;
         $stage = $this->stage << 12;
         $flags = pack('n', $assumeValidFlag | $extendedFlag | $stage | $pathSize->asStorableValue());
-        $path = sprintf("%s\0", $this->trackingPath->value);
+        $path = sprintf("%s\0", $this->trackedPath->value);
         $entrySize = IndexEntrySize::new($pathSize);
         $paddingSize = IndexPaddingSize::new($entrySize);
 

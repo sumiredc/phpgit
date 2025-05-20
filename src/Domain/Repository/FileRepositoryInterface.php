@@ -5,35 +5,30 @@ declare(strict_types=1);
 namespace Phpgit\Domain\Repository;
 
 use Phpgit\Domain\FileStat;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 
 interface FileRepositoryInterface
 {
-    public function exists(TrackingPath $trackingPath): bool;
+    public function exists(TrackedPath $trackedPath): bool;
 
     public function existsByFilename(string $file): bool;
 
-    public function existsDir(TrackingPath $trackingPath): bool;
+    public function existsDir(TrackedPath $trackedPath): bool;
 
     public function existsDirByDirname(string $dir): bool;
 
-    /**
-     * @throws InvalidArgumentException
+    /** 
+     * @throws RuntimeException 
      */
-    public function isOutSideRepository(string $path): bool;
+    public function getContents(TrackedPath $trackedPath): string;
 
     /** 
      * @throws RuntimeException 
      */
-    public function getContents(TrackingPath $trackingPath): string;
+    public function getStat(TrackedPath $trackedPath): FileStat;
 
     /** 
-     * @throws RuntimeException 
-     */
-    public function getStat(TrackingPath $trackingPath): FileStat;
-
-    /** 
-     * @return array<TrackingPath>
+     * @return array<TrackedPath>
      */
     public function search(string $path): array;
 }

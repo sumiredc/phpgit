@@ -7,7 +7,7 @@ use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\GitIndexHeader;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\GitIndexHeaderFactory;
 use Tests\Factory\ObjectHashFactory;
@@ -68,17 +68,17 @@ describe('loadEntry, isLoadedEntries, assert', function () {
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('README.md')
+                        TrackedPath::parse('README.md')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/main.go')
+                        TrackedPath::parse('src/main.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/user.go')
+                        TrackedPath::parse('src/domain/user.go')
                     ),
                 ]
             ],
@@ -88,27 +88,27 @@ describe('loadEntry, isLoadedEntries, assert', function () {
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('README.md')
+                        TrackedPath::parse('README.md')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/main.go')
+                        TrackedPath::parse('src/main.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/user.go')
+                        TrackedPath::parse('src/domain/user.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/detail.go')
+                        TrackedPath::parse('src/domain/detail.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/address.go')
+                        TrackedPath::parse('src/domain/address.go')
                     ),
                 ]
             ]
@@ -135,27 +135,27 @@ describe('loadEntry, isLoadedEntries, assert', function () {
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('README.md')
+                        TrackedPath::parse('README.md')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/main.go')
+                        TrackedPath::parse('src/main.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/user.go')
+                        TrackedPath::parse('src/domain/user.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/detail.go')
+                        TrackedPath::parse('src/domain/detail.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/address.go')
+                        TrackedPath::parse('src/domain/address.go')
                     ),
                 ],
                 new OverflowException('Too many entries loaded from index file'),
@@ -180,22 +180,22 @@ describe('loadEntry, isLoadedEntries, assert', function () {
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('README.md')
+                        TrackedPath::parse('README.md')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/main.go')
+                        TrackedPath::parse('src/main.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/user.go')
+                        TrackedPath::parse('src/domain/user.go')
                     ),
                     IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingPath::new('src/domain/detail.go')
+                        TrackedPath::parse('src/domain/detail.go')
                     ),
                 ],
                 new AssertionError('Expected 5 index entries, but only 4 were loaded'),
@@ -240,7 +240,7 @@ describe('addEntry', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new($filename)
+                    TrackedPath::parse($filename)
                 ), [
                     'README.md',
                     'CONTRIBUTING.md',
@@ -287,7 +287,7 @@ describe('addEntry', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new('README.md')
+                    TrackedPath::parse('README.md')
                 ),
                 'newEntry' => IndexEntry::new(
                     FileStat::new([
@@ -306,7 +306,7 @@ describe('addEntry', function () {
                         'blocks' => 10,
                     ]),
                     ObjectHash::new('10a590f971f9b0fe8ae0e11155865cba046d1ae1'),
-                    TrackingPath::new('README.md')
+                    TrackedPath::parse('README.md')
                 ),
                 'key' => 'README.md'
             ]
@@ -347,7 +347,7 @@ describe('addEntry', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new($filename)
+                    TrackedPath::parse($filename)
                 ), [
                     'src/usecase/update_user.go',
                     'CONTRIBUTING.md',
@@ -401,7 +401,7 @@ describe('entriesBlob', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new($filename)
+                    TrackedPath::parse($filename)
                 ), [
                     'CONTRIBUTING.md',
                     'README.md',
@@ -453,7 +453,7 @@ describe('asBlob', function () {
                         'blocks' => 8,
                     ]),
                     ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                    TrackingPath::new($filename)
+                    TrackedPath::parse($filename)
                 ), [
                     'CONTRIBUTING.md',
                     'README.md',
@@ -497,7 +497,7 @@ describe('existsEntry', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                TrackingPath::new($filename)
+                TrackedPath::parse($filename)
             ), [
                 'CONTRIBUTING.md',
                 'README.md',
@@ -513,7 +513,7 @@ describe('existsEntry', function () {
                 $index->addEntry($entry);
             }
 
-            expect($index->existsEntry(TrackingPath::new($path)))->toBe($expected);
+            expect($index->existsEntry(TrackedPath::parse($path)))->toBe($expected);
         }
     )
         ->with([
@@ -551,7 +551,7 @@ describe('existsEntryByFilename', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                TrackingPath::new($filename)
+                TrackedPath::parse($filename)
             ), [
                 'CONTRIBUTING.md',
                 'README.md',
@@ -605,7 +605,7 @@ describe('removeEntryByFilename', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::new('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                TrackingPath::new($filename)
+                TrackedPath::parse($filename)
             ), [
                 'CONTRIBUTING.md',
                 'README.md',
@@ -624,7 +624,7 @@ describe('removeEntryByFilename', function () {
             $index->removeEntryByFilename($path);
 
             expect($index->existsEntryByFilename($path))->toBe(false);
-            expect($index->existsEntry(TrackingPath::new($path)))->toBe(false);
+            expect($index->existsEntry(TrackedPath::parse($path)))->toBe(false);
         }
     )
         ->with([

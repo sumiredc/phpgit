@@ -6,7 +6,7 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\SegmentTree;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 use Phpgit\Service\SaveTreeObjectService;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\SegmentTreeFactory;
@@ -39,21 +39,21 @@ describe('__invoke', function () {
                     'README.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHash::parse('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                        TrackingPath::new('README.md'),
+                        TrackedPath::parse('README.md'),
                     ),
                     'html' => [
                         'errors' => [
                             'forbidden.html' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHash::parse('9f13bdd41b1e8ebebc40e061aaa7204a1d87df79'),
-                                TrackingPath::new('html/errors/forbidden.html'),
+                                TrackedPath::parse('html/errors/forbidden.html'),
                             ),
                         ],
                         'public' => [
                             'index.html' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHash::parse('f6013a00b362253c64368d6eebc50ea2131754e2'),
-                                TrackingPath::new('html/public/index.html')
+                                TrackedPath::parse('html/public/index.html')
                             ),
                         ],
                     ]

@@ -14,7 +14,7 @@ use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\AddRequest;
 use Throwable;
@@ -65,7 +65,7 @@ final class AddUseCase
         }
     }
 
-    /** @return array<TrackingPath> */
+    /** @return array<TrackedPath> */
     private function searchTarget(string $path): array
     {
         $targets = $this->fileRepository->search($path);
@@ -78,9 +78,9 @@ final class AddUseCase
         return $targets;
     }
 
-    private function hashObject(TrackingPath $trackingPath): ObjectHash
+    private function hashObject(TrackedPath $trackedPath): ObjectHash
     {
-        $content = $this->fileRepository->getContents($trackingPath);
+        $content = $this->fileRepository->getContents($trackedPath);
         $blobObject = BlobObject::new($content);
         $objectHash = ObjectHash::new($blobObject->data);
 
@@ -93,11 +93,11 @@ final class AddUseCase
 
     private function updateIndex(
         GitIndex $gitIndex,
-        TrackingPath $trackingPath,
+        TrackedPath $trackedPath,
         ObjectHash $objectHash
     ): void {
-        $fileStat = $this->fileRepository->getStat($trackingPath);
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
+        $fileStat = $this->fileRepository->getStat($trackedPath);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackedPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);

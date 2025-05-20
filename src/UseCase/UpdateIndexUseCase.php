@@ -15,7 +15,7 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\UpdateIndexRequest;
@@ -60,9 +60,14 @@ final class UpdateIndexUseCase
      */
     private function actionAdd(string $file): Result
     {
-        $trackingPath = TrackingPath::new($file);
+        $trackedPath = try_or_throw(
+            fn() => TrackedPath::parse($file),
+            UseCaseException::class,
+            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
+        );
+
         throw_unless(
-            $this->fileRepository->exists($trackingPath),
+            $this->fileRepository->exists($trackedPath),
             new UseCaseException(sprintf(
                 "error: %s: does not exist and --remove not passed\nfatal: Unable to process path %s",
                 $file,
@@ -70,7 +75,7 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $content = $this->fileRepository->getContents($trackingPath);
+        $content = $this->fileRepository->getContents($trackedPath);
         $blobObject = BlobObject::new($content);
         $objectHash = ObjectHash::new($blobObject->data);
 
@@ -78,11 +83,11 @@ final class UpdateIndexUseCase
             $this->objectRepository->save($blobObject);
         }
 
-        $fileStat = $this->fileRepository->getStat($trackingPath);
+        $fileStat = $this->fileRepository->getStat($trackedPath);
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackedPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
@@ -121,9 +126,13 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $trackingPath = TrackingPath::new($file);
+        $trackedPath = try_or_throw(
+            fn() => TrackedPath::parse($file),
+            UseCaseException::class,
+            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
+        );
         throw_unless(
-            $this->fileRepository->exists($trackingPath),
+            $this->fileRepository->exists($trackedPath),
             new UseCaseException(sprintf(
                 "error: %s: does not exist and --remove not passed\nfatal: Unable to process path %s",
                 $file,
@@ -131,7 +140,7 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $content = $this->fileRepository->getContents($trackingPath);
+        $content = $this->fileRepository->getContents($trackedPath);
         $blobObject = BlobObject::new($content);
         $objectHash = ObjectHash::new($blobObject->data);
 
@@ -139,8 +148,8 @@ final class UpdateIndexUseCase
             $this->objectRepository->save($blobObject);
         }
 
-        $fileStat = $this->fileRepository->getStat($trackingPath);
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
+        $fileStat = $this->fileRepository->getStat($trackedPath);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackedPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
@@ -194,10 +203,14 @@ final class UpdateIndexUseCase
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        $trackingPath = TrackingPath::new($file);
+        $trackedPath = try_or_throw(
+            fn() => TrackedPath::parse($file),
+            UseCaseException::class,
+            sprintf('fatal: %s: \'%s\' is outside repository at \'%s\'', $file, $file, F_GIT_TRACKING_ROOT)
+        );
         $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
 
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackedPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);

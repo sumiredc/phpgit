@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace Phpgit\Infra\Repository;
 
-use InvalidArgumentException;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
-use Phpgit\Domain\TrackingPath;
+use Phpgit\Domain\TrackedPath;
 use RuntimeException;
 
 readonly final class FileRepository implements FileRepositoryInterface
 {
-    public function exists(TrackingPath $trackingPath): bool
+    public function exists(TrackedPath $trackedPath): bool
     {
-        $filename = $trackingPath->fullPath();
+        $filename = $trackedPath->full();
 
         return is_file($filename) && is_readable($filename);
     }
@@ -26,9 +25,9 @@ readonly final class FileRepository implements FileRepositoryInterface
         return is_file($filename) && is_readable($filename);
     }
 
-    public function existsDir(TrackingPath $trackingPath): bool
+    public function existsDir(TrackedPath $trackedPath): bool
     {
-        $dirname = $trackingPath->fullPath();
+        $dirname = $trackedPath->full();
 
         return is_dir($dirname) && is_readable($dirname);
     }
@@ -40,49 +39,14 @@ readonly final class FileRepository implements FileRepositoryInterface
         return is_dir($dirname) && is_readable($dirname);
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
-    public function isOutSideRepository(string $path): bool
-    {
-        if (
-            strpos($path, '/') === 0
-            || strpos($path, '~') === 0
-        ) {
-            return true;
-        }
-
-        $segments = explode('/', $path);
-        $resolvePath = function (array $carry, string $segment): array {
-            if ($segment === '..') {
-                if (empty($carry)) {
-                    throw new InvalidArgumentException('Outside repository');
-                }
-                array_pop($carry);
-            } else if (!in_array($segment, ['', '.'], true)) {
-                $carry[] = $segment;
-            }
-
-            return $carry;
-        };
-
-        try {
-            array_reduce($segments, $resolvePath, []);
-
-            return false;
-        } catch (InvalidArgumentException) {
-            return true;
-        }
-    }
-
     /** 
      * @throws RuntimeException 
      */
-    public function getContents(TrackingPath $trackingPath): string
+    public function getContents(TrackedPath $trackedPath): string
     {
-        $content = file_get_contents($trackingPath->fullPath());
+        $content = file_get_contents($trackedPath->full());
         if ($content === false) {
-            throw new RuntimeException(sprintf('failed to get contents: %s', $trackingPath->fullPath()));
+            throw new RuntimeException(sprintf('failed to get contents: %s', $trackedPath->full()));
         }
 
         return $content;
@@ -91,27 +55,27 @@ readonly final class FileRepository implements FileRepositoryInterface
     /** 
      * @throws RuntimeException 
      */
-    public function getStat(TrackingPath $trackingPath): FileStat
+    public function getStat(TrackedPath $trackedPath): FileStat
     {
-        $stat = stat($trackingPath->fullPath());
+        $stat = stat($trackedPath->full());
         if ($stat === false) {
-            throw new RuntimeException(sprintf('failed to get stat: %s', $trackingPath->fullPath()));
+            throw new RuntimeException(sprintf('failed to get stat: %s', $trackedPath->full()));
         }
 
         return FileStat::new($stat);
     }
 
     /** 
-     * @return array<TrackingPath>
+     * @return array<TrackedPath>
      */
     public function search(string $path): array
     {
-        $trackingPath = TrackingPath::new($path);
-        if ($this->exists($trackingPath)) {
-            return [$trackingPath];
+        $trackedPath = TrackedPath::parse($path);
+        if ($this->exists($trackedPath)) {
+            return [$trackedPath];
         }
 
-        if ($this->existsDir($trackingPath)) {
+        if ($this->existsDir($trackedPath)) {
             return $this->searchDir($path);
         }
 
@@ -124,7 +88,7 @@ readonly final class FileRepository implements FileRepositoryInterface
             $dir = '/';
         }
 
-        /** @param array<TrackingPath> $targets */
+        /** @param array<TrackedPath> $targets */
         function searchFile(string $dir, array &$targets): void
         {
             // include ignore paths (ex: .ignore)
@@ -147,8 +111,8 @@ readonly final class FileRepository implements FileRepositoryInterface
                 }
 
                 if (is_file($fullPath)) {
-                    $trackingPath = TrackingPath::fromFullPath($fullPath);
-                    $targets[] = $trackingPath;
+                    $trackedPath = TrackedPath::parse($fullPath);
+                    $targets[] = $trackedPath;
                 }
 
                 if (is_dir($fullPath)) {
@@ -180,7 +144,7 @@ readonly final class FileRepository implements FileRepositoryInterface
         $targets = [];
         foreach ($fullPaths as $fullPath) {
             if (is_file($fullPath)) {
-                $targets[] = TrackingPath::fromFullPath($fullPath);
+                $targets[] = TrackedPath::parse($fullPath);
             }
         }
 

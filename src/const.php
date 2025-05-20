@@ -53,4 +53,6 @@ define('GIT_LOG_ALL_REF_UPDATES', $env['LOG_ALL_REF_UPDATES']);
 define('GIT_IGNORE_CASE', $env['IGNORE_CASE']);
 define('GIT_PRE_COMPOSE_UNICODE', $env['PRE_COMPOSE_UNICODE']);
 
+define('ROOT_DIR', getenv('HOME') ?: getenv('USERPROFILE'));
+
 unset($env, $appEnv);
