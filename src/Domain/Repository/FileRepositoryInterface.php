@@ -13,8 +13,6 @@ interface FileRepositoryInterface
 
     public function existsDir(TrackedPath $trackedPath): bool;
 
-    public function existsDirByDirname(string $dir): bool;
-
     /** 
      * @throws RuntimeException 
      */

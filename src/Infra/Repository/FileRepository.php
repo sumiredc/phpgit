@@ -25,13 +25,6 @@ readonly final class FileRepository implements FileRepositoryInterface
         return is_dir($dirname) && is_readable($dirname);
     }
 
-    public function existsDirByDirname(string $dir): bool
-    {
-        $dirname = sprintf('%s/%s', F_GIT_TRACKING_ROOT, $dir);
-
-        return is_dir($dirname) && is_readable($dirname);
-    }
-
     /** 
      * @throws RuntimeException 
      */
