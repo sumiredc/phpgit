@@ -13,9 +13,27 @@ interface FileRepositoryInterface
 
     public function existsByFilename(string $file): bool;
 
-    /** @throws RuntimeException */
+    public function existsDir(TrackingFile $trackingFile): bool;
+
+    public function existsDirByDirname(string $dir): bool;
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function isOutSideRepository(string $path): bool;
+
+    /** 
+     * @throws RuntimeException 
+     */
     public function getContents(TrackingFile $trackingFile): string;
 
-    /** @throws RuntimeException */
+    /** 
+     * @throws RuntimeException 
+     */
     public function getStat(TrackingFile $trackingFile): FileStat;
+
+    /** 
+     * @return array<TrackingFile>
+     */
+    public function search(string $path): array;
 }
