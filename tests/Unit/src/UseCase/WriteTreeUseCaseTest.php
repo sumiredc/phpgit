@@ -63,7 +63,7 @@ describe('__invoke', function () {
                         'error: invalid object %s %s for \'%s\'',
                         $entry->gitFileMode->value,
                         $entry->objectHash->value,
-                        $entry->trackingFile->path
+                        $entry->trackingPath->value
                     ),
                     'fatal: git-write-tree: error building trees'
                 ];

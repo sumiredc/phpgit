@@ -9,7 +9,7 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\HashObjectRequest;
 use Throwable;
@@ -23,18 +23,18 @@ final class HashObjectUseCase
 
     public function __invoke(HashObjectRequest $request): Result
     {
-        $trackingFile = TrackingFile::new($request->file);
+        $trackingPath = TrackingPath::new($request->file);
 
         try {
             throw_unless(
-                $this->fileRepository->exists($trackingFile),
+                $this->fileRepository->exists($trackingPath),
                 new UseCaseException(sprintf(
                     'fatal: could not open \'$s\' for reading: No such file or directory',
                     $request->file
                 ))
             );
 
-            $content = $this->fileRepository->getContents($trackingFile);
+            $content = $this->fileRepository->getContents($trackingPath);
             $blobObject = BlobObject::new($content);
             $objectHash = ObjectHash::new($blobObject->data);
 

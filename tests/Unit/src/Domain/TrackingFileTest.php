@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 
 describe('new', function () {
     it('should match arg to property', function (string $path) {
-        $actual = TrackingFile::new($path);
+        $actual = TrackingPath::new($path);
 
-        expect($actual->path)->toBe($path);
+        expect($actual->value)->toBe($path);
     })
         ->with([
             ['README.md'],
@@ -19,7 +19,7 @@ describe('new', function () {
 
 describe('fullPath', function () {
     it('return to fullPath', function (string $path, string $expected) {
-        $actual = TrackingFile::new($path);
+        $actual = TrackingPath::new($path);
 
         expect($actual->fullPath())->toBe($expected);
     })

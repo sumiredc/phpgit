@@ -7,14 +7,14 @@ namespace Phpgit\Infra\Repository;
 use InvalidArgumentException;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use RuntimeException;
 
 readonly final class FileRepository implements FileRepositoryInterface
 {
-    public function exists(TrackingFile $trackingFile): bool
+    public function exists(TrackingPath $trackingPath): bool
     {
-        $filename = $trackingFile->fullPath();
+        $filename = $trackingPath->fullPath();
 
         return is_file($filename) && is_readable($filename);
     }
@@ -26,9 +26,9 @@ readonly final class FileRepository implements FileRepositoryInterface
         return is_file($filename) && is_readable($filename);
     }
 
-    public function existsDir(TrackingFile $trackingFile): bool
+    public function existsDir(TrackingPath $trackingPath): bool
     {
-        $dirname = $trackingFile->fullPath();
+        $dirname = $trackingPath->fullPath();
 
         return is_dir($dirname) && is_readable($dirname);
     }
@@ -78,11 +78,11 @@ readonly final class FileRepository implements FileRepositoryInterface
     /** 
      * @throws RuntimeException 
      */
-    public function getContents(TrackingFile $trackingFile): string
+    public function getContents(TrackingPath $trackingPath): string
     {
-        $content = file_get_contents($trackingFile->fullPath());
+        $content = file_get_contents($trackingPath->fullPath());
         if ($content === false) {
-            throw new RuntimeException(sprintf('failed to get contents: %s', $trackingFile->fullPath()));
+            throw new RuntimeException(sprintf('failed to get contents: %s', $trackingPath->fullPath()));
         }
 
         return $content;
@@ -91,27 +91,27 @@ readonly final class FileRepository implements FileRepositoryInterface
     /** 
      * @throws RuntimeException 
      */
-    public function getStat(TrackingFile $trackingFile): FileStat
+    public function getStat(TrackingPath $trackingPath): FileStat
     {
-        $stat = stat($trackingFile->fullPath());
+        $stat = stat($trackingPath->fullPath());
         if ($stat === false) {
-            throw new RuntimeException(sprintf('failed to get stat: %s', $trackingFile->fullPath()));
+            throw new RuntimeException(sprintf('failed to get stat: %s', $trackingPath->fullPath()));
         }
 
         return FileStat::new($stat);
     }
 
     /** 
-     * @return array<TrackingFile>
+     * @return array<TrackingPath>
      */
     public function search(string $path): array
     {
-        $trackingFile = TrackingFile::new($path);
-        if ($this->exists($trackingFile)) {
-            return [$trackingFile];
+        $trackingPath = TrackingPath::new($path);
+        if ($this->exists($trackingPath)) {
+            return [$trackingPath];
         }
 
-        if ($this->existsDir($trackingFile)) {
+        if ($this->existsDir($trackingPath)) {
             return $this->searchDir($path);
         }
 
@@ -124,7 +124,7 @@ readonly final class FileRepository implements FileRepositoryInterface
             $dir = '/';
         }
 
-        /** @param array<TrackingFile> $targets */
+        /** @param array<TrackingPath> $targets */
         function searchFile(string $dir, array &$targets): void
         {
             // include ignore paths (ex: .ignore)
@@ -147,8 +147,8 @@ readonly final class FileRepository implements FileRepositoryInterface
                 }
 
                 if (is_file($fullPath)) {
-                    $trackingFile = TrackingFile::fromFullPath($fullPath);
-                    $targets[] = $trackingFile;
+                    $trackingPath = TrackingPath::fromFullPath($fullPath);
+                    $targets[] = $trackingPath;
                 }
 
                 if (is_dir($fullPath)) {
@@ -180,7 +180,7 @@ readonly final class FileRepository implements FileRepositoryInterface
         $targets = [];
         foreach ($fullPaths as $fullPath) {
             if (is_file($fullPath)) {
-                $targets[] = TrackingFile::fromFullPath($fullPath);
+                $targets[] = TrackingPath::fromFullPath($fullPath);
             }
         }
 

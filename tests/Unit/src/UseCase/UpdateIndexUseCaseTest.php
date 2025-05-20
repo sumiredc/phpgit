@@ -11,7 +11,7 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\UpdateIndexRequest;
 use Phpgit\UseCase\UpdateIndexUseCase;
@@ -188,7 +188,7 @@ describe('__invoke -> actionRemove', function () {
             $entry = IndexEntry::new(
                 FileStatFactory::new(),
                 ObjectHashFactory::new(),
-                TrackingFile::new($file)
+                TrackingPath::new($file)
             );
             $index = GitIndex::new();
             $index->addEntry($entry);
@@ -231,7 +231,7 @@ describe('__invoke -> actionRemove', function () {
             $entry = IndexEntry::new(
                 FileStatFactory::new(),
                 ObjectHashFactory::new(),
-                TrackingFile::new($file)
+                TrackingPath::new($file)
             );
             $index = GitIndex::new();
             $index->addEntry($entry);
@@ -369,7 +369,7 @@ describe('__invoke -> actionRemove', function () {
             $entry = IndexEntry::new(
                 FileStat::newForCacheinfo(33180), # dummy
                 ObjectHash::new('dummy object'), # dummy
-                TrackingFile::new($file)
+                TrackingPath::new($file)
             );
             $index = GitIndex::new();
             $index->addEntry($entry);

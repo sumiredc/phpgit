@@ -8,7 +8,7 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\LsFilesRequest;
 use Phpgit\UseCase\LsFilesUseCase;
@@ -69,7 +69,7 @@ describe('__invoke -> actionDefault', function () {
             $entries = array_map(fn(string $path) => IndexEntry::new(
                 FileStatFactory::new(),
                 ObjectHashFactory::new(),
-                TrackingFile::new($path),
+                TrackingPath::new($path),
             ), $paths);
 
             $index = GitIndex::new();
@@ -146,7 +146,7 @@ describe('__invoke -> actionTag', function () {
             $entries = array_map(fn(string $path) => IndexEntry::new(
                 FileStatFactory::new(),
                 ObjectHashFactory::new(),
-                TrackingFile::new($path),
+                TrackingPath::new($path),
             ), $paths);
 
             $index = GitIndex::new();
@@ -223,7 +223,7 @@ describe('__invoke -> actionZero', function () {
             $entries = array_map(fn(string $path) => IndexEntry::new(
                 FileStatFactory::new(),
                 ObjectHashFactory::new(),
-                TrackingFile::new($path),
+                TrackingPath::new($path),
             ), $paths);
 
             $index = GitIndex::new();
@@ -284,7 +284,7 @@ describe('__invoke -> actionStage', function () {
                 return IndexEntry::new(
                     FileStat::newForCacheinfo($mode),
                     ObjectHash::parse($hash),
-                    TrackingFile::new($path),
+                    TrackingPath::new($path),
                 );
             }, $args);
 
@@ -365,7 +365,7 @@ describe('__invoke -> actionDebug', function () {
                 return IndexEntry::new(
                     $stat,
                     ObjectHashFactory::new(),
-                    TrackingFile::new($path),
+                    TrackingPath::new($path),
                 );
             }, $args);
 

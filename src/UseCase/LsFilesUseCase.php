@@ -44,7 +44,7 @@ final class LsFilesUseCase
     {
         $gitIndex = $this->indexRepository->get();
         $list = array_map(
-            fn(IndexEntry $indexEntry) => $indexEntry->trackingFile->path,
+            fn(IndexEntry $indexEntry) => $indexEntry->trackingPath->value,
             $gitIndex->entries
         );
 
@@ -60,7 +60,7 @@ final class LsFilesUseCase
             fn(IndexEntry $indexEntry) => sprintf(
                 '%s %s',
                 'H', // TODO: 一旦 Hash object で固定 https://git-scm.com/docs/git-ls-files#Documentation/git-ls-files.txt--t
-                $indexEntry->trackingFile->path
+                $indexEntry->trackingPath->value
             ),
             $gitIndex->entries
         );
@@ -75,7 +75,7 @@ final class LsFilesUseCase
         $gitIndex = $this->indexRepository->get();
         $line = array_reduce(
             $gitIndex->entries,
-            fn(string $carry, IndexEntry $indexEntry) => sprintf("%s%s\0", $carry, $indexEntry->trackingFile->path),
+            fn(string $carry, IndexEntry $indexEntry) => sprintf("%s%s\0", $carry, $indexEntry->trackingPath->value),
             '',
         );
 
@@ -93,7 +93,7 @@ final class LsFilesUseCase
                 $indexEntry->gitFileMode->value,
                 $indexEntry->objectHash->value,
                 $indexEntry->stage,
-                $indexEntry->trackingFile->path,
+                $indexEntry->trackingPath->value,
             ),
             $gitIndex->entries
         );
@@ -108,7 +108,7 @@ final class LsFilesUseCase
         $gitIndex = $this->indexRepository->get();
         foreach ($gitIndex->entries as $indexEntry) {
             $entry = [
-                $indexEntry->trackingFile->path,
+                $indexEntry->trackingPath->value,
                 sprintf("  ctime: %d:%d", $indexEntry->ctime, $indexEntry->ctimeNano),
                 sprintf("  mtime: %d:%d", $indexEntry->mtime, $indexEntry->mtimeNano),
                 sprintf("  dev: %d\tino: %d", $indexEntry->dev, $indexEntry->ino),

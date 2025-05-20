@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\SegmentTree;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\ObjectHashFactory;
 
@@ -29,7 +29,7 @@ describe('addEntry', function () {
                 IndexEntry::new(
                     FileStatFactory::new(),
                     ObjectHashFactory::new(),
-                    TrackingFile::new('README.md'),
+                    TrackingPath::new('README.md'),
                 )
             ]
         ]);
@@ -49,7 +49,7 @@ describe('addEntry', function () {
                 IndexEntry::new(
                     FileStatFactory::new(),
                     ObjectHashFactory::new(),
-                    TrackingFile::new('README.md'),
+                    TrackingPath::new('README.md'),
                 ),
                 new InvalidArgumentException('already exists key: README.md')
             ]
@@ -104,7 +104,7 @@ describe('isExists', function () {
                 'indexEntry' => IndexEntry::new(
                     FileStatFactory::new(),
                     ObjectHashFactory::new(),
-                    TrackingFile::new('docs/FEATURES.md'),
+                    TrackingPath::new('docs/FEATURES.md'),
                 ),
                 'checkSegmentName' => 'FEATURES.md',
                 'expected' => true
@@ -115,7 +115,7 @@ describe('isExists', function () {
                 'indexEntry' => IndexEntry::new(
                     FileStatFactory::new(),
                     ObjectHashFactory::new(),
-                    TrackingFile::new('src/main.go'),
+                    TrackingPath::new('src/main.go'),
                 ),
                 'checkSegmentName' => 'main.rs',
                 'expected' => false
@@ -172,19 +172,19 @@ describe('getEntry', function () {
                     'README.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('README.md'),
+                        TrackingPath::new('README.md'),
                     ),
                     'FEATURES.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('FEATURES.md'),
+                        TrackingPath::new('FEATURES.md'),
                     ),
                 ],
                 'segmentName' => 'README.md',
                 'expected' => IndexEntry::new(
                     FileStatFactory::new(),
                     ObjectHashFactory::new(),
-                    TrackingFile::new('README.md'),
+                    TrackingPath::new('README.md'),
                 )
             ],
         ]);
@@ -206,12 +206,12 @@ describe('getEntry', function () {
                     'README.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('README.md'),
+                        TrackingPath::new('README.md'),
                     ),
                     'FEATURES.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('FEATURES.md'),
+                        TrackingPath::new('FEATURES.md'),
                     ),
                 ],
                 'segmentName' => 'main.go',
@@ -316,17 +316,17 @@ describe('getSegmentTree', function () {
                     'README.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('README.md'),
+                        TrackingPath::new('README.md'),
                     ),
                     'FEATURES.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('FEATURES.md'),
+                        TrackingPath::new('FEATURES.md'),
                     ),
                     'docs' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('docs'),
+                        TrackingPath::new('docs'),
                     ),
                 ],
                 'segmentName' => 'docs',

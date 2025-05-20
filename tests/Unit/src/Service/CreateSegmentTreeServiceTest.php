@@ -8,7 +8,7 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\SegmentTree;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Phpgit\Exception\InvalidObjectException;
 use Phpgit\Service\CreateSegmentTreeService;
 use Tests\Factory\FileStatFactory;
@@ -45,7 +45,7 @@ describe('__invoke', function () {
                 'entries' => array_map(fn(string $file) => IndexEntry::new(
                     FileStatFactory::new(),
                     ObjectHashFactory::new(),
-                    TrackingFile::new($file),
+                    TrackingPath::new($file),
                 ), [
                     'README.md',
                     'CONTRIBUTING.md',
@@ -59,41 +59,41 @@ describe('__invoke', function () {
                     'CONTRIBUTING.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('CONTRIBUTING.md'),
+                        TrackingPath::new('CONTRIBUTING.md'),
                     ),
                     'README.md' => IndexEntry::new(
                         FileStatFactory::new(),
                         ObjectHashFactory::new(),
-                        TrackingFile::new('README.md'),
+                        TrackingPath::new('README.md'),
                     ),
                     'html' => [
                         'errors' => [
                             'forbidden.html' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHashFactory::new(),
-                                TrackingFile::new('html/errors/forbidden.html'),
+                                TrackingPath::new('html/errors/forbidden.html'),
                             ),
                             'internal-server-error.html' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHashFactory::new(),
-                                TrackingFile::new('html/errors/internal-server-error.html')
+                                TrackingPath::new('html/errors/internal-server-error.html')
                             ),
                             'not-found.html' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHashFactory::new(),
-                                TrackingFile::new('html/errors/not-found.html')
+                                TrackingPath::new('html/errors/not-found.html')
                             ),
                         ],
                         'public' => [
                             'index.html' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHashFactory::new(),
-                                TrackingFile::new('html/public/index.html')
+                                TrackingPath::new('html/public/index.html')
                             ),
                             'style.css' => IndexEntry::new(
                                 FileStatFactory::new(),
                                 ObjectHashFactory::new(),
-                                TrackingFile::new('html/public/style.css')
+                                TrackingPath::new('html/public/style.css')
                             ),
                         ],
                     ]
@@ -121,7 +121,7 @@ describe('__invoke', function () {
                 array_map(fn(string $file) => IndexEntry::new(
                     FileStat::newForCacheinfo(33188),
                     ObjectHash::parse('829c3804401b0727f70f73d4415e162400cbe57b'),
-                    TrackingFile::new($file),
+                    TrackingPath::new($file),
                 ), [
                     'README.md',
                     'CONTRIBUTING.md',

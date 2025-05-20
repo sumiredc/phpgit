@@ -8,14 +8,14 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\IndexEntryHeader;
 use Phpgit\Domain\IndexObjectType;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Phpgit\Domain\UnixPermission;
 
 describe('new', function () {
     it('should initializes to match args to properties', function (
         FileStat $stat,
         ObjectHash $hash,
-        TrackingFile $file,
+        TrackingPath $file,
         UnixPermission $expectedUnixPermission,
         GitFileMode $gitFileMode,
     ) {
@@ -34,7 +34,7 @@ describe('new', function () {
         expect($actual->gid)->toBe($stat->gid);
         expect($actual->size)->toBe($stat->size);
         expect($actual->objectHash)->toBe($hash);
-        expect($actual->trackingFile)->toBe($file);
+        expect($actual->trackingPath)->toBe($file);
         expect($actual->assumeValidFlag)->toBe(0);
         expect($actual->extendedFlag)->toBe(0);
         expect($actual->stage)->toBe(0);
@@ -58,7 +58,7 @@ describe('new', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::parse('243182b9d0b085c06005bf773212854bf7cd4694'),
-                TrackingFile::new('README.md'),
+                TrackingPath::new('README.md'),
                 UnixPermission::RwRR,
                 GitFileMode::DefaultFile,
             ],
@@ -79,7 +79,7 @@ describe('new', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::parse('3f454a98e586d1aa0d322e19afd5e67e08f2d3c8'),
-                TrackingFile::new('CONTRIBUTING.md'),
+                TrackingPath::new('CONTRIBUTING.md'),
                 UnixPermission::RwxRxRx,
                 GitFileMode::ExeFile,
             ]
@@ -123,7 +123,7 @@ describe('parse', function () {
         expect($actual->gid)->toBe($gid);
         expect($actual->size)->toBe($size);
         expect($actual->objectHash->value)->toBe($hash);
-        expect($actual->trackingFile->path)->toBe($path);
+        expect($actual->trackingPath->value)->toBe($path);
         expect($actual->assumeValidFlag)->toBe($assumeValidFlag);
         expect($actual->extendedFlag)->toBe($extendedFlag);
         expect($actual->stage)->toBe($stage);
@@ -163,10 +163,10 @@ describe('asBlob', function () {
     it('match to new IndexEntry blob', function (
         FileStat $fileStat,
         ObjectHash $objectHash,
-        TrackingFile $trackingFile,
+        TrackingPath $trackingPath,
         string $blob
     ) {
-        $entry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $entry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
 
         expect($entry->asBlob())->toBe($blob);
     })
@@ -188,7 +188,7 @@ describe('asBlob', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::parse('243182b9d0b085c06005bf773212854bf7cd4694'),
-                TrackingFile::new('README.md'),
+                TrackingPath::new('README.md'),
                 // ctime, ctimeNano, mtime, mtimeNano, dev, ino, mode
                 pack('N*', 1744515853, 0, 1744515852, 0, 16777232, 63058704, 33188)
                     // uid, gid, size
@@ -216,7 +216,7 @@ describe('asBlob', function () {
                     'blocks' => 8,
                 ]),
                 ObjectHash::parse('8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d'),
-                TrackingFile::new('src/main.go'),
+                TrackingPath::new('src/main.go'),
                 // ctime, ctimeNano, mtime, mtimeNano, dev, ino, mode
                 pack('N*', 1745070011, 0, 1744383756, 0, 16777233, 63467197, 33261)
                     // uid, gid, size
@@ -287,10 +287,10 @@ describe('flags', function () {
     it('match to new IndexEntry flags', function (
         FileStat $fileStat,
         ObjectHash $objectHash,
-        TrackingFile $trackingFile,
+        TrackingPath $trackingPath,
         int $expected
     ) {
-        $entry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $entry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
 
         expect($entry->flags())->toBe($expected);
     })
@@ -312,7 +312,7 @@ describe('flags', function () {
                     'blocks' => 8,
                 ]),
                 'objectHash' => ObjectHash::parse('243182b9d0b085c06005bf773212854bf7cd4694'),
-                'trackingFile' => TrackingFile::new('README.md'),
+                'trackingPath' => TrackingPath::new('README.md'),
                 'expected' => 0,
             ],
 

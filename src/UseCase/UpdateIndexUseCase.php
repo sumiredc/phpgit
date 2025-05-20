@@ -15,7 +15,7 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
-use Phpgit\Domain\TrackingFile;
+use Phpgit\Domain\TrackingPath;
 use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\UpdateIndexRequest;
@@ -60,9 +60,9 @@ final class UpdateIndexUseCase
      */
     private function actionAdd(string $file): Result
     {
-        $trackingFile = TrackingFile::new($file);
+        $trackingPath = TrackingPath::new($file);
         throw_unless(
-            $this->fileRepository->exists($trackingFile),
+            $this->fileRepository->exists($trackingPath),
             new UseCaseException(sprintf(
                 "error: %s: does not exist and --remove not passed\nfatal: Unable to process path %s",
                 $file,
@@ -70,7 +70,7 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $content = $this->fileRepository->getContents($trackingFile);
+        $content = $this->fileRepository->getContents($trackingPath);
         $blobObject = BlobObject::new($content);
         $objectHash = ObjectHash::new($blobObject->data);
 
@@ -78,11 +78,11 @@ final class UpdateIndexUseCase
             $this->objectRepository->save($blobObject);
         }
 
-        $fileStat = $this->fileRepository->getStat($trackingFile);
+        $fileStat = $this->fileRepository->getStat($trackingPath);
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
@@ -121,9 +121,9 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $trackingFile = TrackingFile::new($file);
+        $trackingPath = TrackingPath::new($file);
         throw_unless(
-            $this->fileRepository->exists($trackingFile),
+            $this->fileRepository->exists($trackingPath),
             new UseCaseException(sprintf(
                 "error: %s: does not exist and --remove not passed\nfatal: Unable to process path %s",
                 $file,
@@ -131,7 +131,7 @@ final class UpdateIndexUseCase
             ))
         );
 
-        $content = $this->fileRepository->getContents($trackingFile);
+        $content = $this->fileRepository->getContents($trackingPath);
         $blobObject = BlobObject::new($content);
         $objectHash = ObjectHash::new($blobObject->data);
 
@@ -139,8 +139,8 @@ final class UpdateIndexUseCase
             $this->objectRepository->save($blobObject);
         }
 
-        $fileStat = $this->fileRepository->getStat($trackingFile);
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $fileStat = $this->fileRepository->getStat($trackingPath);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);
@@ -194,10 +194,10 @@ final class UpdateIndexUseCase
 
         $gitIndex = $this->indexRepository->getOrCreate();
 
-        $trackingFile = TrackingFile::new($file);
+        $trackingPath = TrackingPath::new($file);
         $fileStat = FileStat::newForCacheinfo($gitFileMode->fileStatMode());
 
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingFile);
+        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackingPath);
         $gitIndex->addEntry($indexEntry);
 
         $this->indexRepository->save($gitIndex);

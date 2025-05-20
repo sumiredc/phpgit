@@ -57,7 +57,7 @@ final class GitIndex
             throw new OverflowException('Too many entries loaded from index file');
         }
 
-        $this->entries[$indexEntry->trackingFile->path] = $indexEntry;
+        $this->entries[$indexEntry->trackingPath->value] = $indexEntry;
 
         return count($this->entries);
     }
@@ -92,7 +92,7 @@ final class GitIndex
      */
     public function addEntry(IndexEntry $indexEntry): int
     {
-        $this->entries[$indexEntry->trackingFile->path] = $indexEntry;
+        $this->entries[$indexEntry->trackingPath->value] = $indexEntry;
 
         // sort path in asc
         ksort($this->entries, SORT_STRING);
@@ -117,9 +117,9 @@ final class GitIndex
         return sprintf('%s%s', $data, $checksum);
     }
 
-    public function existsEntry(TrackingFile $trackingFile): bool
+    public function existsEntry(TrackingPath $trackingPath): bool
     {
-        return array_key_exists($trackingFile->path, $this->entries);
+        return array_key_exists($trackingPath->value, $this->entries);
     }
 
     public function existsEntryByFilename(string $file): bool

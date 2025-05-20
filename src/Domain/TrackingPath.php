@@ -6,10 +6,10 @@ namespace Phpgit\Domain;
 
 use InvalidArgumentException;
 
-readonly final class TrackingFile
+readonly final class TrackingPath
 {
     private function __construct(
-        public readonly string $path
+        public readonly string $value
     ) {}
 
     public static function new(string $path): self
@@ -33,6 +33,6 @@ readonly final class TrackingFile
 
     public function fullPath(): string
     {
-        return sprintf('%s/%s', F_GIT_TRACKING_ROOT, $this->path);
+        return sprintf('%s/%s', F_GIT_TRACKING_ROOT, $this->value);
     }
 }

@@ -14,7 +14,7 @@ final class IndexEntryFactory
         return IndexEntry::new(
             FileStatFactory::new(),
             ObjectHashFactory::new(),
-            TrackingFileFactory::new(),
+            TrackingPathFactory::new(),
         );
     }
 }
