@@ -28,7 +28,8 @@ final class AddRequest extends Request
                     . '[other: required] relative path from project root',
                 ''
             )
-            ->addOption('all', 'A', InputOption::VALUE_NONE);
+            ->addOption('all', 'A', InputOption::VALUE_NONE)
+            ->addOption('update', 'u', InputOption::VALUE_NONE);
 
         self::unlock();
     }
@@ -42,6 +43,7 @@ final class AddRequest extends Request
 
         $action = match (true) {
             boolval($input->getOption('all')) => AddOptionAction::All,
+            boolval($input->getOption('update')) => AddOptionAction::Update,
             default => AddOptionAction::Default,
         };
 

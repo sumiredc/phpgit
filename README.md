@@ -20,7 +20,7 @@ docker compose run --rm php {command-name}
 7. `commit-tree <tree> -m <message> [ -p <parent> ]`
 8. `rev-parse <args>...`
 9. `update-ref <ref> <newvalue>`
-10. `add <path> [ --all ]`
+10. `add <path> [ --all | --update ]`
 
 ## 📚️ Libraries & Resources
 

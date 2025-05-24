@@ -36,6 +36,7 @@ describe('__invoke', function () {
         'returns to success and files add staging',
         function (
             bool $all,
+            bool $update,
             string $path,
             array $targets,
             array $resolvedTargets,
@@ -43,6 +44,7 @@ describe('__invoke', function () {
         ) {
             $this->input
                 ->shouldReceive('getOption')->with('all')->andReturn($all)
+                ->shouldReceive('getOption')->with('update')->andReturn($update)
                 ->shouldReceive('getArgument')->with('path')->andReturn($path);
 
             $this->fileRepository->shouldReceive('search')->withArgs(expectEqualArg(TrackedPath::parse($path)))->andReturn($targets)->once();
@@ -95,6 +97,7 @@ describe('__invoke', function () {
         ->with([
             fn() => [
                 'all' => false,
+                'upadate' => false,
                 'path' => 'src/main.go',
                 'targets' => [TrackedPath::parse('src/main.go')],
                 'resolvedTargets' => [
@@ -109,6 +112,7 @@ describe('__invoke', function () {
             ],
             fn() => [
                 'all' => true,
+                'upadate' => false,
                 'path' => '',
                 'targets' => [
                     TrackedPath::parse('src/main.go'),
@@ -140,6 +144,7 @@ describe('__invoke', function () {
         function (string $path, string $expected) {
             $this->input
                 ->shouldReceive('getOption')->with('all')->andReturn(false)
+                ->shouldReceive('getOption')->with('update')->andReturn(false)
                 ->shouldReceive('getArgument')->with('path')->andReturn($path);
 
             $this->printer->shouldReceive('writeln')->with($expected)->once();
@@ -173,6 +178,7 @@ describe('__invoke', function () {
         function (string $path, string $expected) {
             $this->input
                 ->shouldReceive('getOption')->with('all')->andReturn(false)
+                ->shouldReceive('getOption')->with('update')->andReturn(false)
                 ->shouldReceive('getArgument')->with('path')->andReturn($path);
 
             $this->fileRepository->shouldReceive('search')->withArgs(expectEqualArg(TrackedPath::parse($path)))->andReturn([])->once();
@@ -200,6 +206,7 @@ describe('__invoke', function () {
         function (Throwable $th, Throwable $expected) {
             $this->input
                 ->shouldReceive('getOption')->with('all')->andReturn(true)
+                ->shouldReceive('getOption')->with('update')->andReturn(false)
                 ->shouldReceive('getArgument')->with('path')->andReturn('');
 
             $this->fileRepository->shouldReceive('search')->andThrow($th)->once();

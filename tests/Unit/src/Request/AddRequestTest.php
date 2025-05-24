@@ -26,7 +26,8 @@ describe('setUp', function () {
                         . '[other: required] relative path from project root',
                     ''
                 )->once()
-                ->shouldReceive('addOption')->with('all', 'A', InputOption::VALUE_NONE)->once();
+                ->shouldReceive('addOption')->with('all', 'A', InputOption::VALUE_NONE)->once()
+                ->shouldReceive('addOption')->with('update', 'u', InputOption::VALUE_NONE)->once();
 
             AddRequest::setUp($this->command);
 
@@ -51,11 +52,13 @@ describe('new', function () {
         function (
             string $path,
             bool $all,
+            bool $update,
             AddOptionAction $expectedAction,
             string $expectedPath
         ) {
             $this->input
                 ->shouldReceive('getOption')->with('all')->andReturn($all)->once()
+                ->shouldReceive('getOption')->with('update')->andReturn($update)->once()
                 ->shouldReceive('getArgument')->with('path')->andReturn($path)->once();
 
             $actual = AddRequest::new($this->input);
@@ -65,15 +68,17 @@ describe('new', function () {
         }
     )
         ->with([
-            'specifies path' => ['dummy/path', false, AddOptionAction::Default, 'dummy/path'],
-            'specifies all option' => ['', true, AddOptionAction::All, '']
+            'specifies path' => ['dummy/path', false, false, AddOptionAction::Default, 'dummy/path'],
+            'specifies all option' => ['', true, false, AddOptionAction::All, ''],
+            'specifies all option' => ['update/dir', false, true, AddOptionAction::Update, 'update/dir']
         ]);
 
     it(
-        'throws an exception, on unspecifies all option and path',
+        'throws an exception, on unspecifies all, update option and path',
         function () {
             $this->input
                 ->shouldReceive('getOption')->with('all')->andReturnFalse()->once()
+                ->shouldReceive('getOption')->with('update')->andReturnFalse()->once()
                 ->shouldReceive('getArgument')->with('path')->andReturn('')->once();
 
             expect(fn() => AddRequest::new($this->input))

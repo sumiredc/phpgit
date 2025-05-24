@@ -8,4 +8,5 @@ enum AddOptionAction
 {
     case Default;
     case All;
+    case Update;
 }
