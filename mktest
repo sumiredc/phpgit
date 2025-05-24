@@ -16,11 +16,11 @@ files=$(echo "$output" \
 for file in $files; do
     case "$file" in
         # ignore
-        Command/*|Infra/*|Lib/*)
+        src/Command/*|src/Infra/*)
             continue
             ;;
         # feature
-        Command/*|Infray/*)
+        src/Command/*|src/Infra/*)
             path="tests/Feature/${file}Test.php"
             ;;
         # unit

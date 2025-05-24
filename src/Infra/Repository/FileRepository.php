@@ -54,31 +54,26 @@ readonly final class FileRepository implements FileRepositoryInterface
     /** 
      * @return array<TrackedPath>
      */
-    public function search(string $path): array
+    public function search(TrackedPath $trackedPath): array
     {
-        $trackedPath = TrackedPath::parse($path);
         if ($this->exists($trackedPath)) {
             return [$trackedPath];
         }
 
         if ($this->existsDir($trackedPath)) {
-            return $this->searchDir($path);
+            return $this->searchDir($trackedPath);
         }
 
-        return $this->searchByPattern($path);
+        return $this->searchByPattern($trackedPath);
     }
 
-    private function searchDir(string $dir): array
+    private function searchDir(TrackedPath $trackedPath): array
     {
-        if ($dir === '.') {
-            $dir = '/';
-        }
-
         /** @param array<TrackedPath> $targets */
-        function searchFile(string $dir, array &$targets): void
+        function searchFile(TrackedPath $trackedPath, array &$targets): void
         {
             // include ignore paths (ex: .ignore)
-            $pattern = sprintf("%s%s", rtrim($dir, '/'), '/{.[!.],}*');
+            $pattern = sprintf("%s%s", rtrim($trackedPath->full(), '/'), '/{.[!.],}*');
             $fullPaths = glob($pattern, GLOB_BRACE);
 
             if ($fullPaths === false) {
@@ -88,6 +83,7 @@ readonly final class FileRepository implements FileRepositoryInterface
                 ));
             }
 
+            /** @var array<string> $fullPaths */
             foreach ($fullPaths as $fullPath) {
                 if (
                     !is_readable($fullPath)
@@ -106,13 +102,13 @@ readonly final class FileRepository implements FileRepositoryInterface
                         continue;
                     }
 
-                    searchFile($fullPath, $targets);
+                    searchFile(TrackedPath::parse($fullPath), $targets);
                 }
             }
         };
 
         $targets = [];
-        searchFile(sprintf('%s/%s', F_GIT_TRACKING_ROOT, $dir), $targets);
+        searchFile($trackedPath, $targets);
 
         return $targets;
     }
@@ -120,11 +116,11 @@ readonly final class FileRepository implements FileRepositoryInterface
     /**
      * @throws RuntimeException
      */
-    private function searchByPattern(string $pattern): array
+    private function searchByPattern(TrackedPath $trackedPath): array
     {
-        $fullPaths = glob($pattern);
+        $fullPaths = glob($trackedPath->value);
         if ($fullPaths === false) {
-            throw new RuntimeException(sprintf('failed to glob: %s', $pattern));
+            throw new RuntimeException(sprintf('failed to glob: %s', $trackedPath->value));
         }
 
         $targets = [];

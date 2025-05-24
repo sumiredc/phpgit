@@ -26,5 +26,5 @@ interface FileRepositoryInterface
     /** 
      * @return array<TrackedPath>
      */
-    public function search(string $path): array;
+    public function search(TrackedPath $trackedPath): array;
 }

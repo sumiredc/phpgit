@@ -20,13 +20,13 @@ final class BlobObject extends GitObject
         parent::__construct($header, $body);
     }
 
-    public static function new(string $content): self
+    public static function new(string $contents): self
     {
         $type = ObjectType::Blob;
-        $size = strlen($content);
+        $size = strlen($contents);
         $header = GitObjectHeader::new($type, $size);
 
-        return new self($header, $content);
+        return new self($header, $contents);
     }
 
     public function prettyPrint(): string

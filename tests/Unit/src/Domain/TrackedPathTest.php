@@ -21,6 +21,7 @@ describe('parse', function () {
             ['/test/project/full/path/directory/', 'full/path/directory/'],
             ['/test/project/return/../src/path.c', 'src/path.c'],
             ['/root/../test/project/koko.rs', 'koko.rs'],
+            ['.', ''],
         ]);
 
     it(

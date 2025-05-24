@@ -15,7 +15,10 @@ readonly final class TrackedPath
     public static function parse(string $path): self
     {
         $fullPath = self::resolve($path);
-        if (!str_starts_with($fullPath, sprintf('%s/', F_GIT_TRACKING_ROOT))) {
+        if (
+            !str_starts_with($fullPath, sprintf('%s/', F_GIT_TRACKING_ROOT))
+            && $fullPath !== F_GIT_TRACKING_ROOT
+        ) {
             throw new InvalidArgumentException(
                 sprintf('The specified path "%s" is outside of the repository', $path)
             );
@@ -37,8 +40,8 @@ readonly final class TrackedPath
             $path = sprintf('%s/%s', F_GIT_TRACKING_ROOT, $path);
         }
 
-        $segments = [];
         $end = str_ends_with($path, '/') ? '/' : '';
+        $segments = [];
 
         foreach (explode('/', $path) as $segment) {
             if (in_array($segment, ['', '.'], true)) {

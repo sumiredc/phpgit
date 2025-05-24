@@ -6,7 +6,6 @@ namespace Phpgit\UseCase;
 
 use Phpgit\Domain\BlobObject;
 use Phpgit\Domain\CommandInput\AddOptionAction;
-use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Result;
@@ -31,27 +30,32 @@ final class AddUseCase
     public function __invoke(AddRequest $request): Result
     {
         $path = $request->action === AddOptionAction::All
-            ? '.'
+            ? F_GIT_TRACKING_ROOT
             : $request->path;
 
         try {
-            throw_if(
-                $this->fileRepository->isOutsideRepository($path),
-                new UseCaseException(sprintf(
+            $trackedPath = try_or_throw(
+                fn() => TrackedPath::parse($path),
+                UseCaseException::class,
+                sprintf(
                     'fatal: %s: \'%s\' is outside repository at \'%s\'',
                     $request->path,
                     $request->path,
                     F_GIT_TRACKING_ROOT
-                ))
+                )
             );
 
-            $targets = $this->searchTarget($path);
+            $targets = $this->searchTarget($trackedPath);
             $gitIndex = $this->indexRepository->getOrCreate();
 
             foreach ($targets as $target) {
-                $hash = $this->hashObject($target);
-                $this->updateIndex($gitIndex, $target, $hash);
+                $objectHash = $this->hashObject($target);
+                $fileStat = $this->fileRepository->getStat($target);
+                $indexEntry = IndexEntry::new($fileStat, $objectHash, $target);
+                $gitIndex->addEntry($indexEntry);
             }
+
+            $this->indexRepository->save($gitIndex);
 
             return Result::Success;
         } catch (UseCaseException $ex) {
@@ -66,13 +70,13 @@ final class AddUseCase
     }
 
     /** @return array<TrackedPath> */
-    private function searchTarget(string $path): array
+    private function searchTarget(TrackedPath $trackedPath): array
     {
-        $targets = $this->fileRepository->search($path);
+        $targets = $this->fileRepository->search($trackedPath);
 
         throw_if(
             empty($targets),
-            new UseCaseException(sprintf('fatal: pathspec \'%s\' did not match any files', $path))
+            new UseCaseException(sprintf('fatal: pathspec \'%s\' did not match any files', $trackedPath->value))
         );
 
         return $targets;
@@ -80,26 +84,14 @@ final class AddUseCase
 
     private function hashObject(TrackedPath $trackedPath): ObjectHash
     {
-        $content = $this->fileRepository->getContents($trackedPath);
-        $blobObject = BlobObject::new($content);
+        $contents = $this->fileRepository->getContents($trackedPath);
+        $blobObject = BlobObject::new($contents);
         $objectHash = ObjectHash::new($blobObject->data);
 
         if (!$this->objectRepository->exists($objectHash)) {
-            $this->objectRepository->save($blobObject);
+            return $this->objectRepository->save($blobObject);
         }
 
         return $objectHash;
-    }
-
-    private function updateIndex(
-        GitIndex $gitIndex,
-        TrackedPath $trackedPath,
-        ObjectHash $objectHash
-    ): void {
-        $fileStat = $this->fileRepository->getStat($trackedPath);
-        $indexEntry = IndexEntry::new($fileStat, $objectHash, $trackedPath);
-        $gitIndex->addEntry($indexEntry);
-
-        $this->indexRepository->save($gitIndex);
     }
 }
