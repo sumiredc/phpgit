@@ -7,7 +7,6 @@ namespace Phpgit\Service;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
-use Phpgit\Domain\ObjectType;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\SegmentTree;
 use Phpgit\Domain\TreeObject;
@@ -58,11 +57,9 @@ readonly final class SaveTreeObjectService
                 ],
 
                 // NOTE: This branch is not reached, because it manages by SegmentTree class.
-                // @codeCoverageIgnoreStart
                 default => throw new UnexpectedValueException(
                     sprintf('unexpected segment value: %s', gettype($segmentValue))
-                ),
-                // @codeCoverageIgnoreEnd
+                ), // @codeCoverageIgnore
             };
 
             $treeObject->appendEntry($mode, $hash, $segment);

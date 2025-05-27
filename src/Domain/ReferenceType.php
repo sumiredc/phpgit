@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
-use RuntimeException;
+use UnhandledMatchError;
 
 enum ReferenceType
 {
@@ -26,7 +26,9 @@ enum ReferenceType
             self::Stash => GIT_REFS_STASH_DIR,
             self::Replace => GIT_REFS_REPLACE_DIR,
             self::Bisect => GIT_REFS_BISECT_DIR,
-            default => throw new RuntimeException(sprintf('not support value: %s', $this->name)), // @codeCoverageIgnore
+            default => throw new UnhandledMatchError(
+                sprintf('Unhandled enum case: %s', $this->name)
+            ), // @codeCoverageIgnore
         };
     }
 }
