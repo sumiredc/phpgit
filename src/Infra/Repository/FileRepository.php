@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Phpgit\Infra\Repository;
 
 use Phpgit\Domain\FileStat;
+use Phpgit\Domain\HashMap;
+use Phpgit\Domain\PathType;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\TrackedPath;
 use RuntimeException;
+use UnhandledMatchError;
 
 readonly final class FileRepository implements FileRepositoryInterface
 {
@@ -52,25 +55,30 @@ readonly final class FileRepository implements FileRepositoryInterface
     }
 
     /** 
-     * @return array<TrackedPath>
+     * @return HashMap<TrackedPath> key is relative path
      */
-    public function search(TrackedPath $trackedPath): array
+    public function search(TrackedPath $trackedPath, PathType $pathType): HashMap
     {
-        if ($this->exists($trackedPath)) {
-            return [$trackedPath];
-        }
-
-        if ($this->existsDir($trackedPath)) {
-            return $this->searchDir($trackedPath);
-        }
-
-        return $this->searchByPattern($trackedPath);
+        return match ($pathType) {
+            PathType::File => HashMap::parse([
+                $trackedPath->value => $trackedPath
+            ]),
+            PathType::Directory => $this->searchDir($trackedPath),
+            PathType::Pattern => $this->searchByPattern($trackedPath),
+            PathType::Unknown => HashMap::new(),
+            default => throw new UnhandledMatchError(
+                sprintf('Unhandled enum case: %s', $pathType->name)
+            ), // @codeCoverageIgnore
+        };
     }
 
-    private function searchDir(TrackedPath $trackedPath): array
+    /** 
+     * @return HashMap<TrackedPath> key is relative path
+     */
+    private function searchDir(TrackedPath $trackedPath): HashMap
     {
-        /** @param array<TrackedPath> $targets */
-        function searchFile(TrackedPath $trackedPath, array &$targets): void
+        /** @param HashMap<TrackedPath> $targets - this is reference arg */
+        function searchFile(TrackedPath $trackedPath, HashMap $targets): void
         {
             // include ignore paths (ex: .ignore)
             $pattern = sprintf("%s%s", rtrim($trackedPath->full(), '/'), '/{.[!.],}*');
@@ -94,7 +102,7 @@ readonly final class FileRepository implements FileRepositoryInterface
 
                 if (is_file($fullPath)) {
                     $trackedPath = TrackedPath::parse($fullPath);
-                    $targets[] = $trackedPath;
+                    $targets->set($trackedPath->value, $trackedPath);
                 }
 
                 if (is_dir($fullPath)) {
@@ -107,26 +115,27 @@ readonly final class FileRepository implements FileRepositoryInterface
             }
         };
 
-        $targets = [];
+        $targets = HashMap::new();
         searchFile($trackedPath, $targets);
 
         return $targets;
     }
 
     /**
+     * @return HashMap<TrackedPath> key is relative path
      * @throws RuntimeException
      */
-    private function searchByPattern(TrackedPath $trackedPath): array
+    private function searchByPattern(TrackedPath $trackedPath): HashMap
     {
         $fullPaths = glob($trackedPath->value);
         if ($fullPaths === false) {
             throw new RuntimeException(sprintf('failed to glob: %s', $trackedPath->value));
         }
 
-        $targets = [];
+        $targets = HashMap::new();
         foreach ($fullPaths as $fullPath) {
             if (is_file($fullPath)) {
-                $targets[] = TrackedPath::parse($fullPath);
+                $targets->set($trackedPath->value, TrackedPath::parse($fullPath));
             }
         }
 

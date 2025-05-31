@@ -9,6 +9,8 @@ use Phpgit\Infra\Repository\FileRepository;
 use Phpgit\Infra\Repository\IndexRepository;
 use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Request\AddRequest;
+use Phpgit\Service\GetPathTypeService;
+use Phpgit\Service\StagedEntriesByPathService;
 use Phpgit\UseCase\AddUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -35,12 +37,16 @@ final class AddCommand extends Command implements CommandInterface
         $fileRepository = new FileRepository;
         $objectRepository = new ObjectRepository;
         $indexRepository = new IndexRepository;
+        $getPathTypeService = new GetPathTypeService($fileRepository);
+        $stagedEntriesByPathService = new StagedEntriesByPathService;
 
         $useCase = new AddUseCase(
             $printer,
             $fileRepository,
             $objectRepository,
             $indexRepository,
+            $getPathTypeService,
+            $stagedEntriesByPathService
         );
 
         $result = $useCase($request);

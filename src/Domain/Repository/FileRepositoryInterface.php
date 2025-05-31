@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phpgit\Domain\Repository;
 
 use Phpgit\Domain\FileStat;
+use Phpgit\Domain\HashMap;
+use Phpgit\Domain\PathType;
 use Phpgit\Domain\TrackedPath;
 
 interface FileRepositoryInterface
@@ -24,7 +26,7 @@ interface FileRepositoryInterface
     public function getStat(TrackedPath $trackedPath): FileStat;
 
     /** 
-     * @return array<TrackedPath>
+     * @return HashMap<TrackedPath> key is path
      */
-    public function search(TrackedPath $trackedPath): array;
+    public function search(TrackedPath $trackedPath, PathType $pathType): HashMap;
 }

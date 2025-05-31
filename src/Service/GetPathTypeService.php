@@ -10,7 +10,7 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Service\PathPattern;
 use Phpgit\Domain\TrackedPath;
 
-final class GetPathTypeService
+final class GetPathTypeService implements GetPathTypeServiceInterface
 {
     public function __construct(
         public readonly FileRepositoryInterface $fileRepository

@@ -57,9 +57,7 @@ readonly final class SaveTreeObjectService
                 ],
 
                 // NOTE: This branch is not reached, because it manages by SegmentTree class.
-                default => throw new UnexpectedValueException(
-                    sprintf('unexpected segment value: %s', gettype($segmentValue))
-                ), // @codeCoverageIgnore
+                default => throw new UnexpectedValueException(sprintf('unexpected segment value: %s', gettype($segmentValue))), // @codeCoverageIgnore
             };
 
             $treeObject->appendEntry($mode, $hash, $segment);
