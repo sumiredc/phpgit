@@ -4,4 +4,4 @@ WORKDIR /app
 
 COPY php.ini "$PHP_INI_DIR/php.ini"
 
-ENTRYPOINT [ "php", "src/app.php" ]
+ENTRYPOINT [ "php", "git" ]

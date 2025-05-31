@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+$outputs = [];
+$exitCode = 0;
+
+$argv[0] = 'php ./src/app.php';
+$command = implode(' ', $argv);
+
+exec($command, $outputs, $exitCode);
+
+foreach ($outputs as $output) printf("%s\n", $output);
+
+exit($exitCode);

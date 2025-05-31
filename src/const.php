@@ -7,6 +7,12 @@ use Phpgit\Env;
 $appEnv = getenv('APP_ENV', true);
 $env = Env::load($appEnv ? ".env.$appEnv" : '.env');
 
+$currentDir = match (true) {
+    $appEnv === 'testing' => sys_get_temp_dir(),
+    isset($env['CURRENT_DIR']) && !!$env['CURRENT_DIR'] => $env['CURRENT_DIR'],
+    default => getcwd(),
+};
+
 // git index
 const GIT_INDEX_SIGNATURE = 'DIRC';
 const GIT_INDEX_VERSION = 2;
@@ -29,7 +35,7 @@ const GIT_INDEX = 'index';
 const GIT_CONFIG = 'config';
 
 // absolute path (ex: /{project-path}/{gitdir}/refs/heads)
-define('F_GIT_TRACKING_ROOT', sprintf("%s/%s", $env['CURRENT_DIR'] ?: getcwd(), GIT_TRACKING_ROOT));
+define('F_GIT_TRACKING_ROOT', sprintf("%s/%s", $currentDir, GIT_TRACKING_ROOT));
 const F_GIT_DIR = F_GIT_TRACKING_ROOT . '/' . GIT_DIR;
 const F_GIT_OBJECTS_DIR = F_GIT_DIR . '/' . GIT_OBJECTS_DIR;
 const F_GIT_REFS_HEADS_DIR = F_GIT_DIR . '/' . GIT_REFS_HEADS_DIR;
@@ -55,4 +61,4 @@ define('GIT_PRE_COMPOSE_UNICODE', $env['PRE_COMPOSE_UNICODE']);
 
 define('ROOT_DIR', getenv('HOME') ?: getenv('USERPROFILE'));
 
-unset($env, $appEnv);
+unset($env, $appEnv, $currentDir);

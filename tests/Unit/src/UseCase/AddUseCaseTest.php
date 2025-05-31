@@ -448,7 +448,7 @@ describe('__invoke', function () {
         }
     )
         ->with([
-            ['/outside/path', 'fatal: /outside/path: \'/outside/path\' is outside repository at \'/test/project\'']
+            ['/outside/path', 'fatal: /outside/path: \'/outside/path\' is outside repository at \'/tmp/project\'']
         ]);
 
     it(

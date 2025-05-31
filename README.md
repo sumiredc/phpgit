@@ -3,10 +3,10 @@
 ## 🚀 How to use
 
 ```sh
-php ./src/app.php {command-name}
+php git {command}
 
 # use docker container
-docker compose run --rm php {command-name}
+docker compose run --rm phpgit {command}
 ```
 
 ## 💻️ Features

@@ -1,5 +1,5 @@
 services:
-  php:
+  phpgit:
     build:
       dockerfile: Dockerfile
     entrypoint: ["php", "src/app.php"]

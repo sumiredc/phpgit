@@ -17,10 +17,10 @@ describe('parse', function () {
             ['README.md', 'README.md'],
             ['src/main.go', 'src/main.go'],
             ['src/user/../http/handler.go', 'src/http/handler.go'],
-            ['/test/project/full/path/file.js', 'full/path/file.js'],
-            ['/test/project/full/path/directory/', 'full/path/directory/'],
-            ['/test/project/return/../src/path.c', 'src/path.c'],
-            ['/root/../test/project/koko.rs', 'koko.rs'],
+            ['/tmp/project/full/path/file.js', 'full/path/file.js'],
+            ['/tmp/project/full/path/directory/', 'full/path/directory/'],
+            ['/tmp/project/return/../src/path.c', 'src/path.c'],
+            ['/root/../tmp/project/koko.rs', 'koko.rs'],
             ['.', ''],
         ]);
 
@@ -39,9 +39,9 @@ describe('parse', function () {
                 )
             ],
             [
-                '/test/full/path/file.js',
+                '/tmp/full/path/file.js',
                 new InvalidArgumentException(
-                    'The specified path "/test/full/path/file.js" is outside of the repository'
+                    'The specified path "/tmp/full/path/file.js" is outside of the repository'
                 )
             ],
 
@@ -58,9 +58,9 @@ describe('parse', function () {
                 )
             ],
             [
-                '/test/project/../../../src/path.c',
+                '/tmp/project/../../../src/path.c',
                 new InvalidArgumentException(
-                    'Invalid path traversal detected: "/test/project/../../../src/path.c" escapes the repository root'
+                    'Invalid path traversal detected: "/tmp/project/../../../src/path.c" escapes the repository root'
                 )
             ],
         ]);
