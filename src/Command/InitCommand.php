@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'init',
     description: 'Create an empty Git repository or reinitialize an existing one',
 )]
-final class InitCommand extends Command
+final class InitCommand extends Command implements CommandInterface
 {
     protected function configure(): void {}
 

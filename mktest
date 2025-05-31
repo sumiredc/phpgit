@@ -16,7 +16,7 @@ files=$(echo "$output" \
 for file in $files; do
     case "$file" in
         # ignore
-        src/Command/*|src/Infra/*)
+        src/Command/*)
             continue
             ;;
         # feature

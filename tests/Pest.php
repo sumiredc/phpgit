@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+if (!file_exists('/.dockerenv')) {
+    exit("❌ Tests must be run inside Docker.\n");
+}
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -24,9 +30,11 @@ pest()->extend(Tests\TestCase::class)->in('Feature');
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
+expect()->extend('toBeExitSuccess', fn() => $this->toBe(0));
+expect()->extend('toBeExitFailure', fn() => $this->toBe(1));
+expect()->extend('toBeExitInvalid', fn() => $this->toBe(2));
+expect()->extend('toBeExitInternalError', fn() => $this->toBe(70));
+expect()->extend('toBeExitGitError', fn() => $this->toBe(128));
 
 /*
 |--------------------------------------------------------------------------
@@ -55,4 +63,18 @@ function expectEqualArg(mixed ...$expected): callable
 
         return true;
     };
+}
+
+function refreshGit(): void
+{
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator(F_GIT_DIR, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+
+    foreach ($files as $file) {
+        $file->isDir() ? rmdir($file) : unlink($file);
+    }
+
+    rmdir(F_GIT_DIR);
 }
