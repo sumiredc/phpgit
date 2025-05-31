@@ -11,7 +11,7 @@ use Phpgit\Domain\SegmentTree;
 use Phpgit\Exception\InvalidObjectException;
 use RuntimeException;
 
-readonly final class CreateSegmentTreeService
+readonly final class CreateSegmentTreeService implements CreateSegmentTreeServiceInterface
 {
     public function __construct(
         private readonly ObjectRepositoryInterface $objectRepository

@@ -2,31 +2,45 @@
 
 declare(strict_types=1);
 
-use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
+use Phpgit\Exception\InvalidObjectException;
+use Phpgit\Service\CreateSegmentTreeServiceInterface;
+use Phpgit\Service\SaveTreeObjectServiceInterface;
 use Phpgit\UseCase\WriteTreeUseCase;
 use Tests\Factory\GitIndexFactory;
-use Tests\Factory\IndexEntryFactory;
+use Tests\Factory\SegmentTreeFactory;
 
 beforeEach(function () {
     $this->printer = Mockery::mock(PrinterInterface::class);
     $this->indexRepository = Mockery::mock(IndexRepositoryInterface::class);
-    $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
+    $this->createSegmentTreeService = Mockery::mock(CreateSegmentTreeServiceInterface::class);
+    $this->saveTreeObjectService = Mockery::mock(SaveTreeObjectServiceInterface::class);
 });
 
 describe('__invoke', function () {
     it(
-        'should return success and output object hash',
+        'returns to success and outputs object hash',
         function (ObjectHash $objectHash, string $expected) {
-            $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndexFactory::new())->once();
-            $this->objectRepository->shouldReceive('save')->andReturn($objectHash); // in service
+            $gitIndex = GitIndexFactory::new();
+            $segmentTree = SegmentTreeFactory::new();
+
+            $this->indexRepository->shouldReceive('getOrCreate')->andReturn($gitIndex)->once();
+            $this->createSegmentTreeService->shouldReceive('__invoke')
+                ->withArgs(expectEqualArg($gitIndex))->andReturn($segmentTree)->once();
+            $this->saveTreeObjectService->shouldReceive('__invoke')
+                ->withArgs(expectEqualArg($segmentTree))->andReturn($objectHash)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
-            $useCase = new WriteTreeUseCase($this->printer, $this->indexRepository, $this->objectRepository);
+            $useCase = new WriteTreeUseCase(
+                $this->printer,
+                $this->indexRepository,
+                $this->createSegmentTreeService,
+                $this->saveTreeObjectService,
+            );
             $actual = $useCase();
 
             expect($actual)->toBe(Result::Success);
@@ -40,46 +54,45 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'should return error and output fatal message, when throws the InvalidObjectException',
-        function (GitIndex $index, array $expected) {
-            $this->indexRepository->shouldReceive('getOrCreate')->andReturn($index)->once();
-            $this->objectRepository->shouldReceive('exists')->andReturn(false);
+        'returns error and output fatal message, on throws the InvalidObjectException',
+        function (Throwable $th, array $expected) {
+            $this->indexRepository->shouldReceive('getOrCreate')->andReturn(GitIndexFactory::new())->once();
+            $this->createSegmentTreeService->shouldReceive('__invoke')->andThrow($th)->once();
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
-            $useCase = new WriteTreeUseCase($this->printer, $this->indexRepository, $this->objectRepository);
+            $useCase = new WriteTreeUseCase(
+                $this->printer,
+                $this->indexRepository,
+                $this->createSegmentTreeService,
+                $this->saveTreeObjectService,
+            );
             $actual = $useCase();
 
             expect($actual)->toBe(Result::GitError);
         }
     )
         ->with([
-            function () {
-                $index = GitIndexFactory::new();
-                $entry = IndexEntryFactory::new();
-                $index->addEntry($entry);
-
-                $expected = [
-                    sprintf(
-                        'error: invalid object %s %s for \'%s\'',
-                        $entry->gitFileMode->value,
-                        $entry->objectHash->value,
-                        $entry->trackedPath->value
-                    ),
+            [
+                new InvalidObjectException('error: invalid object 100644 829c3804401b0727f70f73d4415e162400cbe57b for \'dummy/path\''),
+                [
+                    'error: invalid object 100644 829c3804401b0727f70f73d4415e162400cbe57b for \'dummy/path\'',
                     'fatal: git-write-tree: error building trees'
-                ];
-
-                return [$index, $expected];
-            }
+                ]
+            ]
         ]);
 
     it(
         'should return error and output stack trace, when throws the Exception',
         function (Throwable $expected) {
             $this->indexRepository->shouldReceive('getOrCreate')->andThrow($expected)->once();
-            $this->objectRepository->shouldReceive('exists')->andReturn(false);
             $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
-            $useCase = new WriteTreeUseCase($this->printer, $this->indexRepository, $this->objectRepository);
+            $useCase = new WriteTreeUseCase(
+                $this->printer,
+                $this->indexRepository,
+                $this->createSegmentTreeService,
+                $this->saveTreeObjectService,
+            );
             $actual = $useCase();
 
             expect($actual)->toBe(Result::InternalError);

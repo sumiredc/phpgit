@@ -10,6 +10,7 @@ use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
 use Phpgit\Request\UpdateRefRequest;
+use Phpgit\Service\ResolveRevisionServiceInterface;
 use Phpgit\UseCase\UpdateRefUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -17,6 +18,7 @@ beforeEach(function () {
     $this->printer = Mockery::mock(PrinterInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
     $this->refRepository = Mockery::mock(RefRepositoryInterface::class);
+    $this->resolveRevisionService = Mockery::mock(ResolveRevisionServiceInterface::class);
     $this->input = Mockery::mock(InputInterface::class);
 
     $command = Mockery::mock(CommandInterface::class);
@@ -33,10 +35,16 @@ describe('__invoke::actionUpdate', function () {
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturnNull();
+
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturnNull()->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -49,20 +57,31 @@ describe('__invoke::actionUpdate', function () {
     it(
         'returns to success and update reference',
         function (string $ref, string $newValue) {
-            $reference = Reference::parse($ref);
-            $newObject = ObjectHash::parse($newValue);
-
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturnNull();
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
-            $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once();
-            $this->refRepository->shouldReceive('createOrUpdate')->withArgs(expectEqualArg($reference, $newObject))->once();
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once();
+            $this->objectRepository
+                ->shouldReceive('exists')->andReturn(true)->once();
+            $this->refRepository
+                ->shouldReceive('createOrUpdate')->withArgs(expectEqualArg($reference, $newObject))->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -74,18 +93,27 @@ describe('__invoke::actionUpdate', function () {
 
     it(
         'returns to success and strict update reference',
-        function (string $ref, string $newValue, string $oldValue, string $currentValue) {
-            $reference = Reference::parse($ref);
-            $newObject = ObjectHash::parse($newValue);
-            $oldObject = ObjectHash::parse($oldValue);
-            $currentObject = ObjectHash::parse($currentValue);
-
+        function (
+            string $ref,
+            string $newValue,
+            string $oldValue,
+            string $currentValue
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturn($oldValue);
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+            $oldObject = ObjectHash::parse($oldValue);
+            $currentObject = ObjectHash::parse($currentValue);
+
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once()
+                ->shouldReceive('__invoke')->with($oldValue)->andReturn($oldObject)->once();
             $this->objectRepository
                 ->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once()
                 ->shouldReceive('exists')->withArgs(expectEqualArg($oldObject))->andReturn(true)->once();
@@ -94,7 +122,12 @@ describe('__invoke::actionUpdate', function () {
                 ->shouldReceive('update')->withArgs(expectEqualArg($reference, $newObject))->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -111,17 +144,32 @@ describe('__invoke::actionUpdate', function () {
 
     it(
         'throws the UseCaseException and outputs fatal message, on newobject is not sha1',
-        function (string $ref, string $newValue, string $expected) {
+        function (
+            string $ref,
+            string $newValue,
+            string $expected
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturnNull();
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
+
+            $reference = Reference::parse($ref);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturnNull()->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -137,18 +185,35 @@ describe('__invoke::actionUpdate', function () {
 
     it(
         'throws the UseCaseException and outputs fatal message, on newobject does exists',
-        function (string $ref, string $newValue, string $expected) {
+        function (
+            string $ref,
+            string $newValue,
+            string $expected
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturnNull();
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
-            $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($newValue)))->andReturn(false)->once();
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once();
+            $this->objectRepository
+                ->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -164,18 +229,37 @@ describe('__invoke::actionUpdate', function () {
 
     it(
         'throws the UseCaseException and outputs fatal message, on oldobject is not sha1',
-        function (string $ref, string $newValue, string $oldValue, string $expected) {
+        function (
+            string $ref,
+            string $newValue,
+            string $oldValue,
+            string $expected
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturn($oldValue);
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
-            $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($newValue)))->andReturn(true)->once();
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once()
+                ->shouldReceive('__invoke')->with($oldValue)->andReturnNull()->once();
+            $this->objectRepository
+                ->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -192,20 +276,38 @@ describe('__invoke::actionUpdate', function () {
 
     it(
         'throws the UseCaseException and outputs fatal message, on oldobject does exists',
-        function (string $ref, string $newValue, string $oldValue, string $expected) {
+        function (
+            string $ref,
+            string $newValue,
+            string $oldValue,
+            string $expected
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturn($oldValue);
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+            $oldObject = ObjectHash::parse($oldValue);
+
+            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once()
+                ->shouldReceive('__invoke')->with($oldValue)->andReturn($oldObject)->once();
             $this->objectRepository
-                ->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($newValue)))->andReturn(true)->once()
-                ->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($oldValue)))->andReturn(false)->once();
+                ->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg($oldObject))->andReturn(false)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -222,23 +324,43 @@ describe('__invoke::actionUpdate', function () {
 
     it(
         'throws the UseCaseException and outputs fatal message, on oldobject does not match to currentvalue',
-        function (string $ref, string $newValue, string $oldValue, string $currentValue, string $expected) {
-            $reference = Reference::parse($ref);
-
+        function (
+            string $ref,
+            string $newValue,
+            string $oldValue,
+            string $currentValue,
+            string $expected
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturn($oldValue);
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+            $oldObject = ObjectHash::parse($oldValue);
+            $currentObject = ObjectHash::parse($currentValue);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once()
+                ->shouldReceive('__invoke')->with($oldValue)->andReturn($oldObject)->once();
             $this->objectRepository
-                ->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($newValue)))->andReturn(true)->once()
-                ->shouldReceive('exists')->withArgs(expectEqualArg(ObjectHash::parse($oldValue)))->andReturn(true)->once();
-            $this->refRepository->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn(ObjectHash::parse($currentValue))->once();
+                ->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg($oldObject))->andReturn(true)->once();
+            $this->refRepository
+                ->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn($currentObject)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -265,13 +387,19 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('getOption')->with('delete')->andReturn(true)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturnNull();
+
             $this->refRepository
                 ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once()
                 ->shouldReceive('exists')->withArgs(expectEqualArg($reference))->andReturn(true)->once()
                 ->shouldReceive('delete')->withArgs(expectEqualArg($reference))->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -283,22 +411,35 @@ describe('__invoke::actionDelete', function () {
 
     it(
         'returns to success and strict delete reference',
-        function (string $ref, string $oldValue, string $currentValue) {
-            $reference = Reference::parse($ref);
-            $currentObject = ObjectHash::parse($currentValue);
-
+        function (
+            string $ref,
+            string $oldValue,
+            string $currentValue
+        ) {
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(true)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($oldValue);
+
+            $reference = Reference::parse($ref);
+            $currentObject = ObjectHash::parse($currentValue);
+            $oldObject = ObjectHash::parse($oldValue);
+
             $this->refRepository
                 ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once()
                 ->shouldReceive('exists')->withArgs(expectEqualArg($reference))->andReturn(true)->once()
                 ->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn($currentObject)->once()
                 ->shouldReceive('delete')->withArgs(expectEqualArg($reference))->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($oldValue)->andReturn($oldObject)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::Success);
@@ -319,11 +460,17 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('getOption')->with('delete')->andReturn(true)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturnNull();
+
             $this->refRepository->shouldReceive('dereference')->with($ref)->andReturnNull()->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -340,11 +487,22 @@ describe('__invoke::actionDelete', function () {
                 ->shouldReceive('getOption')->with('delete')->andReturn(true)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($oldValue);
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn(Reference::parse($ref))->once();
+
+            $reference = Reference::parse($ref);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($oldValue)->andReturnNull()->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -361,19 +519,28 @@ describe('__invoke::actionDelete', function () {
     it(
         'throws the UseCaseException and outputs fatal message on the oldvalue does not exists',
         function (string $ref, string $oldValue, string $expected) {
-            $reference = Reference::parse($ref);
-
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(true)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($oldValue);
+
+            $reference = Reference::parse($ref);
+            $oldObject = ObjectHash::parse($oldValue);
+
             $this->refRepository
                 ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once()
                 ->shouldReceive('exists')->withArgs(expectEqualArg($reference))->andReturn(false)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($oldValue)->andReturn($oldObject)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -390,21 +557,30 @@ describe('__invoke::actionDelete', function () {
     it(
         'throws the UseCaseException and outputs fatal message on the oldvalue does not match to currentvalue',
         function (string $ref, string $oldValue, string $currentValue, string $expected) {
-            $reference = Reference::parse($ref);
-            $currentObject = ObjectHash::parse($currentValue);
-
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(true)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($oldValue);
+
+            $reference = Reference::parse($ref);
+            $currentObject = ObjectHash::parse($currentValue);
+            $oldObject = ObjectHash::parse($oldValue);
+
             $this->refRepository
                 ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once()
                 ->shouldReceive('exists')->withArgs(expectEqualArg($reference))->andReturn(true)->once()
                 ->shouldReceive('resolve')->withArgs(expectEqualArg($reference))->andReturn($currentObject)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($oldValue)->andReturn($oldObject)->once();
             $this->printer->shouldReceive('writeln')->with($expected)->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::GitError);
@@ -424,21 +600,33 @@ describe('__invoke', function () {
     it(
         'returns an internal error and outputs stack trace on throws an exception',
         function (string $ref, string $newValue, Throwable $exception, Throwable $expected) {
-            $reference = Reference::parse($ref);
-            $newObject = ObjectHash::parse($newValue);
-
             $this->input
                 ->shouldReceive('getOption')->with('delete')->andReturn(false)
                 ->shouldReceive('getArgument')->with('ref')->andReturn($ref)
                 ->shouldReceive('getArgument')->with('arg1')->andReturn($newValue)
                 ->shouldReceive('getArgument')->with('arg2')->andReturnNull();
-            $this->refRepository->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
-            $this->objectRepository->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once();
-            $this->refRepository->shouldReceive('createOrUpdate')->andThrow($exception)->once();
-            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+
+            $reference = Reference::parse($ref);
+            $newObject = ObjectHash::parse($newValue);
+
+            $this->refRepository
+                ->shouldReceive('dereference')->with($ref)->andReturn($reference)->once();
+            $this->resolveRevisionService
+                ->shouldReceive('__invoke')->with($newValue)->andReturn($newObject)->once();
+            $this->objectRepository
+                ->shouldReceive('exists')->withArgs(expectEqualArg($newObject))->andReturn(true)->once();
+            $this->refRepository
+                ->shouldReceive('createOrUpdate')->andThrow($exception)->once();
+            $this->printer
+                ->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
 
             $request = UpdateRefRequest::new($this->input);
-            $useCase = new UpdateRefUseCase($this->printer, $this->objectRepository, $this->refRepository);
+            $useCase = new UpdateRefUseCase(
+                $this->printer,
+                $this->objectRepository,
+                $this->refRepository,
+                $this->resolveRevisionService
+            );
             $actual = $useCase($request);
 
             expect($actual)->toBe(Result::InternalError);

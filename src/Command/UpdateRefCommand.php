@@ -8,6 +8,7 @@ use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Infra\Repository\RefRepository;
 use Phpgit\Request\UpdateRefRequest;
+use Phpgit\Service\ResolveRevisionService;
 use Phpgit\UseCase\UpdateRefUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -32,7 +33,13 @@ final class UpdateRefCommand extends Command implements CommandInterface
         $printer = new CliPrinter($input, $output);
         $objectRepository = new ObjectRepository;
         $refRepository = new RefRepository;
-        $useCase = new UpdateRefUseCase($printer, $objectRepository, $refRepository);
+
+        $useCase = new UpdateRefUseCase(
+            $printer,
+            $objectRepository,
+            $refRepository,
+            new ResolveRevisionService($refRepository)
+        );
 
         $result = $useCase($request);
 

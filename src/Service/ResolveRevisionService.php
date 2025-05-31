@@ -8,7 +8,7 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 
-readonly final class ResolveRevisionService
+readonly final class ResolveRevisionService implements ResolveRevisionServiceInterface
 {
     public function __construct(
         private readonly RefRepositoryInterface $refRepository

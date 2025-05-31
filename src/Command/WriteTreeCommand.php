@@ -7,6 +7,8 @@ namespace Phpgit\Command;
 use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\IndexRepository;
 use Phpgit\Infra\Repository\ObjectRepository;
+use Phpgit\Service\CreateSegmentTreeService;
+use Phpgit\Service\SaveTreeObjectService;
 use Phpgit\UseCase\WriteTreeUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -27,7 +29,13 @@ final class WriteTreeCommand extends Command
         $printer = new CliPrinter($input, $output);
         $indexRepository = new IndexRepository;
         $objectRepository = new ObjectRepository;
-        $useCase = new WriteTreeUseCase($printer, $indexRepository, $objectRepository);
+
+        $useCase = new WriteTreeUseCase(
+            $printer,
+            $indexRepository,
+            new CreateSegmentTreeService($objectRepository),
+            new SaveTreeObjectService($objectRepository)
+        );
 
         $result = $useCase();
 
