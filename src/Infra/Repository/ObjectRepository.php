@@ -18,18 +18,14 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
         $objectHash = ObjectHash::new($gitObject->data);
 
         $objectDir = sprintf('%s/%s', F_GIT_OBJECTS_DIR, $objectHash->dir);
-        if (!is_dir($objectDir)) {
-            if (!mkdir($objectDir, 0755)) {
-                throw new RuntimeException('failed to mkdir');
-            }
+        if (!is_dir($objectDir) && !@mkdir($objectDir, 0755)) {
+            throw new RuntimeException(sprintf('failed to mkdir: %s', $objectDir));
         }
-
-        $objectPath = sprintf('%s/%s', $objectDir, $objectHash->filename);
 
         $compressed = CompressedPayload::fromOriginal($gitObject->data);
 
-        if (file_put_contents($objectPath, $compressed->value) === false) {
-            throw new RuntimeException('failed to file_put_contents');
+        if (@file_put_contents($objectHash->fullPath(), $compressed->value) === false) {
+            throw new RuntimeException(sprintf('failed to file_put_contents: %s', $objectHash->fullPath()));
         }
 
         return $objectHash;
@@ -38,11 +34,9 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
     /** @throws RuntimeException */
     public function getCompressedPayload(ObjectHash $objectHash): CompressedPayload
     {
-        $path = $objectHash->fullPath();
-
-        $compressed = file_get_contents($path);
+        $compressed = @file_get_contents($objectHash->fullPath());
         if ($compressed === false) {
-            throw new RuntimeException('failed to file_get_contents', 500);
+            throw new RuntimeException(sprintf('failed to file_get_contents: %s', $objectHash->fullPath()));
         }
 
         return CompressedPayload::new($compressed);

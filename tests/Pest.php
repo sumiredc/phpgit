@@ -79,3 +79,16 @@ function refreshGit(): void
 
     rmdir(F_GIT_DIR);
 }
+
+function refreshObjects(): void
+{
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator(F_GIT_OBJECTS_DIR, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+
+    foreach ($files as $file) {
+        $filename = strval($file);
+        $file->isDir() ? rmdir($filename) : unlink($filename);
+    }
+}
