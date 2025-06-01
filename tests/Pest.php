@@ -73,7 +73,8 @@ function refreshGit(): void
     );
 
     foreach ($files as $file) {
-        $file->isDir() ? rmdir($file) : unlink($file);
+        $filename = strval($file);
+        $file->isDir() ? rmdir($filename) : unlink($filename);
     }
 
     rmdir(F_GIT_DIR);
