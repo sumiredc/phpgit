@@ -1,0 +1,11 @@
+FROM php:8.4.7-cli-bookworm
+
+WORKDIR /app
+
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && docker-php-ext-install opcache
+
+COPY php.ini.bench "$PHP_INI_DIR/php.ini"
+
+ENTRYPOINT [ "php", "./vendor/bin/phpbench", "run"]

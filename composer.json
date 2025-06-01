@@ -11,14 +11,16 @@
     },
     "scripts": {
         "test": "docker compose run --rm test -p",
-        "coverage": "docker compose run --rm test -p --coverage"
+        "coverage": "docker compose run --rm test -p --coverage",
+        "bench": "docker compose run --rm bench --report=default"
     },
     "require": {
         "symfony/console": "^7.2"
     },
     "require-dev": {
         "pestphp/pest": "^3.8",
-        "mockery/mockery": "^1.6"
+        "mockery/mockery": "^1.6",
+        "phpbench/phpbench": "^1.4"
     },
     "config": {
         "allow-plugins": {

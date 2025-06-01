@@ -2,12 +2,17 @@ services:
   phpgit:
     build:
       dockerfile: Dockerfile
-    entrypoint: ["php", "src/app.php"]
     volumes:
       - ./:/app
 
   test:
     build:
       dockerfile: Dockerfile.test
+    volumes:
+      - ./:/app
+
+  bench:
+    build:
+      dockerfile: Dockerfile.bench
     volumes:
       - ./:/app
