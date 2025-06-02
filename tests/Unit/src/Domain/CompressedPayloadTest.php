@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 use Phpgit\Domain\CompressedPayload;
 
+beforeEach(function () {
+    set_error_handler(fn() => true);
+});
+
+afterEach(function () {
+    restore_error_handler();
+});
+
 describe('new', function () {
     it('should match to property to arg', function (string $value, string $expected) {
         $actual = CompressedPayload::new($value);

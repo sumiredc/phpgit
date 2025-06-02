@@ -10,8 +10,11 @@
         ]
     },
     "scripts": {
-        "test": "docker compose run --rm test -p",
-        "coverage": "docker compose run --rm test -p --coverage",
+        "test": "docker compose run --rm test --compact",
+        "unit": "docker compose run --rm test -p tests/Unit",
+        "feature": "docker compose run --rm test -p tests/Feature",
+        "scenario": "docker compose run --rm test tests/Scenario",
+        "coverage": "docker compose run --rm test --compact --coverage",
         "bench": "docker compose run --rm bench --report=default"
     },
     "require": {

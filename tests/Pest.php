@@ -67,6 +67,10 @@ function expectEqualArg(mixed ...$expected): callable
 
 function refreshGit(): void
 {
+    if (!is_dir(F_GIT_DIR)) {
+        return;
+    }
+
     $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator(F_GIT_DIR, RecursiveDirectoryIterator::SKIP_DOTS),
         RecursiveIteratorIterator::CHILD_FIRST

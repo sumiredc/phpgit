@@ -9,11 +9,16 @@ beforeAll(function () {
     CommandRunner::run('php git init');
 });
 
-describe('existsGitDir', function () {
-    afterEach(function () {
-        CommandRunner::run('php git init');
-    });
+beforeEach(function () {
+    set_error_handler(fn() => true);
+});
 
+afterEach(function () {
+    restore_error_handler();
+    CommandRunner::run('php git init');
+});
+
+describe('existsGitDir', function () {
     it(
         'returns true on exists git dir',
         function () {
@@ -35,15 +40,6 @@ describe('existsGitDir', function () {
 });
 
 describe('makeGitObjectDir', function () {
-    beforeEach(function () {
-        set_error_handler(fn() => true);
-    });
-
-    afterEach(function () {
-        restore_error_handler();
-        CommandRunner::run('php git init');
-    });
-
     it(
         'creates git object directory',
         function () {
@@ -71,15 +67,6 @@ describe('makeGitObjectDir', function () {
 });
 
 describe('makeGitHeadsDir', function () {
-    beforeEach(function () {
-        set_error_handler(fn() => true);
-    });
-
-    afterEach(function () {
-        restore_error_handler();
-        CommandRunner::run('php git init');
-    });
-
     it(
         'creates git heads directory',
         function () {
@@ -107,15 +94,6 @@ describe('makeGitHeadsDir', function () {
 });
 
 describe('createGitHead', function () {
-    beforeEach(function () {
-        set_error_handler(fn() => true);
-    });
-
-    afterEach(function () {
-        restore_error_handler();
-        CommandRunner::run('php git init');
-    });
-
     it(
         'creates git head file',
         function () {
@@ -144,15 +122,6 @@ describe('createGitHead', function () {
 
 
 describe('saveGitHead', function () {
-    beforeEach(function () {
-        set_error_handler(fn() => true);
-    });
-
-    afterEach(function () {
-        restore_error_handler();
-        CommandRunner::run('php git init');
-    });
-
     it(
         'match to head contents to arg branch',
         function (string $branch, string $expected) {
