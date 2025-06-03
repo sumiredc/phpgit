@@ -8,8 +8,6 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Service\RefPattern;
-use Phpgit\Exception\FileAlreadyExistsException;
-use Phpgit\Exception\FileNotFoundException;
 use RuntimeException;
 
 readonly final class RefRepository implements RefRepositoryInterface
@@ -20,26 +18,24 @@ readonly final class RefRepository implements RefRepositoryInterface
     }
 
     /** 
-     * @throws FileAlreadyExistsException
      * @throws RuntimeException
      */
     public function create(Reference $ref, ObjectHash $hash): void
     {
         if ($this->exists($ref)) {
-            throw new FileAlreadyExistsException();
+            throw new RuntimeException(sprintf('Reference already exists: %s', $ref->path));
         }
 
         $this->createOrUpdate($ref, $hash);
     }
 
     /**
-     * @throws FileNotFoundException
      * @throws RuntimeException
      */
     public function update(Reference $ref, ObjectHash $hash): void
     {
         if (!$this->exists($ref)) {
-            throw new FileNotFoundException();
+            throw new RuntimeException(sprintf('Reference not found: %s', $ref->path));
         }
 
         $this->createOrUpdate($ref, $hash);
