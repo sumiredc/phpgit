@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'cat-file',
     description: 'Provide contents or details of repository objects',
 )]
-final class CatFileCommand extends Command
+final class CatFileCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {

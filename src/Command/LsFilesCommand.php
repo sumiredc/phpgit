@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'ls-files',
     description: 'Show information about files in the index and the working tree',
 )]
-final class LsFilesCommand extends Command
+final class LsFilesCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {

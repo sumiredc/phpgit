@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'write-tree',
     description: 'Create a tree object from the current index',
 )]
-final class WriteTreeCommand extends Command
+final class WriteTreeCommand extends Command implements CommandInterface
 {
     protected function configure(): void {}
 

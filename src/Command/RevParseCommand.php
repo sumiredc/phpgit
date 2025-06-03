@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'rev-parse',
     description: 'Pick out and massage parameters',
 )]
-final class RevParseCommand extends Command
+final class RevParseCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {

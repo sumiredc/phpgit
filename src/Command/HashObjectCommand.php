@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'hash-object',
     description: 'Compute object ID and optionally create an object from a file',
 )]
-final class HashObjectCommand extends Command
+final class HashObjectCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {
