@@ -108,7 +108,7 @@ describe('__invoke -> actionAdd', function () {
         ]);
 
     it(
-        'should returns error and outputs does not exists message when throws FileNotFoundException',
+        'returns error and outputs does not exists message on does not exist file',
         function (string $file, string $expected) {
             $this->input->shouldReceive('getOption')->with('add')->andReturn(true);
             $this->input->shouldReceive('getOption')->with('remove')->andReturn(false);

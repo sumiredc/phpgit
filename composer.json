@@ -14,6 +14,7 @@
         "unit": "docker compose run --rm test -p tests/Unit",
         "feature": "docker compose run --rm test -p tests/Feature",
         "scenario": "docker compose run --rm test tests/Scenario",
+        "architecture": "docker compose run --rm test tests/Architecture",
         "coverage": "docker compose run --rm test --compact --coverage",
         "bench": "docker compose run --rm bench --report=default"
     },

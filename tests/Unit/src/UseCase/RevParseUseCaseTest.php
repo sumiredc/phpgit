@@ -217,7 +217,7 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'returns an error and outputs fatal message unknown revesion or path on throws the RevisionNotFoundException',
+        'returns an error and outputs fatal message unknown revesion or path on does not exists revision',
         function (array $args, array $expectedResults, string $expectedMessage) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
@@ -246,7 +246,7 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'returns an error and outputs fatal message unknown revesion or path on throws the RevisionNotFoundException when does not exists reference',
+        'returns an error and outputs fatal message unknown revesion or path on does not exists revision when does not exists reference',
         function (array $args, Reference $ref, array $expectedResults, string $expectedMessage) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false)->once();
