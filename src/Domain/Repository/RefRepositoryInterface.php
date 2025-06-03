@@ -6,19 +6,18 @@ namespace Phpgit\Domain\Repository;
 
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
+use RuntimeException;
 
 interface RefRepositoryInterface
 {
     public function exists(Reference $ref): bool;
 
     /** 
-     * @throws FileAlreadyExistsException
      * @throws RuntimeException
      */
     public function create(Reference $ref, ObjectHash $hash): void;
 
     /**
-     * @throws FileNotFoundException
      * @throws RuntimeException
      */
     public function update(Reference $ref, ObjectHash $hash): void;
