@@ -12,7 +12,7 @@ use Phpgit\Domain\Service\PathInDirectory;
 use Phpgit\Domain\Service\PathMatchPattern;
 use Phpgit\Domain\TrackedPath;
 
-final class StagedEntriesByPathService implements StagedEntriesByPathServiceInterface
+readonly final class StagedEntriesByPathService implements StagedEntriesByPathServiceInterface
 {
     /**
      * @return HashMap<IndexEntry>
