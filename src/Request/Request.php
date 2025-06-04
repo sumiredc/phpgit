@@ -10,12 +10,15 @@ use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * The static method `setUp()` must be called before creating a new instance via `new()`.
- * `setUp()` is responsible for unlocking the request by setting `isLocked` to false.
- * If `isLocked` remains true, calling `new()` should be disallowed to enforce proper initialization.
+ * `setUp()` is responsible for unlocking the request by setting `lockStates[class-string]` to false.
+ * If `lockStates[class-string]` remains true, calling `new()` should be disallowed to enforce proper initialization.
  */
 abstract class Request
 {
-    private static bool $isLocked = true;
+    /**
+     * @var array<class-string<Request>,bool>
+     */
+    private static array $lockStates = [];
 
     abstract public static function setUp(CommandInterface $command): void;
 
@@ -23,18 +26,20 @@ abstract class Request
 
     protected static function lock(): void
     {
-        static::$isLocked = true;
+        static::$lockStates[static::class] = true;
     }
 
     protected static function unlock(): void
     {
-        static::$isLocked = false;
+        static::$lockStates[static::class] = false;
     }
 
-    /** @throws LogicException */
+    /** 
+     * @throws LogicException 
+     */
     protected static function assertNew(): void
     {
-        if (static::$isLocked) {
+        if (static::$lockStates[static::class] ?? true) {
             throw new LogicException('Cannot instantiate request. Call setUp() first');
         }
     }

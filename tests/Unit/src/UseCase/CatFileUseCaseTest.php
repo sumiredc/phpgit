@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\GitObject;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\Result;
@@ -11,6 +12,10 @@ use Phpgit\UseCase\CatFileUseCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 beforeEach(function () {
+    $command = Mockery::mock(CommandInterface::class);
+    $command->shouldReceive('addArgument')->shouldReceive('addOption');
+    CatFileRequest::setUp($command);
+
     $this->input = Mockery::mock(InputInterface::class);
     $this->printer = Mockery::mock(PrinterInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);

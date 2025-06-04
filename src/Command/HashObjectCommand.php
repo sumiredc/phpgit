@@ -10,7 +10,6 @@ use Phpgit\Request\HashObjectRequest;
 use Phpgit\UseCase\HashObjectUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -23,7 +22,7 @@ final class HashObjectCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {
-        $this->addArgument('file', InputArgument::REQUIRED, 'The file to hash');
+        HashObjectRequest::setUp($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
