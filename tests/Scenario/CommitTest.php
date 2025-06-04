@@ -45,7 +45,12 @@ test('use Low-level Commands', function () {
     expect($res->exitCode)->toBeExitSuccess();
     $treeHash = $res->output;
 
-    $res = CommandRunner::run("php git commit-tree {$treeHash} -m \\\"Update hello.txt\\\" -p {$commitHash}");
+    $res = CommandRunner::run('php git rev-parse HEAD');
+    expect($res->exitCode)->toBeExitSuccess();
+    expect($res->output)->toBe($commitHash);
+
+    $parentHash = $res->output;
+    $res = CommandRunner::run("php git commit-tree {$treeHash} -m \\\"Update hello.txt\\\" -p {$parentHash}");
     expect($res->exitCode)->toBeExitSuccess();
     $commitHash = $res->output;
 
