@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\IndexEntry;
@@ -20,6 +21,10 @@ beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
     $this->printer = Mockery::mock(PrinterInterface::class);
     $this->indexRepository = Mockery::mock(IndexRepositoryInterface::class);
+
+    $command = Mockery::mock(CommandInterface::class);
+    $command->shouldReceive('addOption');
+    LsFilesRequest::setUp($command);
 });
 
 describe('__invoke', function () {

@@ -33,7 +33,7 @@ arch('Infra')->expect('Phpgit\Infra')
     ->not->toBeUsedIn('Phpgit\UseCase');
 
 arch('Request')->expect('Phpgit\Request')
-    // ->toExtend(Request::class)->ignoring('Phpgit\Request\Request')
+    ->toExtend(Request::class)->ignoring('Phpgit\Request\Request')
     ->toBeFinal()->ignoring('Phpgit\Request\Request');
 
 arch('UseCase')->expect('Phpgit\UseCase')

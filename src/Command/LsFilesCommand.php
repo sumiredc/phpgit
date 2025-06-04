@@ -11,7 +11,6 @@ use Phpgit\UseCase\LsFilesUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /** @see https://git-scm.com/docs/git-ls-files */
@@ -23,31 +22,7 @@ final class LsFilesCommand extends Command implements CommandInterface
 {
     protected function configure(): void
     {
-        $this
-            ->addOption(
-                'tag',
-                't',
-                InputOption::VALUE_NONE,
-                'Show status tags together with filenames.'
-            )
-            ->addOption(
-                'zero',
-                'z',
-                InputOption::VALUE_NONE,
-                '\0 line termination on output and do not quote filenames.'
-            )
-            ->addOption(
-                'stage',
-                's',
-                InputOption::VALUE_NONE,
-                'Show staged contents\' mode bits, object name and stage number in the output.'
-            )
-            ->addOption(
-                'debug',
-                null,
-                InputOption::VALUE_NONE,
-                'After each line that describes a file, add more data about its cache entry. This is intended to show as much information as possible for manual inspection; the exact format may change at any time.'
-            );
+        LsFilesRequest::setUp($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

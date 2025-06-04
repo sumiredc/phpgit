@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Phpgit\Request;
 
 use InvalidArgumentException;
+use Phpgit\Command\CommandInterface;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 
-readonly final class RevParseRequest
+final class RevParseRequest extends Request
 {
     /**
      * @param array<string> $refs
@@ -16,8 +18,16 @@ readonly final class RevParseRequest
         public readonly array $args,
     ) {}
 
+    public static function setUp(CommandInterface $command): void
+    {
+        $command->addArgument('args', InputArgument::IS_ARRAY, 'Separated by space');
+
+        self::unlock();
+    }
+
     public static function new(InputInterface $input): self
     {
+
         $args = $input->getArgument('args');
         if (!is_array($args)) {
             throw new InvalidArgumentException(

@@ -18,26 +18,24 @@ describe('setUp', function () {
     it(
         'calls setup args function',
         function () {
-            $this->command->shouldReceive('addArgument')
-                ->with('tree', InputArgument::REQUIRED, 'An existing tree object.')
-                ->once();
-
-            $this->command->shouldReceive('addOption')
-                ->with(
+            $this->command
+                ->shouldReceive('addArgument')->with(
+                    'tree',
+                    InputArgument::REQUIRED,
+                    'An existing tree object.'
+                )->once()
+                ->shouldReceive('addOption')->with(
                     'message',
                     'm',
                     InputOption::VALUE_REQUIRED,
                     'A paragraph in the commit log message. This can be given more than once and each <message> becomes its own paragraph.'
-                )
-                ->once();
-
-            $this->command->shouldReceive('addOption')->with(
-                'parent',
-                'p',
-                InputOption::VALUE_REQUIRED,
-                'Each -p indicates the id of a parent commit object.'
-            )
-                ->once();
+                )->once()
+                ->shouldReceive('addOption')->with(
+                    'parent',
+                    'p',
+                    InputOption::VALUE_REQUIRED,
+                    'Each -p indicates the id of a parent commit object.'
+                )->once();
 
             CommitTreeRequest::setUp($this->command);
 

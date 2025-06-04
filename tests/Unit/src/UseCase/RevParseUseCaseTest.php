@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
@@ -20,6 +21,10 @@ beforeEach(function () {
     $this->fileRepository = Mockery::mock(FileRepositoryInterface::class);
     $this->objectRepository = Mockery::mock(ObjectRepositoryInterface::class);
     $this->refRepository = Mockery::mock(RefRepositoryInterface::class);
+
+    $command = Mockery::mock(CommandInterface::class);
+    $command->shouldReceive('addArgument');
+    RevParseRequest::setUp($command);
 });
 
 describe('__invoke', function () {
