@@ -2,19 +2,78 @@
 
 declare(strict_types=1);
 
+use Phpgit\Command\CommandInterface;
 use Phpgit\Domain\CommandInput\CatFileOptionType;
 use Phpgit\Request\CatFileRequest;
 use Symfony\Component\Console\Exception\InvalidOptionException;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
+    $this->command = Mockery::mock(CommandInterface::class);
 });
 
+describe('setUp', function () {
+    it(
+        'calls setup args function',
+        function () {
+            $this->command
+                ->shouldReceive('addArgument')->with(
+                    'object',
+                    InputArgument::REQUIRED,
+                    'The name of the object to show.'
+                )->once()
+                ->shouldReceive('addOption')->with(
+                    'type',
+                    't',
+                    InputOption::VALUE_NONE,
+                    'Instread of the content, show the object type identified by <object>.'
+                )->once()
+                ->shouldReceive('addOption')->with(
+                    'pretty-print',
+                    'p',
+                    InputOption::VALUE_NONE,
+                    'Pretty-print the contents of <object> based on its type.'
+                )->once()
+                ->shouldReceive('addOption')->with(
+                    'exists',
+                    'e',
+                    InputOption::VALUE_NONE,
+                    'Exit with zero status if <object> exists and is a valid object.'
+                )->once()
+                ->shouldReceive('addOption')->with(
+                    'size',
+                    's',
+                    InputOption::VALUE_NONE,
+                    'Instead of the content, show the object size identified by <object>.'
+                )->once();
+
+            CatFileRequest::setUp($this->command);
+
+            $refClass = new ReflectionClass(CatFileRequest::class);
+            $assertNew = $refClass->getMethod('assertNew');
+            $assertNew->invoke($refClass);
+
+            expect(true)->toBeTrue();
+        }
+    );
+});
+
+
 describe('new', function () {
+    beforeEach(function () {
+        $refClass = new ReflectionClass(CatFileRequest::class);
+        $unlock = $refClass->getMethod('unlock');
+        $unlock->invoke($refClass);
+    });
+
     it(
         'is set the "type" in property of type',
         function (string $object, CatFileOptionType $expected) {
+
+
             $this->input->shouldReceive('getOption')->with('type')->andReturn(true)->once();
             $this->input->shouldReceive('getOption')->with('size')->andReturn(false)->once();
             $this->input->shouldReceive('getOption')->with('exists')->andReturn(false)->once();
