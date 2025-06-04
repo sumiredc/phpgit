@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain\Repository;
 
+use Phpgit\Domain\HeadType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use RuntimeException;
@@ -36,6 +37,8 @@ interface RefRepositoryInterface
      * @throws RuntimeException
      */
     public function resolve(Reference $ref): ObjectHash;
+
+    public function headType(): HeadType;
 
     /**
      * @throws RuntimeException

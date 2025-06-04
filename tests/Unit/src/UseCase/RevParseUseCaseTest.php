@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Phpgit\Command\CommandInterface;
+use Phpgit\Domain\HeadType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
@@ -14,6 +15,7 @@ use Phpgit\Domain\TrackedPath;
 use Phpgit\Request\RevParseRequest;
 use Phpgit\UseCase\RevParseUseCase;
 use Symfony\Component\Console\Input\InputInterface;
+use Tests\Factory\ReferenceFactory;
 
 beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
@@ -27,12 +29,18 @@ beforeEach(function () {
     RevParseRequest::setUp($command);
 });
 
-describe('__invoke', function () {
+describe('__invoke, parse head', function () {
     it(
-        'returns an success and outputs result of rev parse of HEAD in hash',
+        'returns a success and outputs result of rev parse of HEAD, on it is written a reference',
         function (array $args, ObjectHash $hash, array $expected) {
+            $ref = ReferenceFactory::local();
+
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
-            $this->refRepository->shouldReceive('resolveHead')->andReturn($hash)->once();
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Reference)->once()
+                ->shouldReceive('head')->andReturn($ref)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(true)
+                ->shouldReceive('resolve')->withArgs(expectEqualArg($ref))->andReturn($hash)->once();
             $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
 
             $request = RevParseRequest::new($this->input);
@@ -57,7 +65,130 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'returns an success and outputs result of rev parse of reference',
+        'returns a success and outputs result of rev parse of HEAD, on it is written a hash',
+        function (array $args, ObjectHash $hash, array $expected) {
+            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Hash)->once()
+                ->shouldReceive('resolveHead')->andReturn($hash)->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expected))->once();
+
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
+                $this->printer,
+                $this->fileRepository,
+                $this->objectRepository,
+                $this->refRepository
+            );
+
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::Success);
+        }
+    )
+        ->with([
+            'args is one HEAD' => [
+                'args' => ['HEAD'],
+                'hash' => ObjectHash::parse('829c3804401b0727f70f73d4415e162400cbe57b'),
+                'expected' => ['829c3804401b0727f70f73d4415e162400cbe57b']
+            ],
+        ]);
+
+    it(
+        'returns an internal error and outputs stack trace on head type is unknown',
+        function (array $args, HeadType $headType, Throwable $expected) {
+            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
+            $this->refRepository->shouldReceive('headType')->andReturn($headType)->once();
+            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
+                $this->printer,
+                $this->fileRepository,
+                $this->objectRepository,
+                $this->refRepository
+            );
+
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::InternalError);
+        }
+    )
+        ->with([
+            [
+                'args' => ['HEAD'],
+                'headType' => HeadType::Unknown,
+                'expected' => new LogicException('HEAD is Unknown'),
+            ]
+        ]);
+
+    it(
+        'returns an internal error and outputs stack trace on head does not resolved',
+        function (array $args, Throwable $expected) {
+            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Reference)->once()
+                ->shouldReceive('head')->andReturnNull()->once();
+            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
+
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
+                $this->printer,
+                $this->fileRepository,
+                $this->objectRepository,
+                $this->refRepository
+            );
+
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::InternalError);
+        }
+    )
+        ->with([
+            [
+                'args' => ['HEAD'],
+                'expected' => new LogicException('cannot resolved HEAD'),
+            ]
+        ]);
+
+    it(
+        'returns an error and outputs fatal message, on does not exists ref in HEAD',
+        function (array $args, string $expected) {
+            $ref = ReferenceFactory::local();
+
+            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Reference)->once()
+                ->shouldReceive('head')->andReturn($ref)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false);
+            $this->printer
+                ->shouldReceive('writeln')->with([])->once()
+                ->shouldReceive('writeln')->with($expected)->once();
+
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
+                $this->printer,
+                $this->fileRepository,
+                $this->objectRepository,
+                $this->refRepository
+            );
+
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::GitError);
+        }
+    )
+        ->with([
+            [
+                'args' => ['HEAD'],
+                'expected' => 'fatal: ambiguous argument \'HEAD\': unknown revision or path not in the working tree.',
+            ]
+        ]);
+});
+
+describe('__invoke, parse ref', function () {
+    it(
+        'returns a success and outputs result of rev parse of reference',
         function (array $args, array $refs, array $objects, int $times, array $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository->shouldReceive('resolveHead')->never();
@@ -126,7 +257,40 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'returns an success and outputs result of rev parse of object',
+        'returns an error and outputs fatal message unknown revesion or path on does not exists revision when does not exists reference',
+        function (array $args, Reference $ref, array $expectedResults, string $expectedMessage) {
+            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
+            $this->refRepository->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false)->once();
+            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
+            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
+            $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
+
+            $request = RevParseRequest::new($this->input);
+            $useCase = new RevParseUseCase(
+                $this->printer,
+                $this->fileRepository,
+                $this->objectRepository,
+                $this->refRepository
+            );
+
+            $actual = $useCase($request);
+
+            expect($actual)->toBe(Result::GitError);
+        }
+    )
+        ->with([
+            [
+                'args' => ['refs/heads/dont-exists'],
+                'ref' => Reference::parse('refs/heads/dont-exists'),
+                'expectedResults' => [],
+                'expectedMessage' => 'fatal: ambiguous argument \'refs/heads/dont-exists\': unknown revision or path not in the working tree.'
+            ]
+        ]);
+});
+
+describe('__invoke, parse object', function () {
+    it(
+        'returns a success and outputs result of rev parse of object',
         function (array $args, int $times, array $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository
@@ -170,9 +334,11 @@ describe('__invoke', function () {
                 ]
             ],
         ]);
+});
 
+describe('__invoke, parse file', function () {
     it(
-        'returns an success and outputs result of rev parse of file',
+        'returns a success and outputs result of rev parse of file',
         function (array $args, array $expected) {
             $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
             $this->refRepository
@@ -220,7 +386,9 @@ describe('__invoke', function () {
                 ]
             ],
         ]);
+});
 
+describe('__invoke, other cases', function () {
     it(
         'returns an error and outputs fatal message unknown revesion or path on does not exists revision',
         function (array $args, array $expectedResults, string $expectedMessage) {
@@ -250,36 +418,7 @@ describe('__invoke', function () {
             ]
         ]);
 
-    it(
-        'returns an error and outputs fatal message unknown revesion or path on does not exists revision when does not exists reference',
-        function (array $args, Reference $ref, array $expectedResults, string $expectedMessage) {
-            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
-            $this->refRepository->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false)->once();
-            $this->fileRepository->shouldReceive('exists')->andReturn(false)->once();
-            $this->printer->shouldReceive('writeln')->withArgs(expectEqualArg($expectedResults))->once();
-            $this->printer->shouldReceive('writeln')->with($expectedMessage)->once();
 
-            $request = RevParseRequest::new($this->input);
-            $useCase = new RevParseUseCase(
-                $this->printer,
-                $this->fileRepository,
-                $this->objectRepository,
-                $this->refRepository
-            );
-
-            $actual = $useCase($request);
-
-            expect($actual)->toBe(Result::GitError);
-        }
-    )
-        ->with([
-            [
-                'args' => ['refs/heads/dont-exists'],
-                'ref' => Reference::parse('refs/heads/dont-exists'),
-                'expectedResults' => [],
-                'expectedMessage' => 'fatal: ambiguous argument \'refs/heads/dont-exists\': unknown revision or path not in the working tree.'
-            ]
-        ]);
 
     it(
         'outputs success results until throws an error',
@@ -314,32 +453,4 @@ describe('__invoke', function () {
             expect($actual)->toBe(Result::GitError);
         }
     );
-
-    it(
-        'returns an internal error and outputs stack trace on throws an exceptions',
-        function (array $args, Throwable $exception, Throwable $expected) {
-            $this->input->shouldReceive('getArgument')->with('args')->andReturn($args)->once();
-            $this->refRepository->shouldReceive('resolveHead')->andThrow($exception)->once();
-            $this->printer->shouldReceive('stackTrace')->withArgs(expectEqualArg($expected))->once();
-
-            $request = RevParseRequest::new($this->input);
-            $useCase = new RevParseUseCase(
-                $this->printer,
-                $this->fileRepository,
-                $this->objectRepository,
-                $this->refRepository
-            );
-
-            $actual = $useCase($request);
-
-            expect($actual)->toBe(Result::InternalError);
-        }
-    )
-        ->with([
-            [
-                'args' => ['HEAD'],
-                'exception' => new RuntimeException('failed to resolve of HEAD'),
-                'expected' => new RuntimeException('failed to resolve of HEAD'),
-            ]
-        ]);
 });

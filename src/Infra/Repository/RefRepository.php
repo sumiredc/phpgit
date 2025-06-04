@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Infra\Repository;
 
+use Phpgit\Domain\HeadType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
@@ -62,13 +63,44 @@ readonly final class RefRepository implements RefRepositoryInterface
         }
     }
 
+    public function headType(): HeadType
+    {
+        $fp = @fopen(F_GIT_HEAD, 'r');
+
+        try {
+            if ($fp === false) {
+                return HeadType::Unknown;
+            }
+
+            $line = fgets($fp);
+            if ($line === false) {
+                return HeadType::Unknown;
+            }
+
+            $ref = RefPattern::parsePath($line);
+            if (is_null($ref)) {
+                return HeadType::Hash;
+            }
+
+            return HeadType::Reference;
+        } finally {
+            fclose($fp);
+        }
+    }
+
     /**
      * @throws RuntimeException
      */
     public function head(): ?Reference
     {
-        $fp = @fopen(F_GIT_HEAD, 'r');
+        switch ($this->headType()) {
+            case HeadType::Unknown:
+                throw new RuntimeException('HEAD is Unknown');
+            case HeadType::Hash:
+                return null;
+        }
 
+        $fp = @fopen(F_GIT_HEAD, 'r');
         try {
             if ($fp === false) {
                 throw new RuntimeException('failed to fopen by HEAD');
@@ -81,8 +113,7 @@ readonly final class RefRepository implements RefRepositoryInterface
 
             $ref = RefPattern::parsePath($line);
             if (is_null($ref)) {
-                // NOTE: The hash written directly
-                return null;
+                throw new RuntimeException(sprintf('HEAD is not Reference: %s', $ref));
             }
 
             return Reference::parse($ref);

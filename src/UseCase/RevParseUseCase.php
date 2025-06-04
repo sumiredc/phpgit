@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phpgit\UseCase;
 
+use LogicException;
+use Phpgit\Domain\HeadType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
@@ -15,6 +17,7 @@ use Phpgit\Domain\TrackedPath;
 use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\RevParseRequest;
 use Throwable;
+use UnhandledMatchError;
 
 final class RevParseUseCase
 {
@@ -92,7 +95,30 @@ final class RevParseUseCase
             return null;
         }
 
-        return $this->refRepository->resolveHead();
+        $headType = $this->refRepository->headType();
+        switch ($headType) {
+            case HeadType::Reference:
+                break;
+            case HeadType::Hash:
+                return $this->refRepository->resolveHead();
+            case HeadType::Unknown:
+                throw new LogicException('HEAD is Unknown');
+            default:
+                throw new UnhandledMatchError(sprintf('Unhandled enum case: %s', $headType->name)); // @codeCoverageIgnore
+        }
+
+        $ref = $this->refRepository->head();
+        throw_if(
+            is_null($ref),
+            new LogicException('cannot resolved HEAD')
+        );
+
+        throw_unless(
+            $this->refRepository->exists($ref),
+            new UseCaseException('fatal: ambiguous argument \'HEAD\': unknown revision or path not in the working tree.')
+        );
+
+        return $this->refRepository->resolve($ref);
     }
 
     private function parseRef(string $arg): ?ObjectHash
