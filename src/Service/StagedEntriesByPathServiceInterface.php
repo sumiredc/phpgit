@@ -6,6 +6,7 @@ namespace Phpgit\Service;
 
 use Phpgit\Domain\GitIndex;
 use Phpgit\Domain\HashMap;
+use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\PathType;
 use Phpgit\Domain\TrackedPath;
 

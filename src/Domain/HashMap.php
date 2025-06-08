@@ -107,15 +107,15 @@ final class HashMap implements Iterator, Countable
      */
     public function current(): mixed
     {
-        return $this->values[$this->keys[$this->position]];
+        return $this->values[$this->keys[$this->position]] ?? null;
     }
 
     /**
      * @see https://www.php.net/manual/en/class.iterator.php
      */
-    public function key(): string
+    public function key(): ?string
     {
-        return $this->keys[$this->position];
+        return $this->keys[$this->position] ?? null;
     }
 
     /**

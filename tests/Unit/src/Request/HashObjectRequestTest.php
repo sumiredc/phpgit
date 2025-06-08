@@ -12,7 +12,6 @@ beforeEach(function () {
     $this->input = Mockery::mock(InputInterface::class);
 });
 
-
 describe('setUp', function () {
     it(
         'calls setup args function',

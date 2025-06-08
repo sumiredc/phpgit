@@ -41,6 +41,29 @@ final class TreeObject extends GitObject
         $this->size = strlen($this->body);
     }
 
+    /**
+     * @return HashMap<TreeEntry> key: objectName
+     */
+    public function entries(): HashMap
+    {
+        $offset = 0;
+        $entries = HashMap::new();
+
+        while ($offset < $this->size) {
+            $gitFileMode = $this->parseModeAndAdvanceOffset($offset);
+            $objectType = $gitFileMode->toObjectType();
+            $objectName = $this->parseObjectNameAndAdvanceOffset($offset);
+            $objectHash = $this->parseObjectHashAndAdvanceOffset($offset);
+
+            $entries->set(
+                $objectName,
+                TreeEntry::new($objectType, $gitFileMode, $objectName, $objectHash)
+            );
+        }
+
+        return $entries;
+    }
+
     public function prettyPrint(): string
     {
         $offset = 0;
@@ -54,7 +77,7 @@ final class TreeObject extends GitObject
 
             $contents .= sprintf(
                 "%s %s %s\t%s\n",
-                $gitFileMode->value,
+                $gitFileMode->value6len(),
                 $objectType->value,
                 $objectHash->value,
                 $objectName,
@@ -66,8 +89,9 @@ final class TreeObject extends GitObject
 
     private function parseModeAndAdvanceOffset(int &$offset): GitFileMode
     {
-        $mode = substr($this->body, $offset, self::MODE_LENGTH);
-        $offset += self::MODE_LENGTH + 1; // overwrite, 1 = space
+        $modeRange = substr($this->body, $offset, self::MODE_LENGTH);
+        $mode = preg_replace('/^(\d+)\s.*/', '$1', $modeRange); // NOTE: Get only the numbers from the beginning
+        $offset += strlen($mode) + 1; // overwrite, 1 = space
 
         return GitFileMode::from($mode);
     }

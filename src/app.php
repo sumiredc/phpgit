@@ -8,6 +8,7 @@ require __DIR__ . '/const.php';
 use Phpgit\Command\AddCommand;
 use Phpgit\Command\CatFileCommand;
 use Phpgit\Command\CommitTreeCommand;
+use Phpgit\Command\DiffIndexCommand;
 use Phpgit\Command\HashObjectCommand;
 use Phpgit\Command\InitCommand;
 use Phpgit\Command\LsFilesCommand;
@@ -30,6 +31,7 @@ $app->add(new WriteTreeCommand());
 $app->add(new CommitTreeCommand());
 $app->add(new RevParseCommand());
 $app->add(new UpdateRefCommand());
+$app->add(new DiffIndexCommand());
 
 $app->add(new AddCommand());
 

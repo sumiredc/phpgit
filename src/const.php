@@ -49,6 +49,8 @@ const F_GIT_HEAD = F_GIT_DIR . '/' . GIT_HEAD;
 const F_GIT_INDEX = F_GIT_DIR . '/' . GIT_INDEX;
 const F_GIT_CONFIG = F_GIT_DIR . '/' . GIT_CONFIG;
 
+const GIT_SORT = SORT_STRING;
+
 define('GIT_BASE_BRANCH', $env['BASE_BRANCH']);
 define('GIT_DEFAULT_USER_NAME', $env['DEFAULT_USER_NAME']);
 define('GIT_DEFAULT_USER_EMAIL', $env['DEFAULT_USER_EMAIL']);

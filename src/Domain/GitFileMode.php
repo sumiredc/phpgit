@@ -8,11 +8,17 @@ use UnexpectedValueException;
 
 enum GitFileMode: string
 {
-    case Tree = '040000';
+    case Unknown = '0';
+    case Tree = '40000';
     case DefaultFile = '100644';
     case ExeFile = '100755';
     case SymbolicLink = '120000';
     case SubModule = '160000';
+
+    public function value6len(): string
+    {
+        return str_pad($this->value, 6, '0', STR_PAD_LEFT);
+    }
 
     public function fileStatMode(): int
     {

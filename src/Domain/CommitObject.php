@@ -8,6 +8,8 @@ use UnexpectedValueException;
 
 final class CommitObject extends GitObject
 {
+    private ?ObjectHash $_treeHash = null;
+
     protected function __construct(
         GitObjectHeader $header,
         string $body,
@@ -51,5 +53,24 @@ final class CommitObject extends GitObject
     public function prettyPrint(): string
     {
         return $this->body;
+    }
+
+    /**
+     * @throws UnexpectedValueException
+     */
+    public function treeHash(): ObjectHash
+    {
+        if (is_null($this->_treeHash)) {
+            $pattern = sprintf('/^%s\s([0-9a-f]{40})\n/', ObjectType::Tree->value);
+            preg_match($pattern, $this->body, $matches);
+
+            if (!isset($matches[1])) {
+                throw new UnexpectedValueException('Tree hash not found in CommitObject body.');
+            }
+
+            $this->_treeHash = ObjectHash::parse($matches[1]);
+        }
+
+        return $this->_treeHash;
     }
 }

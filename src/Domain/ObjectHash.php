@@ -9,6 +9,8 @@ use Phpgit\Domain\Service\HashPattern;
 
 readonly final class ObjectHash
 {
+    private const ZERO = '0000000000000000000000000000000000000000';
+
     public readonly string $dir;
     public readonly string $filename;
 
@@ -32,6 +34,16 @@ readonly final class ObjectHash
         }
 
         throw new InvalidArgumentException(sprintf('invalid argument: %s', $sha1));
+    }
+
+    public static function zero(): self
+    {
+        return new self(self::ZERO);
+    }
+
+    public function isZero(): bool
+    {
+        return $this->value === self::ZERO;
     }
 
     public static function tryParse(string $hash): ?self

@@ -95,7 +95,7 @@ final class GitIndex
         $this->entries[$indexEntry->trackedPath->value] = $indexEntry;
 
         // sort path in asc
-        ksort($this->entries, SORT_STRING);
+        ksort($this->entries, GIT_SORT);
 
         return $this->header->updateCount($this->entries);
     }
