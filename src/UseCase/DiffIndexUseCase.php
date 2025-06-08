@@ -7,6 +7,7 @@ namespace Phpgit\UseCase;
 use LogicException;
 use Phpgit\Domain\BlobObject;
 use Phpgit\Domain\CommandInput\DiffIndexOptionAction;
+use Phpgit\Domain\DiffState;
 use Phpgit\Domain\DiffStatus;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\HashMap;
@@ -22,6 +23,8 @@ use Phpgit\Exception\UseCaseException;
 use Phpgit\Request\DiffIndexRequest;
 use Phpgit\Service\ResolveRevisionServiceInterface;
 use Phpgit\Service\TreeToFlatEntriesServiceInterface;
+use SebastianBergmann\Diff\Differ;
+use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Throwable;
 
 final class DiffIndexUseCase
@@ -59,11 +62,14 @@ final class DiffIndexUseCase
             $treeEntries = ($this->treeToFlatEntriesService)($treeObject);
             $indexEntries = $gitIndex->entries;
 
+            /**
+             * NOTE: 
+             *  isCached: Check diff between "specified tree" and "working tree"
+             *  unCached: Check diff between "specified tree" and "staging area"
+             */
             match ($request->action) {
-                DiffIndexOptionAction::Default => $this->actionDefault($indexEntries, $treeEntries),
-                DiffIndexOptionAction::Cached => $this->actionCached($indexEntries, $treeEntries),
-                DiffIndexOptionAction::Stat => $this->actionStat(),
-                DiffIndexOptionAction::FindRenames => $this->actionFindRenames(),
+                DiffIndexOptionAction::Default => $this->actionDefault($request->isCached, $indexEntries, $treeEntries),
+                DiffIndexOptionAction::Stat => $this->actionStat($request->isCached, $indexEntries, $treeEntries),
             };
 
             return Result::Success;
@@ -79,12 +85,10 @@ final class DiffIndexUseCase
     }
 
     /**
-     * Check diff between "specified tree" and "working tree"
-     * 
      * @param array<string,IndexEntry> $indexEntries
      * @param HashMap<TreeEntry> $treeEntries
      */
-    private function actionDefault(array $indexEntries, HashMap $treeEntries): void
+    private function actionDefault(bool $isCached, array $indexEntries, HashMap $treeEntries): void
     {
         $target = $this->targetEntry($indexEntries, $treeEntries);
 
@@ -93,53 +97,78 @@ final class DiffIndexUseCase
             $new = $indexEntries[$target] ?? null;
 
             [$oldMode, $oldHash] = $this->getOldStatusFromTree($old);
-            [$newMode, $newHash] = $this->getNewStatusFromWorktree($new);
+            [$newMode, $newHash] = $isCached
+                ? $this->getNewStatusFromIndex($new)
+                : $this->getNewStatusFromWorktree($new);
 
             $this->printDiff($oldMode, $newMode, $oldHash, $newHash, $target);
 
-            $treeEntries->next();
-            next($indexEntries);
-
-            $target = $this->targetEntry($indexEntries, $treeEntries);
+            $target = $this->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
         }
     }
 
     /**
-     * Check diff between "specified tree" and "staging area"
-     * 
      * @param array<string,IndexEntry> $indexEntries
      * @param HashMap<TreeEntry> $treeEntries
      */
-    private function actionCached(array $indexEntries, HashMap $treeEntries): void
+    private function actionStat(bool $isCached, array $indexEntries, HashMap $treeEntries): void
     {
+        $insertions = 0;
+        $deletions = 0;
+        $fileChanged = 0;
+        $maxPathLen = 0;
+        $maxDiffDigits = 1;
+        $diffStates = [];
+
+        $differ = new Differ(new UnifiedDiffOutputBuilder);
         $target = $this->targetEntry($indexEntries, $treeEntries);
 
         while (!is_null($target)) {
             $old = $treeEntries->get($target);
             $new = $indexEntries[$target] ?? null;
 
-            [$oldMode, $oldHash] = $this->getOldStatusFromTree($old);
-            [$newMode, $newHash] = $this->getNewStatusFromIndex($new);
+            $oldContents = $this->getOldContentsFromTree($old);
+            $newContents = $isCached
+                ? $this->getNewContentsFromIndex($new)
+                : $this->getNewContentsFromWorktree($new);
 
-            $this->printDiff($oldMode, $newMode, $oldHash, $newHash, $target);
+            $diff = $this->countDiff($differ, $oldContents, $newContents, $target);
 
-            $treeEntries->next();
-            next($indexEntries);
+            if ($diff->isChanged()) {
+                $insertions += $diff->insertions;
+                $deletions += $diff->deletions;
+                $fileChanged++;
+                $maxPathLen = max($maxPathLen, strlen($target));
+                $maxDiffDigits = max($maxDiffDigits, strlen(strval($diff->total)));
+                $diffStates[] = $diff;
+            }
 
-            $target = $this->targetEntry($indexEntries, $treeEntries);
+            $target = $this->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
         }
+
+        foreach ($diffStates as $state) {
+            $this->printer->writelnDiffStat(
+                $maxPathLen,
+                $maxDiffDigits,
+                $state->path,
+                $state->insertions,
+                $state->deletions
+            );
+        }
+
+        if ($fileChanged === 0) {
+            return;
+        }
+
+        $this->printer->writeln(
+            sprintf(
+                ' %d files changed, %d insertions(+), %d deletions(-)',
+                $fileChanged,
+                $insertions,
+                $deletions
+            )
+        );
     }
-
-    /**
-     * 
-     */
-    private function actionStat(): void {}
-
-    /**
-     * 
-     */
-    private function actionFindRenames(): void {}
-
 
     private function targetEntry(array &$indexEntries, HashMap &$treeEntries): ?string
     {
@@ -162,6 +191,23 @@ final class DiffIndexUseCase
         sort($entries, GIT_SORT);
 
         return $entries[0];
+    }
+
+    private function nextTargetEntry(
+        ?TreeEntry $old,
+        ?IndexEntry $new,
+        HashMap &$treeEntries,
+        array &$indexEntries
+    ): ?string {
+        if (!is_null($old)) {
+            $treeEntries->next();
+        }
+
+        if (!is_null($new)) {
+            next($indexEntries);
+        }
+
+        return $this->targetEntry($indexEntries, $treeEntries);
     }
 
     /**
@@ -234,6 +280,84 @@ final class DiffIndexUseCase
         }
 
         return [$entry->gitFileMode, $hash];
+    }
+
+    private function getOldContentsFromTree(?TreeEntry $entry): ?string
+    {
+        if (is_null($entry)) {
+            return null;
+        }
+
+        $blob = $this->objectRepository->getBlob($entry->objectHash);
+
+        return $blob->body;
+    }
+
+    private function getNewContentsFromIndex(?IndexEntry $entry): ?string
+    {
+        if (is_null($entry)) {
+            return null;
+        }
+
+        if (!$this->objectRepository->exists($entry->objectHash)) {
+            return null;
+        }
+
+        $blob = $this->objectRepository->getBlob($entry->objectHash);
+
+        return $blob->body;
+    }
+
+    private function getNewContentsFromWorktree(?IndexEntry $entry): ?string
+    {
+        if (is_null($entry)) {
+            return null;
+        }
+
+        if (!$this->fileRepository->exists($entry->trackedPath)) {
+            return null;
+        }
+
+        return $this->fileRepository->getContents($entry->trackedPath);
+    }
+
+    private function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffState
+    {
+        $state = DiffState::new($path);
+        if (is_null($old) && is_null($new)) {
+            return $state;
+        }
+
+        if (is_null($new)) {
+            $state->dropedFile();
+
+            return $state;
+        }
+
+        if (is_null($old)) {
+            // NOTE: want to count the diff on new file
+            $old = '';
+            $state->addedFile();
+        }
+
+        $diff = $differ->diffToArray($old, $new);
+
+        foreach ($diff as $line) {
+            if (!isset($line[1])) {
+                throw new LogicException('LIBRARY ERROR: undefined line index 1');
+            }
+
+            switch ($line[1]) {
+                case $differ::ADDED:
+                    $state->insert();
+                    break;
+                case $differ::REMOVED:
+                    $state->delete();
+                    break;
+            }
+        }
+
+        return $state;
     }
 
     /**

@@ -7,7 +7,5 @@ namespace Phpgit\Domain\CommandInput;
 enum DiffIndexOptionAction
 {
     case Default;
-    case Cached;
     case Stat;
-    case FindRenames;
 }
