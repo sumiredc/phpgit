@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Phpgit\UseCase;
 
 use LogicException;
-use Phpgit\Domain\BlobObject;
 use Phpgit\Domain\CommandInput\DiffIndexOptionAction;
-use Phpgit\Domain\DiffState;
 use Phpgit\Domain\DiffStatus;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\HashMap;
@@ -15,11 +13,11 @@ use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\Printer\PrinterInterface;
-use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\IndexRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\TreeEntry;
 use Phpgit\Exception\UseCaseException;
+use Phpgit\Helper\DiffIndexHelperInterface;
 use Phpgit\Request\DiffIndexRequest;
 use Phpgit\Service\ResolveRevisionServiceInterface;
 use Phpgit\Service\TreeToFlatEntriesServiceInterface;
@@ -33,9 +31,9 @@ final class DiffIndexUseCase
         private readonly PrinterInterface $printer,
         private readonly IndexRepositoryInterface $indexRepository,
         private readonly ObjectRepositoryInterface $objectRepository,
-        private readonly FileRepositoryInterface $fileRepository,
         private readonly ResolveRevisionServiceInterface $resolveRevisionService,
         private readonly TreeToFlatEntriesServiceInterface $treeToFlatEntriesService,
+        private readonly DiffIndexHelperInterface $diffIndexHelper
     ) {}
 
     public function __invoke(DiffIndexRequest $request): Result
@@ -90,20 +88,20 @@ final class DiffIndexUseCase
      */
     private function actionDefault(bool $isCached, array $indexEntries, HashMap $treeEntries): void
     {
-        $target = $this->targetEntry($indexEntries, $treeEntries);
+        $target = $this->diffIndexHelper->targetEntry($indexEntries, $treeEntries);
 
         while (!is_null($target)) {
             $old = $treeEntries->get($target);
             $new = $indexEntries[$target] ?? null;
 
-            [$oldMode, $oldHash] = $this->getOldStatusFromTree($old);
+            [$oldMode, $oldHash] = $this->diffIndexHelper->getOldStatusFromTree($old);
             [$newMode, $newHash] = $isCached
-                ? $this->getNewStatusFromIndex($new)
-                : $this->getNewStatusFromWorktree($new);
+                ? $this->diffIndexHelper->getNewStatusFromIndex($new)
+                : $this->diffIndexHelper->getNewStatusFromWorktree($new);
 
             $this->printDiff($oldMode, $newMode, $oldHash, $newHash, $target);
 
-            $target = $this->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
+            $target = $this->diffIndexHelper->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
         }
     }
 
@@ -121,18 +119,18 @@ final class DiffIndexUseCase
         $diffStates = [];
 
         $differ = new Differ(new UnifiedDiffOutputBuilder);
-        $target = $this->targetEntry($indexEntries, $treeEntries);
+        $target = $this->diffIndexHelper->targetEntry($indexEntries, $treeEntries);
 
         while (!is_null($target)) {
             $old = $treeEntries->get($target);
             $new = $indexEntries[$target] ?? null;
 
-            $oldContents = $this->getOldContentsFromTree($old);
+            $oldContents = $this->diffIndexHelper->getOldContentsFromTree($old);
             $newContents = $isCached
-                ? $this->getNewContentsFromIndex($new)
-                : $this->getNewContentsFromWorktree($new);
+                ? $this->diffIndexHelper->getNewContentsFromIndex($new)
+                : $this->diffIndexHelper->getNewContentsFromWorktree($new);
 
-            $diff = $this->countDiff($differ, $oldContents, $newContents, $target);
+            $diff = $this->diffIndexHelper->countDiff($differ, $oldContents, $newContents, $target);
 
             if ($diff->isChanged()) {
                 $insertions += $diff->insertions;
@@ -143,7 +141,7 @@ final class DiffIndexUseCase
                 $diffStates[] = $diff;
             }
 
-            $target = $this->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
+            $target = $this->diffIndexHelper->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
         }
 
         foreach ($diffStates as $state) {
@@ -170,196 +168,6 @@ final class DiffIndexUseCase
         );
     }
 
-    private function targetEntry(array &$indexEntries, HashMap &$treeEntries): ?string
-    {
-        $a = $this->currentEntry($indexEntries);
-        $b = $this->currentEntry($treeEntries);
-
-        if (is_null($a) && is_null($b)) {
-            return null;
-        }
-
-        if (is_null($a)) {
-            return $b;
-        }
-
-        if (is_null($b)) {
-            return $a;
-        }
-
-        $entries = [$a, $b];
-        sort($entries, GIT_SORT);
-
-        return $entries[0];
-    }
-
-    private function nextTargetEntry(
-        ?TreeEntry $old,
-        ?IndexEntry $new,
-        HashMap &$treeEntries,
-        array &$indexEntries
-    ): ?string {
-        if (!is_null($old)) {
-            $treeEntries->next();
-        }
-
-        if (!is_null($new)) {
-            next($indexEntries);
-        }
-
-        return $this->targetEntry($indexEntries, $treeEntries);
-    }
-
-    /**
-     * @param iterable $entries
-     */
-    private function currentEntry(iterable &$entries): ?string
-    {
-        $entry =  is_object($entries) ? $entries->key() : key($entries);
-        if (is_null($entry)) {
-            return null;
-        }
-
-        return strval($entry);
-    }
-
-    /**
-     * @return array{0:GitFileMode,1:ObjectHash}
-     */
-    private function getOldStatusFromTree(?TreeEntry $entry): array
-    {
-        if (is_null($entry)) {
-            // case: New file
-            return [GitFileMode::Unknown, ObjectHash::zero()];
-        }
-
-        return [$entry->gitFileMode, $entry->objectHash];
-    }
-
-    /**
-     * @return array{0:GitFileMode,1:ObjectHash}
-     */
-    private function getNewStatusFromIndex(?IndexEntry $entry): array
-    {
-        if (is_null($entry)) {
-            // case: Removed from index
-            return [GitFileMode::Unknown, ObjectHash::zero()];
-        }
-
-        return [$entry->gitFileMode, $entry->objectHash];
-    }
-
-    /**
-     * @return array{0:GitFileMode,1:ObjectHash}
-     */
-    private function getNewStatusFromWorktree(?IndexEntry $entry): array
-    {
-        if (is_null($entry)) {
-            // case: Removed from index
-            return [GitFileMode::Unknown, ObjectHash::zero()];
-        }
-
-        if (!$this->fileRepository->exists($entry->trackedPath)) {
-            // case: Deleted file
-            return [GitFileMode::Unknown, ObjectHash::zero()];
-        }
-
-        $contents = $this->fileRepository->getContents($entry->trackedPath);
-        $blob = BlobObject::new($contents);
-        $hash = ObjectHash::new($blob->data);
-
-        $stat = $this->fileRepository->getStat($entry->trackedPath);
-        $newEntry = IndexEntry::new($stat, $hash, $entry->trackedPath);
-
-        if (
-            $newEntry->objectHash->value !== $entry->objectHash->value
-            || $newEntry->gitFileMode !== $entry->gitFileMode
-        ) {
-            // case: Modified file
-            return [$newEntry->gitFileMode, ObjectHash::zero()];
-        }
-
-        return [$entry->gitFileMode, $hash];
-    }
-
-    private function getOldContentsFromTree(?TreeEntry $entry): ?string
-    {
-        if (is_null($entry)) {
-            return null;
-        }
-
-        $blob = $this->objectRepository->getBlob($entry->objectHash);
-
-        return $blob->body;
-    }
-
-    private function getNewContentsFromIndex(?IndexEntry $entry): ?string
-    {
-        if (is_null($entry)) {
-            return null;
-        }
-
-        if (!$this->objectRepository->exists($entry->objectHash)) {
-            return null;
-        }
-
-        $blob = $this->objectRepository->getBlob($entry->objectHash);
-
-        return $blob->body;
-    }
-
-    private function getNewContentsFromWorktree(?IndexEntry $entry): ?string
-    {
-        if (is_null($entry)) {
-            return null;
-        }
-
-        if (!$this->fileRepository->exists($entry->trackedPath)) {
-            return null;
-        }
-
-        return $this->fileRepository->getContents($entry->trackedPath);
-    }
-
-    private function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffState
-    {
-        $state = DiffState::new($path);
-        if (is_null($old) && is_null($new)) {
-            return $state;
-        }
-
-        if (is_null($new)) {
-            $state->dropedFile();
-
-            return $state;
-        }
-
-        if (is_null($old)) {
-            // NOTE: want to count the diff on new file
-            $old = '';
-            $state->addedFile();
-        }
-
-        $diff = $differ->diffToArray($old, $new);
-
-        foreach ($diff as $line) {
-            if (!isset($line[1])) {
-                throw new LogicException('LIBRARY ERROR: undefined line index 1');
-            }
-
-            switch ($line[1]) {
-                case $differ::ADDED:
-                    $state->insert();
-                    break;
-                case $differ::REMOVED:
-                    $state->delete();
-                    break;
-            }
-        }
-
-        return $state;
-    }
-
     /**
      * format
      *  :<old mode> <new mode> <old hash> <new hash> <status>\t<path>
@@ -372,10 +180,10 @@ final class DiffIndexUseCase
         string $path
     ): void {
         $status = match (true) {
-            $this->isSame($oldMode, $newMode, $oldHash, $newHash) => DiffStatus::None,
-            $this->isAdded($oldMode, $oldHash) => DiffStatus::Added,
-            $this->isModefied($oldMode, $oldHash, $newMode, $newHash) => DiffStatus::Modified,
-            $this->isDeleted($newMode, $newHash) => DiffStatus::Deleted,
+            $this->diffIndexHelper->isSame($oldMode, $newMode, $oldHash, $newHash) => DiffStatus::None,
+            $this->diffIndexHelper->isAdded($oldMode, $oldHash) => DiffStatus::Added,
+            $this->diffIndexHelper->isModefied($oldMode, $oldHash, $newMode, $newHash) => DiffStatus::Modified,
+            $this->diffIndexHelper->isDeleted($newMode, $newHash) => DiffStatus::Deleted,
             default => throw new LogicException('Unable to determine file change status')
         };
 
@@ -394,37 +202,5 @@ final class DiffIndexUseCase
                 $path
             )
         );
-    }
-
-    private function isSame(
-        GitFileMode $oldMode,
-        GitFileMode $newMode,
-        ObjectHash $oldHash,
-        ObjectHash $newHash,
-    ): bool {
-        return $oldMode === $newMode && $oldHash->value === $newHash->value;
-    }
-
-    private function isAdded(GitFileMode $oldMode, ObjectHash $oldHash): bool
-    {
-        return $oldMode === GitFileMode::Unknown && $oldHash->isZero();
-    }
-
-    private function isModefied(GitFileMode $oldMode, ObjectHash $oldHash, GitFileMode $newMode, ObjectHash $newHash): bool
-    {
-        if (
-            $oldHash->isZero()
-            || $newMode === GitFileMode::Unknown
-        ) {
-            return false;
-        }
-
-        return $oldHash->value !== $newHash->value
-            || $oldMode !== $newMode;
-    }
-
-    private function isDeleted(GitFileMode $newMode, ObjectHash $newHash): bool
-    {
-        return $newMode === GitFileMode::Unknown && $newHash->isZero();
     }
 }
