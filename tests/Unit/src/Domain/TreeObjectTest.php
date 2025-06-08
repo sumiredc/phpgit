@@ -67,7 +67,7 @@ describe('appendEntry', function () {
                     ]
                 ],
                 "100644 README.md\0" . hex2bin('34a2d4555e37ca2ad68563f0ce17d327b8bc0301')
-                    . "040000 src\0" . hex2bin('5dee59773f75e23b248965ccb9c5dbeebe875093')
+                    . "40000 src\0" . hex2bin('5dee59773f75e23b248965ccb9c5dbeebe875093')
             ]
         ]);
 });
