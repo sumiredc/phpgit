@@ -21,6 +21,7 @@ docker compose run --rm phpgit {command}
 8. `rev-parse <args>...`
 9. `update-ref <ref> <newvalue>`
 10. `add <path> [ --all | --update ]`
+11. `diff-index [ --cached ] <tree>`
 
 ## 📚️ Libraries & Resources
 
