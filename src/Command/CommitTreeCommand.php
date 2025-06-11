@@ -8,6 +8,7 @@ use Phpgit\Infra\Printer\CliPrinter;
 use Phpgit\Infra\Repository\GitConfigRepository;
 use Phpgit\Infra\Repository\ObjectRepository;
 use Phpgit\Request\CommitTreeRequest;
+use Phpgit\Service\CreateCommitTreeService;
 use Phpgit\UseCase\CommitTreeUseCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -33,10 +34,11 @@ final class CommitTreeCommand extends Command implements CommandInterface
         $printer = new CliPrinter($input, $output);
         $gitConfigRepository = new GitConfigRepository;
         $objectRepository = new ObjectRepository;
+
         $useCase = new CommitTreeUseCase(
             $printer,
-            $gitConfigRepository,
             $objectRepository,
+            new CreateCommitTreeService($gitConfigRepository)
         );
 
         $result = $useCase($request);

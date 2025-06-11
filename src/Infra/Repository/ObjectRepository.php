@@ -30,7 +30,7 @@ readonly final class ObjectRepository implements ObjectRepositoryInterface
 
         $compressed = CompressedPayload::fromOriginal($gitObject->data);
 
-        if (@file_put_contents($objectHash->fullPath(), $compressed->value) === false) {
+        if (file_put_contents($objectHash->fullPath(), $compressed->value) === false) {
             throw new RuntimeException(sprintf('failed to file_put_contents: %s', $objectHash->fullPath()));
         }
 

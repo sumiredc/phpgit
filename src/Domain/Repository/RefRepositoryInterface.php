@@ -26,6 +26,11 @@ interface RefRepositoryInterface
     /**
      * @throws RuntimeException
      */
+    public function updateHead(ObjectHash $hash): void;
+
+    /**
+     * @throws RuntimeException
+     */
     public function createOrUpdate(Reference $ref, ObjectHash $hash): void;
 
     /**

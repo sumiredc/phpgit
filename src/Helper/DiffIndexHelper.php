@@ -6,7 +6,7 @@ namespace Phpgit\Helper;
 
 use LogicException;
 use Phpgit\Domain\BlobObject;
-use Phpgit\Domain\DiffState;
+use Phpgit\Domain\DiffStat;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\HashMap;
 use Phpgit\Domain\IndexEntry;
@@ -177,9 +177,9 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
         return $this->fileRepository->getContents($entry->trackedPath);
     }
 
-    public function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffState
+    public function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffStat
     {
-        $state = DiffState::new($path);
+        $state = DiffStat::new($path);
         if (is_null($old) && is_null($new)) {
             return $state;
         }

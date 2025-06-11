@@ -64,4 +64,9 @@ readonly final class ObjectHash
     {
         return implode('/', [F_GIT_OBJECTS_DIR, $this->dir, $this->filename]);
     }
+
+    public function short(): string
+    {
+        return substr($this->value, 0, 7);
+    }
 }

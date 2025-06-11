@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Domain;
 
-final class DiffState
+final class DiffStat
 {
     private const BOTH_EXISTS_FILE = 0;
     private const ADDED_FILE = 1;
@@ -23,7 +23,7 @@ final class DiffState
 
     public static function new(string $path): self
     {
-        return new DiffState($path, 0, 0, self::BOTH_EXISTS_FILE);
+        return new self($path, 0, 0, self::BOTH_EXISTS_FILE);
     }
 
     public function insert(): void

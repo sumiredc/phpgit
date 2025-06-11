@@ -45,6 +45,17 @@ readonly final class RefRepository implements RefRepositoryInterface
     /**
      * @throws RuntimeException
      */
+    public function updateHead(ObjectHash $hash): void
+    {
+        $data = sprintf("%s\n", $hash->value);
+        if (file_put_contents(F_GIT_HEAD, $data) === false) {
+            throw new RuntimeException(sprintf('failed to file_put_contents: %s', F_GIT_HEAD));
+        }
+    }
+
+    /**
+     * @throws RuntimeException
+     */
     public function createOrUpdate(Reference $ref, ObjectHash $hash): void
     {
         $data = sprintf("%s\n", $hash->value);

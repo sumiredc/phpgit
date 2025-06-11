@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phpgit\Helper;
 
-use Phpgit\Domain\DiffState;
+use Phpgit\Domain\DiffStat;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\HashMap;
 use Phpgit\Domain\IndexEntry;
@@ -39,7 +39,7 @@ interface DiffIndexHelperInterface
 
     public function getNewContentsFromWorktree(?IndexEntry $entry): ?string;
 
-    public function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffState;
+    public function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffStat;
 
     public function isSame(GitFileMode $oldMode, GitFileMode $newMode, ObjectHash $oldHash, ObjectHash $newHash,): bool;
 
