@@ -5,8 +5,15 @@ declare(strict_types=1);
 $outputs = [];
 $exitCode = 0;
 
-$argv[0] = 'php ./src/app.php';
-$command = implode(' ', $argv);
+$command = array_reduce(
+    $argv,
+    fn(string $carry, string $arg) => match (true) {
+        $arg === basename(__FILE__) => $carry,
+        strpos($arg, ' ') !== false => sprintf('%s "%s"', $carry, $arg),
+        default => sprintf('%s %s', $carry, $arg),
+    },
+    'php ./src/app.php'
+);
 
 exec($command, $outputs, $exitCode);
 
