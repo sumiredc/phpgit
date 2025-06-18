@@ -10,7 +10,6 @@ use Throwable;
 
 final class CliPrinter extends SymfonyStyle implements PrinterInterface
 {
-
     private const SYMBOL_INSERTION = '+';
     private const SYMBOL_DELETION = '-';
 
