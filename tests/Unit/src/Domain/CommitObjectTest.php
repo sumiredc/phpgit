@@ -29,6 +29,7 @@ describe('new', function () {
             expect($actual->body)->toBe($expectedBody);
             expect($actual->data)->toBe($expectedData);
             expect($actual->prettyPrint())->toBe($expectedPrettyPrint);
+            expect($actual->treeHash())->toEqual($treeHash);
         }
     )
         ->with([

@@ -65,7 +65,7 @@ final class CommitObject extends GitObject
             preg_match($pattern, $this->body, $matches);
 
             if (!isset($matches[1])) {
-                throw new UnexpectedValueException('Tree hash not found in CommitObject body.');
+                throw new UnexpectedValueException('Tree hash not found in CommitObject body.'); // @codeCoverageIgnore
             }
 
             $this->_treeHash = ObjectHash::parse($matches[1]);

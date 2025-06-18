@@ -24,17 +24,33 @@ describe('new', function () {
 describe('parse', function () {
     it(
         'should match to hash',
-        function (string $hash, string $dir, string $filename) {
+        function (
+            string $hash,
+            string $dir,
+            string $filename,
+            string $short
+        ) {
             $actual = ObjectHash::parse($hash);
 
             expect($actual->value)->toBe($dir . $filename);
             expect($actual->dir)->toBe($dir);
             expect($actual->filename)->toBe($filename);
+            expect($actual->short())->toBe($short);
         }
     )
         ->with([
-            ['815675cd53e5196255182a0fd392e03df0fcd193', '81', '5675cd53e5196255182a0fd392e03df0fcd193'],
-            ['04ba9ed331f1eaa7618aefb1db4da5988463404d', '04', 'ba9ed331f1eaa7618aefb1db4da5988463404d'],
+            [
+                '815675cd53e5196255182a0fd392e03df0fcd193',
+                '81',
+                '5675cd53e5196255182a0fd392e03df0fcd193',
+                '815675c',
+            ],
+            [
+                '04ba9ed331f1eaa7618aefb1db4da5988463404d',
+                '04',
+                'ba9ed331f1eaa7618aefb1db4da5988463404d',
+                '04ba9ed',
+            ],
         ]);
 
     it(
@@ -53,6 +69,16 @@ describe('parse', function () {
                 new InvalidArgumentException('invalid argument: 815675cd53e5196255182a0fd392e03df0fcd19q')
             ]
         ]);
+});
+
+describe('zero', function () {
+    it('initializes zero object', function () {
+        $actual = ObjectHash::zero();
+
+        expect($actual->value)->toBe('0000000000000000000000000000000000000000');
+        expect($actual->isZero())->toBeTrue();
+        expect($actual->short())->toBe('0000000');
+    });
 });
 
 describe('path', function () {
