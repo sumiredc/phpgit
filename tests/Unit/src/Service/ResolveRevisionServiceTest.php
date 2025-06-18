@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phpgit\Domain\HeadType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
@@ -28,7 +29,9 @@ describe('__invoke', function () {
     it(
         'returns to result by resolveHead on the arg specified HEAD',
         function (ObjectHash $objectHash, string $expected) {
-            $this->refRepository->shouldReceive('resolveHead')->andReturn($objectHash)->once();
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Hash)->once()
+                ->shouldReceive('resolveHead')->andReturn($objectHash)->once();
 
             $service = new ResolveRevisionService($this->refRepository);
             $actual = $service('HEAD');
