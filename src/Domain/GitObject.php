@@ -45,7 +45,6 @@ abstract class GitObject
             ObjectType::Blob => new BlobObject($header, $body),
             ObjectType::Tree => new TreeObject($header, $body),
             ObjectType::Commit => new CommitObject($header, $body),
-            ObjectType::Tag => throw new Error('NOT SUPPORT OBJECT'), // TODO
 
             // NOTE: not reachable unless ObjectType is extended
             default => throw new RuntimeException(
