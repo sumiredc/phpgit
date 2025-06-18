@@ -5,7 +5,9 @@ declare(strict_types=1);
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\ObjectType;
+use Phpgit\Domain\TreeEntry;
 use Phpgit\Domain\TreeObject;
+use Tests\Factory\ObjectHashFactory;
 
 describe('new', function () {
     it(
@@ -70,6 +72,31 @@ describe('appendEntry', function () {
                     . "40000 src\0" . hex2bin('5dee59773f75e23b248965ccb9c5dbeebe875093')
             ]
         ]);
+});
+
+describe('entries', function () {
+    it(
+        'matches to entries to append entries',
+        function () {
+            $entries = [
+                TreeEntry::new(ObjectType::Blob, GitFileMode::DefaultFile, 'blob-default', ObjectHashFactory::new()),
+                TreeEntry::new(ObjectType::Blob, GitFileMode::ExeFile, 'blob-exe', ObjectHashFactory::new()),
+                TreeEntry::new(ObjectType::Tree, GitFileMode::Tree, 'tree', ObjectHashFactory::new()),
+            ];
+
+            $tree = TreeObject::new();
+            foreach ($entries as $entry) {
+                $tree->appendEntry($entry->gitFileMode, $entry->objectHash, $entry->objectName);
+            }
+
+            $actual = $tree->entries();
+            foreach ($entries as $expected) {
+                expect($actual->get($expected->objectName))->toEqual($expected);
+            }
+
+            expect(count($actual))->toBe(count($entries));
+        }
+    );
 });
 
 describe('prettyPrint', function () {
