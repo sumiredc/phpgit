@@ -33,7 +33,6 @@ readonly final class TreeToFlatEntriesService implements TreeToFlatEntriesServic
      */
     public function recursion(TreeObject $tree, array $segments, HashMap &$entries): void
     {
-
         foreach ($tree->entries() as $entry) {
             $currentPath = [...$segments, $entry->objectName];
 

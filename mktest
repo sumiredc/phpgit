@@ -1,6 +1,6 @@
 # !/bin/sh
 
-output=$(docker compose run --rm test -p --coverage)
+output=$(docker compose run --rm test --coverage)
 res=$?
 
 if [ "$res" -ne 0 ]; then

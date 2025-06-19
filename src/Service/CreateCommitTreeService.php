@@ -16,7 +16,7 @@ readonly final class CreateCommitTreeService implements CreateCommitTreeServiceI
         private readonly GitConfigRepositoryInterface $gitConfigRepository
     ) {}
 
-    public function __invoke(ObjectHash $treetHash, string $message, ?ObjectHash $parentHash): CommitObject
+    public function __invoke(ObjectHash $treeHash, string $message, ?ObjectHash $parentHash): CommitObject
     {
         $gitConfig = $this->gitConfigRepository->get();
 
@@ -24,6 +24,6 @@ readonly final class CreateCommitTreeService implements CreateCommitTreeServiceI
         $author = GitSignature::new($gitConfig->userName, $gitConfig->userEmail, $timestamp);
         $committer = GitSignature::new($gitConfig->userName, $gitConfig->userEmail, $timestamp);
 
-        return CommitObject::new($treetHash, $author, $committer, $message, $parentHash);
+        return CommitObject::new($treeHash, $author, $committer, $message, $parentHash);
     }
 }
