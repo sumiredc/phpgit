@@ -7,6 +7,7 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Service\ResolveRevisionService;
+use Tests\Factory\ReferenceFactory;
 
 beforeEach(function () {
     $this->refRepository = Mockery::mock(RefRepositoryInterface::class);
@@ -27,7 +28,7 @@ describe('__invoke', function () {
         ]);
 
     it(
-        'returns to result by resolveHead on the arg specified HEAD',
+        'returns to result by resolveHead on the arg specified HEAD and HeadType is Hash',
         function (ObjectHash $objectHash, string $expected) {
             $this->refRepository
                 ->shouldReceive('headType')->andReturn(HeadType::Hash)->once()
@@ -45,6 +46,73 @@ describe('__invoke', function () {
                 '7138a51661947b19b5088da5a2bfede2876f49b9',
             ]
         ]);
+
+    it(
+        'returns to result by head on the arg specified HEAD and HeadType is Reference',
+        function (ObjectHash $objectHash, string $expected) {
+            $ref = ReferenceFactory::local();
+
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Reference)->once()
+                ->shouldReceive('head')->andReturn($ref)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(true)->once()
+                ->shouldReceive('resolve')->withArgs(expectEqualArg($ref))->andReturn($objectHash)->once();
+
+            $service = new ResolveRevisionService($this->refRepository);
+            $actual = $service('HEAD');
+
+            expect($actual->value)->toBe($expected);
+        }
+    )
+        ->with([
+            [
+                ObjectHash::parse('7138a51661947b19b5088da5a2bfede2876f49b9'),
+                '7138a51661947b19b5088da5a2bfede2876f49b9',
+            ]
+        ]);
+
+    it(
+        'returns to null by head on the arg specified HEAD and HeadType is Reference but does not exists reference',
+        function () {
+            $ref = ReferenceFactory::local();
+
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Reference)->once()
+                ->shouldReceive('head')->andReturn($ref)->once()
+                ->shouldReceive('exists')->withArgs(expectEqualArg($ref))->andReturn(false)->once();
+
+            $service = new ResolveRevisionService($this->refRepository);
+            $actual = $service('HEAD');
+
+            expect($actual)->toBeNull();
+        }
+    );
+
+    it(
+        'returns to null by head on the arg specified HEAD and HeadType is Reference',
+        function () {
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Reference)->once()
+                ->shouldReceive('head')->andReturnNull()->once();
+
+            $service = new ResolveRevisionService($this->refRepository);
+            $actual = $service('HEAD');
+
+            expect($actual)->toBeNull();
+        }
+    );
+
+    it(
+        'throws an exception on the args specified HEAD but HeadType is unknown',
+        function () {
+            $this->refRepository
+                ->shouldReceive('headType')->andReturn(HeadType::Unknown)->once();
+
+            $service = new ResolveRevisionService($this->refRepository);
+
+            expect(fn() => $service('HEAD'))->toThrow(new LogicException('HEAD is Unknown'));
+        }
+    );
 
     it(
         'returns to result by resolve reference on the arg specified reference',
