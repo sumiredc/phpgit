@@ -23,6 +23,10 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
         private readonly ObjectRepositoryInterface $objectRepository,
     ) {}
 
+    /**
+     * @param array<string,IndexEntry> $indexEntries
+     * @param HashMap<TreeEntry> $treeEntries
+     */
     public function targetEntry(array &$indexEntries, HashMap &$treeEntries): ?string
     {
         $a = $this->currentEntry($indexEntries);
@@ -46,7 +50,10 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
         return $entries[0];
     }
 
-
+    /**
+     * @param HashMap<TreeEntry> $treeEntries
+     * @param array<string,IndexEntry> $indexEntries
+     */
     public function nextTargetEntry(
         ?TreeEntry $old,
         ?IndexEntry $new,
@@ -64,14 +71,12 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
         return $this->targetEntry($indexEntries, $treeEntries);
     }
 
-
-
     /**
      * @param iterable $entries
      */
     private function currentEntry(iterable &$entries): ?string
     {
-        $entry =  is_object($entries) ? $entries->key() : key($entries);
+        $entry = is_object($entries) ? $entries->key() : key($entries);
         if (is_null($entry)) {
             return null;
         }
@@ -200,7 +205,7 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
 
         foreach ($diff as $line) {
             if (!isset($line[1])) {
-                throw new LogicException('LIBRARY ERROR: undefined line index 1');
+                throw new LogicException('LIBRARY ERROR: undefined line index 1'); // @codeCoverageIgnore
             }
 
             switch ($line[1]) {
@@ -215,7 +220,6 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
 
         return $state;
     }
-
 
     public function isSame(
         GitFileMode $oldMode,
