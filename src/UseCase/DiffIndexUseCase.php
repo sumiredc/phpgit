@@ -144,13 +144,13 @@ final class DiffIndexUseCase
             $target = $this->diffIndexHelper->nextTargetEntry($old, $new, $treeEntries, $indexEntries);
         }
 
-        foreach ($diffStates as $state) {
+        foreach ($diffStates as $stat) {
             $this->printer->writelnDiffStat(
                 $maxPathLen,
                 $maxDiffDigits,
-                $state->path,
-                $state->insertions,
-                $state->deletions
+                $stat->path,
+                $stat->insertions,
+                $stat->deletions
             );
         }
 
@@ -184,7 +184,7 @@ final class DiffIndexUseCase
             $this->diffIndexHelper->isAdded($oldMode, $oldHash) => DiffStatus::Added,
             $this->diffIndexHelper->isModefied($oldMode, $oldHash, $newMode, $newHash) => DiffStatus::Modified,
             $this->diffIndexHelper->isDeleted($newMode, $newHash) => DiffStatus::Deleted,
-            default => throw new LogicException('Unable to determine file change status')
+            default => throw new LogicException('Unable to determine file change status'), // @codeCoverageIgnore
         };
 
         if ($status === DiffStatus::None) {
