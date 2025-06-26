@@ -20,7 +20,7 @@ use Phpgit\Domain\Repository\RefRepositoryInterface;
 use Phpgit\Domain\Result;
 use Phpgit\Domain\TreeObject;
 use Phpgit\Exception\UseCaseException;
-use Phpgit\Helper\DiffIndexHelper;
+use Phpgit\Helper\DiffIndexHelperInterface;
 use Phpgit\Request\CommitRequest;
 use Phpgit\Service\CreateCommitTreeServiceInterface;
 use Phpgit\Service\CreateSegmentTreeServiceInterface;
@@ -43,7 +43,7 @@ readonly final class CommitUseCase
         private readonly CreateSegmentTreeServiceInterface $createSegmentTreeService,
         private readonly SaveTreeObjectServiceInterface $saveTreeObjectService,
         private readonly CreateCommitTreeServiceInterface $createCommitTreeService,
-        private readonly DiffIndexHelper $diffIndexHelper
+        private readonly DiffIndexHelperInterface $diffIndexHelper
     ) {}
 
     public function __invoke(CommitRequest $request): Result
@@ -172,29 +172,17 @@ readonly final class CommitUseCase
             $this->diffIndexHelper->isAdded($oldMode, $oldHash) => DiffStatus::Added,
             $this->diffIndexHelper->isModefied($oldMode, $oldHash, $newMode, $newHash) => DiffStatus::Modified,
             $this->diffIndexHelper->isDeleted($newMode, $newHash) => DiffStatus::Deleted,
-            default => throw new LogicException('Unable to determine file change status')
+            default => throw new LogicException('Unable to determine file change status') // @codeCoverageIgnore
         };
 
-        if ($status === DiffStatus::None) {
-            return null;
-        }
-
-        switch ($status) {
-            case DiffStatus::Added:
-                return sprintf(" create mode %s %s", $newMode->value, $path);
-
-            case DiffStatus::Modified:
-                if ($oldMode !== $newMode) {
-                    return sprintf(" mode change %s => %s %s", $oldMode->value, $newMode->value, $path);
-                }
-                return null;
-
-            case DiffStatus::Deleted:
-                return sprintf(" delete mode %s %s", $oldMode->value, $path);
-
-            default:
-                return null;
-        }
+        return match ($status) {
+            DiffStatus::Added => sprintf(" create mode %s %s", $newMode->value, $path),
+            DiffStatus::Modified => $oldMode !== $newMode
+                ? sprintf(" mode change %s => %s %s", $oldMode->value, $newMode->value, $path)
+                : null,
+            DiffStatus::Deleted => sprintf(" delete mode %s %s", $oldMode->value, $path),
+            default => null
+        };
     }
 
     private function updateRef(ObjectHash $commitHash, HeadType $headType): ?Reference
@@ -207,16 +195,14 @@ readonly final class CommitUseCase
 
             case HeadType::Reference:
                 $ref = $this->refRepository->head();
-                if (is_null($ref)) {
-                    throw new LogicException('HEAD is not reference');
-                }
+                throw_if(is_null($ref), new LogicException('HEAD is not reference'));
 
                 $this->refRepository->createOrUpdate($ref, $commitHash);
 
                 return $ref;
 
             default:
-                throw new LogicException(sprintf('This branch is not reached: %s', $headType->name));
+                throw new LogicException(sprintf('This branch is not reached: %s', $headType->name)); // @codeCoverageIgnore
         }
     }
 
@@ -247,8 +233,8 @@ readonly final class CommitUseCase
         return match ($headType) {
             HeadType::Hash => sprintf('detached HEAD %s', $commitHash->short()),
             HeadType::Reference => is_null($parentCommit)
-                ? sprintf('%s (root-commit) %s', $ref->name, $commitHash?->short() ?? '')
-                : sprintf('%s %s', $ref->name, $commitHash?->short() ?? '')
+                ? sprintf('%s (root-commit) %s', $ref->name, $commitHash->short())
+                : sprintf('%s %s', $ref->name, $commitHash->short())
         };
     }
 }
