@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phpgit\Helper;
 
-use LogicException;
 use Phpgit\Domain\BlobObject;
 use Phpgit\Domain\DiffStat;
 use Phpgit\Domain\GitFileMode;
@@ -14,7 +13,8 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\TreeEntry;
-use SebastianBergmann\Diff\Differ;
+use Phpgit\Module\LineDiff\Differ;
+use Phpgit\Module\LineDiff\Domain\Operation;
 
 readonly final class DiffIndexHelper implements DiffIndexHelperInterface
 {
@@ -182,8 +182,10 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
         return $this->fileRepository->getContents($entry->trackedPath);
     }
 
-    public function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffStat
+    public function countDiff(?string $old, ?string $new, string $path): DiffStat
     {
+        $differ = new Differ;
+
         $state = DiffStat::new($path);
         if (is_null($old) && is_null($new)) {
             return $state;
@@ -201,18 +203,14 @@ readonly final class DiffIndexHelper implements DiffIndexHelperInterface
             $state->addedFile();
         }
 
-        $diff = $differ->diffToArray($old, $new);
+        $diff = $differ($old, $new);
 
-        foreach ($diff as $line) {
-            if (!isset($line[1])) {
-                throw new LogicException('LIBRARY ERROR: undefined line index 1'); // @codeCoverageIgnore
-            }
-
-            switch ($line[1]) {
-                case $differ::ADDED:
+        foreach ($diff->details as $detail) {
+            switch ($detail->operation) {
+                case Operation::Insert:
                     $state->insert();
                     break;
-                case $differ::REMOVED:
+                case Operation::Delete:
                     $state->delete();
                     break;
             }

@@ -22,8 +22,6 @@ use Phpgit\Request\DiffIndexRequest;
 use Phpgit\Service\ResolveRevisionServiceInterface;
 use Phpgit\Service\TreeToFlatEntriesServiceInterface;
 use Phpgit\UseCase\DiffIndexUseCase;
-use SebastianBergmann\Diff\Differ;
-use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Symfony\Component\Console\Input\InputInterface;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\GitSignatureFactory;
@@ -631,7 +629,6 @@ describe('__invoke actionStat', function () {
                     ->shouldReceive('getOldContentsFromTree')->withArgs(expectEqualArg($t['treeEntry']))->andReturn($t['treeContents'])->once()
                     ->shouldReceive('getNewContentsFromIndex')->withArgs(expectEqualArg($t['indexEntry']))->andReturn($t['indexContents'])->once()
                     ->shouldReceive('countDiff')->withArgs(expectEqualArg(
-                        new Differ(new UnifiedDiffOutputBuilder()),
                         $t['treeContents'],
                         $t['indexContents'],
                         $t['target']
@@ -774,7 +771,6 @@ describe('__invoke actionStat', function () {
                 ->shouldReceive('getOldContentsFromTree')->withArgs(expectEqualArg($treeEntry))->andReturn($treeContents)->once()
                 ->shouldReceive('getNewContentsFromWorktree')->withArgs(expectEqualArg($indexEntry))->andReturn($indexContents)->once()
                 ->shouldReceive('countDiff')->withArgs(expectEqualArg(
-                    new Differ(new UnifiedDiffOutputBuilder()),
                     $treeContents,
                     $indexContents,
                     $target

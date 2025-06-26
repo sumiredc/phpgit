@@ -10,7 +10,6 @@ use Phpgit\Domain\HashMap;
 use Phpgit\Domain\IndexEntry;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\TreeEntry;
-use SebastianBergmann\Diff\Differ;
 
 interface DiffIndexHelperInterface
 {
@@ -39,7 +38,7 @@ interface DiffIndexHelperInterface
 
     public function getNewContentsFromWorktree(?IndexEntry $entry): ?string;
 
-    public function countDiff(Differ $differ, ?string $old, ?string $new, string $path): DiffStat;
+    public function countDiff(?string $old, ?string $new, string $path): DiffStat;
 
     public function isSame(GitFileMode $oldMode, GitFileMode $newMode, ObjectHash $oldHash, ObjectHash $newHash,): bool;
 

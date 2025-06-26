@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Phpgit\Domain\BlobObject;
-use Phpgit\Domain\DiffStat;
 use Phpgit\Domain\FileStat;
 use Phpgit\Domain\GitFileMode;
 use Phpgit\Domain\HashMap;
@@ -14,8 +13,6 @@ use Phpgit\Domain\Repository\FileRepositoryInterface;
 use Phpgit\Domain\Repository\ObjectRepositoryInterface;
 use Phpgit\Domain\TreeEntry;
 use Phpgit\Helper\DiffIndexHelper;
-use SebastianBergmann\Diff\Differ;
-use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Tests\Factory\BlobObjectFactory;
 use Tests\Factory\FileStatFactory;
 use Tests\Factory\IndexEntryFactory;
@@ -483,7 +480,7 @@ describe('countDiff', function () {
         'returns not diff state on old and new are null',
         function () {
             $helper = new DiffIndexHelper($this->fileRepository, $this->objectRepository);
-            $actual = $helper->countDiff(new Differ(new UnifiedDiffOutputBuilder), null, null, 'dummy-path');
+            $actual = $helper->countDiff(null, null, 'dummy-path');
 
             expect($actual->path)->toBe('dummy-path');
             expect($actual->total)->toBe(0);
@@ -496,7 +493,6 @@ describe('countDiff', function () {
         function () {
             $helper = new DiffIndexHelper($this->fileRepository, $this->objectRepository);
             $actual = $helper->countDiff(
-                new Differ(new UnifiedDiffOutputBuilder),
                 'old contents',
                 null,
                 'dummy-path'
@@ -513,7 +509,6 @@ describe('countDiff', function () {
         function () {
             $helper = new DiffIndexHelper($this->fileRepository, $this->objectRepository);
             $actual = $helper->countDiff(
-                new Differ(new UnifiedDiffOutputBuilder),
                 null,
                 '',
                 'dummy-path'
@@ -535,7 +530,6 @@ describe('countDiff', function () {
         ) {
             $helper = new DiffIndexHelper($this->fileRepository, $this->objectRepository);
             $actual = $helper->countDiff(
-                new Differ(new UnifiedDiffOutputBuilder),
                 $old,
                 $new,
                 'dummy-path'

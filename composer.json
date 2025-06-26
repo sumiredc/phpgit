@@ -19,8 +19,7 @@
         "bench": "docker compose run --rm bench --report=default"
     },
     "require": {
-        "symfony/console": "^7.2",
-        "sebastian/diff": "^6.0"
+        "symfony/console": "^7.2"
     },
     "require-dev": {
         "pestphp/pest": "^3.8",

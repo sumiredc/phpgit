@@ -28,8 +28,6 @@ use Phpgit\Service\ResolveRevisionServiceInterface;
 use Phpgit\Service\SaveTreeObjectServiceInterface;
 use Phpgit\Service\TreeToFlatEntriesServiceInterface;
 use Phpgit\UseCase\CommitUseCase;
-use SebastianBergmann\Diff\Differ;
-use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Symfony\Component\Console\Input\InputInterface;
 use Tests\Factory\CommitObjectFactory;
 use Tests\Factory\FileStatFactory;
@@ -102,7 +100,6 @@ describe('__invoke', function () {
                 ->shouldReceive('getOldContentsFromTree')->with(null)->andReturnNull()->once()
                 ->shouldReceive('getNewContentsFromIndex')->withArgs(expectEqualArg($indexEntry))->andReturn($indexContents)->once()
                 ->shouldReceive('countDiff')->withArgs(expectEqualArg(
-                    new Differ(new UnifiedDiffOutputBuilder()),
                     null,
                     $indexContents,
                     $target
@@ -211,7 +208,6 @@ describe('__invoke', function () {
                 ->shouldReceive('getOldContentsFromTree')->with(null)->andReturnNull()->once()
                 ->shouldReceive('getNewContentsFromIndex')->withArgs(expectEqualArg($indexEntry))->andReturn($indexContents)->once()
                 ->shouldReceive('countDiff')->withArgs(expectEqualArg(
-                    new Differ(new UnifiedDiffOutputBuilder()),
                     null,
                     $indexContents,
                     $target
@@ -329,7 +325,6 @@ describe('__invoke', function () {
                 ->shouldReceive('getOldContentsFromTree')->withArgs(expectEqualArg($treeEntry))->andReturn($treeContents)->once()
                 ->shouldReceive('getNewContentsFromIndex')->withArgs(expectEqualArg($indexEntry))->andReturn($indexContents)->once()
                 ->shouldReceive('countDiff')->withArgs(expectEqualArg(
-                    new Differ(new UnifiedDiffOutputBuilder()),
                     $treeContents,
                     $indexContents,
                     $target
@@ -451,7 +446,6 @@ describe('__invoke', function () {
                 ->shouldReceive('getOldContentsFromTree')->withArgs(expectEqualArg($treeEntry))->andReturn($treeContents)->once()
                 ->shouldReceive('getNewContentsFromIndex')->with(null)->andReturnNull()->once()
                 ->shouldReceive('countDiff')->withArgs(expectEqualArg(
-                    new Differ(new UnifiedDiffOutputBuilder()),
                     $treeContents,
                     null,
                     $target
