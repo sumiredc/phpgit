@@ -22,16 +22,23 @@ docker compose run --rm phpgit {command}
 9. `update-ref <ref> <newvalue>`
 10. `add <path> [ --all | --update ]`
 11. `diff-index [ --cached | --stat ] <tree>`
+12. `commit -m <message>`
 
 ## 📚️ Libraries & Resources
 
 A list of official links to the libraries and tools used in this project.
 
+- https://symfony.com/doc/current/components/console.html
 - https://pestphp.com/
 - https://docs.mockery.io/
 
+## 🗒️ References
 
-# Git help
+### Myers diff argorithm
+- http://www.xmailserver.org/diff2.pdf
+
+
+# ❔️ Git help
 
 ```
 See 'git help <command>' to read about a specific subcommand

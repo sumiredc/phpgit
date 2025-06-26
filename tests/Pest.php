@@ -17,7 +17,10 @@ if (!file_exists('/.dockerenv')) {
 |
 */
 
-pest()->extend(Tests\TestCase::class)->in('Feature');
+pest()->extend(Tests\TestCase::class);
+
+pest()->group('feature')->in('Feature');
+pest()->group('module')->in('Unit/src/Module');
 
 /*
 |--------------------------------------------------------------------------
