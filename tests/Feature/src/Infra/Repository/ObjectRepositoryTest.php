@@ -8,6 +8,7 @@ use Phpgit\Domain\ObjectHash;
 use Phpgit\Infra\Repository\ObjectRepository;
 use Tests\CommandRunner;
 use Tests\Factory\BlobObjectFactory;
+use Tests\Factory\CommitObjectFactory;
 use Tests\Factory\TreeObjectFactory;
 
 beforeAll(function () {
@@ -170,6 +171,104 @@ describe('get', function () {
             $actual = $repository->get($hash);
 
             expect($actual->data)->toBe($object->data);
+        }
+    );
+
+    it(
+        'returns to object on exists commit object',
+        function () {
+            $object = CommitObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            $actual = $repository->get($hash);
+
+            expect($actual->data)->toBe($object->data);
+        }
+    );
+});
+
+describe('getBlob', function () {
+    it(
+        'returns to object on exists blob object',
+        function () {
+            $object = BlobObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            $actual = $repository->getBlob($hash);
+
+            expect($actual->data)->toBe($object->data);
+        }
+    );
+
+    it(
+        'throws an exception on does not blob object by hash',
+        function () {
+            $object = TreeObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            expect(fn() => $repository->getBlob($hash))->toThrow(new UnexpectedValueException('unexpected BlobObject: Tree'));
+        }
+    );
+});
+
+describe('getTree', function () {
+    it(
+        'returns to object on exists tree object',
+        function () {
+            $object = TreeObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            $actual = $repository->getTree($hash);
+
+            expect($actual->data)->toBe($object->data);
+        }
+    );
+
+    it(
+        'throws an exception on does not tree object by hash',
+        function () {
+            $object = CommitObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            expect(fn() => $repository->getTree($hash))->toThrow(new UnexpectedValueException('unexpected TreeObject: Commit'));
+        }
+    );
+});
+
+describe('getCommit', function () {
+    it(
+        'returns to object on exists commit object',
+        function () {
+            $object = CommitObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            $actual = $repository->getCommit($hash);
+
+            expect($actual->data)->toBe($object->data);
+        }
+    );
+
+    it(
+        'throws an exception on does not commit object by hash',
+        function () {
+            $object = BlobObjectFactory::new();
+
+            $repository = new ObjectRepository;
+            $hash = $repository->save($object);
+
+            expect(fn() => $repository->getCommit($hash))->toThrow(new UnexpectedValueException('unexpected CommitObject: Blob'));
         }
     );
 });
