@@ -27,8 +27,6 @@ use Phpgit\Service\CreateSegmentTreeServiceInterface;
 use Phpgit\Service\ResolveRevisionServiceInterface;
 use Phpgit\Service\SaveTreeObjectServiceInterface;
 use Phpgit\Service\TreeToFlatEntriesServiceInterface;
-use SebastianBergmann\Diff\Differ;
-use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Throwable;
 
 readonly final class CommitUseCase
@@ -124,7 +122,6 @@ readonly final class CommitUseCase
             : ($this->treeToFlatEntriesService)($treeObject);
         $indexEntries = $gitIndex->entries;
 
-        $differ = new Differ(new UnifiedDiffOutputBuilder);
         $target = $this->diffIndexHelper->targetEntry($indexEntries, $treeEntries);
 
         while (!is_null($target)) {
@@ -137,7 +134,7 @@ readonly final class CommitUseCase
             $oldContents = $this->diffIndexHelper->getOldContentsFromTree($old);
             $newContents = $this->diffIndexHelper->getNewContentsFromIndex($new);
 
-            $diff = $this->diffIndexHelper->countDiff($differ, $oldContents, $newContents, $target);
+            $diff = $this->diffIndexHelper->countDiff($oldContents, $newContents, $target);
 
             if ($diff->isChanged()) {
                 $insertions += $diff->insertions;
