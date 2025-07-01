@@ -53,7 +53,7 @@ interface RefRepositoryInterface
     /**
      * @throws RuntimeException
      */
-    public function resolveHead(): ?ObjectHash;
+    public function resolveHead(): ObjectHash;
 
     public function dereference(string $value): ?Reference;
 }

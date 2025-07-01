@@ -8,6 +8,7 @@ use Phpgit\Domain\HeadType;
 use Phpgit\Domain\ObjectHash;
 use Phpgit\Domain\Reference;
 use Phpgit\Domain\Repository\RefRepositoryInterface;
+use Phpgit\Domain\Service\HashPattern;
 use Phpgit\Domain\Service\RefPattern;
 use RuntimeException;
 
@@ -48,8 +49,8 @@ readonly final class RefRepository implements RefRepositoryInterface
     public function updateHead(ObjectHash $hash): void
     {
         $data = sprintf("%s\n", $hash->value);
-        if (file_put_contents(F_GIT_HEAD, $data) === false) {
-            throw new RuntimeException(sprintf('failed to file_put_contents: %s', F_GIT_HEAD));
+        if (@file_put_contents(F_GIT_HEAD, $data) === false) {
+            throw new RuntimeException(sprintf('failed to file_put_contents: %s', F_GIT_HEAD)); // @codeCoverageIgnore
         }
     }
 
@@ -59,8 +60,8 @@ readonly final class RefRepository implements RefRepositoryInterface
     public function createOrUpdate(Reference $ref, ObjectHash $hash): void
     {
         $data = sprintf("%s\n", $hash->value);
-        if (file_put_contents($ref->fullPath, $data) === false) {
-            throw new RuntimeException(sprintf('failed to file_put_contents: %s', $ref->fullPath));
+        if (@file_put_contents($ref->fullPath, $data) === false) {
+            throw new RuntimeException(sprintf('failed to file_put_contents: %s', $ref->path)); // @codeCoverageIgnore
         }
     }
 
@@ -70,7 +71,7 @@ readonly final class RefRepository implements RefRepositoryInterface
     public function delete(Reference $ref): void
     {
         if (@unlink($ref->fullPath) === false) {
-            throw new RuntimeException(sprintf('failed to delete file: %s', $ref->fullPath));
+            throw new RuntimeException(sprintf('failed to delete file: %s', $ref->path)); // @codeCoverageIgnore
         }
     }
 
@@ -78,22 +79,24 @@ readonly final class RefRepository implements RefRepositoryInterface
     {
         $fp = @fopen(F_GIT_HEAD, 'r');
 
-        try {
-            if ($fp === false) {
-                return HeadType::Unknown;
-            }
+        if ($fp === false) {
+            return HeadType::Unknown;
+        }
 
+        try {
             $line = fgets($fp);
             if ($line === false) {
                 return HeadType::Unknown;
             }
 
-            $ref = RefPattern::parsePath($line);
-            if (is_null($ref)) {
+            if (HashPattern::sha1($line)) {
                 return HeadType::Hash;
             }
 
-            return HeadType::Reference;
+            if (!is_null(RefPattern::parsePath($line))) {
+                return HeadType::Reference;
+            }
+            return HeadType::Unknown;
         } finally {
             fclose($fp);
         }
@@ -112,19 +115,20 @@ readonly final class RefRepository implements RefRepositoryInterface
         }
 
         $fp = @fopen(F_GIT_HEAD, 'r');
-        try {
-            if ($fp === false) {
-                throw new RuntimeException('failed to fopen by HEAD');
-            }
 
+        if ($fp === false) {
+            throw new RuntimeException('failed to fopen by HEAD'); // @codeCoverageIgnore
+        }
+
+        try {
             $line = fgets($fp);
             if ($line === false) {
-                throw new RuntimeException('failed to fgets by HEAD first line');
+                throw new RuntimeException('failed to fgets by HEAD first line'); // @codeCoverageIgnore
             }
 
             $ref = RefPattern::parsePath($line);
             if (is_null($ref)) {
-                throw new RuntimeException(sprintf('HEAD is not Reference: %s', $ref));
+                throw new RuntimeException(sprintf('HEAD is not Reference: %s', $ref));  // @codeCoverageIgnore
             }
 
             return Reference::parse($ref);
@@ -140,14 +144,14 @@ readonly final class RefRepository implements RefRepositoryInterface
     {
         $fp = @fopen($ref->fullPath, 'r');
 
-        try {
-            if ($fp === false) {
-                throw new RuntimeException(sprintf('failed to fopen: %s', $ref->fullPath));
-            }
+        if ($fp === false) {
+            throw new RuntimeException(sprintf('failed to fopen: %s', $ref->path));
+        }
 
+        try {
             $line = fgets($fp);
             if ($line === false) {
-                throw new RuntimeException(sprintf('failed to fgets: %s', $ref->fullPath));
+                throw new RuntimeException(sprintf('failed to fgets: %s', $ref->path));
             }
 
             $hash = preg_replace('/\r\n|\n|\r/', '', $line);
@@ -160,15 +164,15 @@ readonly final class RefRepository implements RefRepositoryInterface
     /**
      * @throws RuntimeException
      */
-    public function resolveHead(): ?ObjectHash
+    public function resolveHead(): ObjectHash
     {
         $fp = @fopen(F_GIT_HEAD, 'r');
 
-        try {
-            if ($fp === false) {
-                throw new RuntimeException('failed to fopen by HEAD');
-            }
+        if ($fp === false) {
+            throw new RuntimeException('failed to fopen by HEAD');
+        }
 
+        try {
             $line = fgets($fp);
             if ($line === false) {
                 throw new RuntimeException('failed to fgets by HEAD first line');
