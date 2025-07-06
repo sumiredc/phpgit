@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Phpgit\Infra\Printer\CliPrinter;
-use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
