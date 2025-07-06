@@ -66,9 +66,7 @@ readonly final class FileRepository implements FileRepositoryInterface
             PathType::Directory => $this->searchDir($trackedPath),
             PathType::Pattern => $this->searchByPattern($trackedPath),
             PathType::Unknown => HashMap::new(),
-            default => throw new UnhandledMatchError(
-                sprintf('Unhandled enum case: %s', $pathType->name)
-            ), // @codeCoverageIgnore
+            default => throw new UnhandledMatchError(sprintf('Unhandled enum case: %s', $pathType->name)), // @codeCoverageIgnore
         };
     }
 
@@ -85,10 +83,7 @@ readonly final class FileRepository implements FileRepositoryInterface
             $fullPaths = glob($pattern, GLOB_BRACE);
 
             if ($fullPaths === false) {
-                throw new RuntimeException(sprintf(
-                    'glob() failed: invalid pattern or internal error: %s',
-                    $pattern
-                ));
+                throw new RuntimeException(sprintf('glob() failed: invalid pattern or internal error: %s', $pattern)); // @codeCoverageIgnore
             }
 
             /** @var array<string> $fullPaths */
@@ -127,15 +122,16 @@ readonly final class FileRepository implements FileRepositoryInterface
      */
     private function searchByPattern(TrackedPath $trackedPath): HashMap
     {
-        $fullPaths = glob($trackedPath->value);
+        $fullPaths = glob($trackedPath->full());
         if ($fullPaths === false) {
-            throw new RuntimeException(sprintf('failed to glob: %s', $trackedPath->value));
+            throw new RuntimeException(sprintf('failed to glob(): %s', $trackedPath->full())); // @codeCoverageIgnore
         }
 
         $targets = HashMap::new();
         foreach ($fullPaths as $fullPath) {
             if (is_file($fullPath)) {
-                $targets->set($trackedPath->value, TrackedPath::parse($fullPath));
+                $target = TrackedPath::parse($fullPath);
+                $targets->set($target->value, $target);
             }
         }
 
