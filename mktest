@@ -1,6 +1,6 @@
 # !/bin/sh
 
-output=$(docker compose run --rm test --coverage)
+output=$(docker compose run --rm test --coverage --compact)
 res=$?
 
 if [ "$res" -ne 0 ]; then
@@ -15,10 +15,6 @@ files=$(echo "$output" \
 
 for file in $files; do
     case "$file" in
-        # ignore
-        src/Command/*)
-            continue
-            ;;
         # feature
         src/Command/*|src/Infra/*)
             path="tests/Feature/${file}Test.php"
