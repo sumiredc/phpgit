@@ -10,9 +10,9 @@ beforeAll(function () {
     CommandRunner::run('php git init');
 });
 
-describe('commit-tree', function () {
+describe('hash-object', function () {
     it(
-        'outputs commit-tree results',
+        'outputs object hash string',
         function () {
             file_put_contents(F_GIT_TRACKING_ROOT . '/README.md', "Hello, World!\n");
 
