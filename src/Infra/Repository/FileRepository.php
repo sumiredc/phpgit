@@ -75,45 +75,45 @@ readonly final class FileRepository implements FileRepositoryInterface
      */
     private function searchDir(TrackedPath $trackedPath): HashMap
     {
-        /** @param HashMap<TrackedPath> $targets - this is reference arg */
-        function searchFile(TrackedPath $trackedPath, HashMap $targets): void
-        {
-            // include ignore paths (ex: .ignore)
-            $pattern = sprintf("%s%s", rtrim($trackedPath->full(), '/'), '/{.[!.],}*');
-            $fullPaths = glob($pattern, GLOB_BRACE);
+        $targets = HashMap::new();
+        $this->searchFile($trackedPath, $targets);
 
-            if ($fullPaths === false) {
-                throw new RuntimeException(sprintf('glob() failed: invalid pattern or internal error: %s', $pattern)); // @codeCoverageIgnore
+        return $targets;
+    }
+
+    /** @param HashMap<TrackedPath> $targets - this is reference arg */
+    private function searchFile(TrackedPath $trackedPath, HashMap $targets): void
+    {
+        // include ignore paths (ex: .ignore)
+        $pattern = sprintf("%s%s", rtrim($trackedPath->full(), '/'), '/{.[!.],}*');
+        $fullPaths = glob($pattern, GLOB_BRACE);
+
+        if ($fullPaths === false) {
+            throw new RuntimeException(sprintf('glob() failed: invalid pattern or internal error: %s', $pattern)); // @codeCoverageIgnore
+        }
+
+        /** @var array<string> $fullPaths */
+        foreach ($fullPaths as $fullPath) {
+            if (
+                !is_readable($fullPath)
+                || is_link($fullPath) // TODO: シンボリックリンクは一旦対象外とする
+            ) {
+                continue;
             }
 
-            /** @var array<string> $fullPaths */
-            foreach ($fullPaths as $fullPath) {
-                if (
-                    !is_readable($fullPath)
-                    || is_link($fullPath) // TODO: シンボリックリンクは一旦対象外とする
-                ) {
+            if (is_file($fullPath)) {
+                $trackedPath = TrackedPath::parse($fullPath);
+                $targets->set($trackedPath->value, $trackedPath);
+            }
+
+            if (is_dir($fullPath)) {
+                if (basename($fullPath) === GIT_DIR) {
                     continue;
                 }
 
-                if (is_file($fullPath)) {
-                    $trackedPath = TrackedPath::parse($fullPath);
-                    $targets->set($trackedPath->value, $trackedPath);
-                }
-
-                if (is_dir($fullPath)) {
-                    if (basename($fullPath) === GIT_DIR) {
-                        continue;
-                    }
-
-                    searchFile(TrackedPath::parse($fullPath), $targets);
-                }
+                $this->searchFile(TrackedPath::parse($fullPath), $targets);
             }
-        };
-
-        $targets = HashMap::new();
-        searchFile($trackedPath, $targets);
-
-        return $targets;
+        }
     }
 
     /**
