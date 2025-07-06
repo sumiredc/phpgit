@@ -27,12 +27,11 @@ readonly final class IndexRepository implements IndexRepositoryInterface
     public function get(): GitIndex
     {
         $fp = @fopen(F_GIT_INDEX, 'rb');
+        if ($fp === false) {
+            throw new RuntimeException('failed to fopen Git Index');
+        }
 
         try {
-            if ($fp === false) {
-                throw new RuntimeException('failed to fopen Git Index');
-            }
-
             $header = fread($fp, GIT_INDEX_HEADER_LENGTH);
             if ($header === false) {
                 throw new RuntimeException('failed to fread Git Index header');
@@ -44,7 +43,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
             while (!$gitIndex->isLoadedEntries()) {
                 $entryHeaderBlob = fread($fp, GIT_INDEX_ENTRY_HEADER_LENGTH);
                 if ($entryHeaderBlob === false) {
-                    throw new RuntimeException('failed to fread Entry header');
+                    throw new RuntimeException('failed to fread Entry header'); // @codeCoverageIgnore
                 }
 
                 $entryHeader = IndexEntryHeader::parse($entryHeaderBlob);
@@ -52,7 +51,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
 
                 $pathWithNull = fread($fp, $pathSize->withNull);
                 if ($pathWithNull === false) {
-                    throw new RuntimeException('failed to fread Entry path');
+                    throw new RuntimeException('failed to fread Entry path'); // @codeCoverageIgnore
                 }
 
                 $path = substr($pathWithNull, 0, -1); // remove to null-terminated string
@@ -69,7 +68,7 @@ readonly final class IndexRepository implements IndexRepositoryInterface
                 }
 
                 if (fread($fp, $paddingSize->value) === false) {
-                    throw new RuntimeException('failed to fread Entry padding');
+                    throw new RuntimeException('failed to fread Entry padding'); // @codeCoverageIgnore
                 }
             }
 

@@ -22,7 +22,6 @@ afterEach(function () {
     restore_error_handler();
 });
 
-
 describe('exists', function () {
     it(
         'returns true on exists file',
