@@ -28,7 +28,7 @@ use Phpgit\Module\LineDiff\Domain\DiffResult;
  * 
  * 偶奇制約
  *  d = x + y
- *  x,y は偶,偶 or 奇,奇 の座標にしかたどり着けない
+ *  d,k の関係は偶,偶 or 奇,奇 にしかならない
  */
 readonly final class Differ
 {
