@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "path": "./project",
+      "name": "TEST PROJECT"
+    },
+    {
       "path": "."
     }
   ],
