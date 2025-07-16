@@ -40,8 +40,9 @@ readonly final class Differ
         $forward = new ForwardSearcher($snakeFinder, $optimizer);
         $backtracer = new Backtracer($optimizer);
 
-        $xLines = explode("\n", $old);
-        $yLines = explode("\n", $new);
+        // 空ファイルが [''] になるのを防止
+        $xLines = $old === '' ? [] : explode("\n", $old);
+        $yLines = $new === '' ? [] : explode("\n", $new);
 
         $xMax = count($xLines);
         $yMax = count($yLines);

@@ -50,7 +50,7 @@ describe('commit', function () {
             expect($output)->toContain(
                 'main (root-commit)',
                 'first commit',
-                '1 files changed, 1 insertions(+), 0 deletions(-)',
+                '1 files changed, 2 insertions(+), 0 deletions(-)',
                 'create mode 100644 README.md'
             );
             expect($exitCode)->toBeExitSuccess();

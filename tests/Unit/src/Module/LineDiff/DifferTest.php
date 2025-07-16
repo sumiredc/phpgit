@@ -19,8 +19,28 @@ describe('__invoke', function () {
                 'old' => file_get_contents(__DIR__ . '/storage/001_old.md'),
                 'new' => file_get_contents(__DIR__ . '/storage/001_new.md'),
                 'expected' => file_get_contents(__DIR__ . '/storage/001_expected.md')
+            ],
+        ]);
+
+    it(
+        'diff empty',
+        function (string $new, string $expected) {
+            // 行末改行を削除する
+            $expected = preg_replace('/\n$/', '', $expected);
+
+            $deffer = new Differ;
+            $actual = $deffer('', $new);
+
+            expect($actual->toUnifiedString())->toBe($expected);
+        }
+    )
+        ->with([
+            fn() => [
+                'new' => file_get_contents(__DIR__ . '/storage/001_compare_empty.md'),
+                'expected' => file_get_contents(__DIR__ . '/storage/001_compare_empty_expected.md'),
             ]
         ]);
+
 
     it(
         'simple diff',

@@ -1,0 +1,3 @@
+# Sample Project
+
+( ^ω^)ﾑﾎﾎ
