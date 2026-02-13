@@ -1,0 +1,36 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  test:
+    cmds:
+      - docker compose run --rm test
+    silent: true
+
+  test-feature:
+    cmds:
+      - docker compose run --rm test tests/Feature
+    silent: true
+  
+  test-architecture:
+    cmds:
+      - docker compose run --rm test tests/Architecture
+    silent: true
+
+  test-senario:
+    cmds:
+      - docker compose run --rm test tests/Scenario
+    silent: true
+
+  test-all:
+    cmds:
+      - task: test
+      - task: test-feature
+      - task: test-architecture
+      - task: test-senario
+
+  bench:
+    cmds:
+      - docker compose run --rm bench              
+    silent: true
